@@ -36,7 +36,6 @@
 | `genji_ult_window_active` | `genji_ult_window_active` | `[genji] lock swift strike outside blade window`、`[genji] start blade window on final blow`、`[genji] blade damage cap during window`、源氏清理规则 | 源氏 8 秒疯狗龙刃窗口是否开启。开启时 Shift 解锁、终极充能 100。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开时应设假。 |
 | `genji_ult_window_timer` | `genji_ult_window_timer` | `[genji] start blade window on final blow`、`[genji] blade window countdown`、`[genji] end blade window with sleep`、源氏清理规则 | 源氏疯狗窗口剩余时间。击杀设为 8，倒计时规则每秒减 1，续杀重新设为 8。 | 否。 | 是，默认 0。 | 自然结束、死亡、换英雄、离开时设 0。 |
 | `genji_ult_window_token` | `genji_ult_window_token` | `[genji] start blade window on final blow`、源氏清理规则 | 每次击杀或清理时递增的窗口版本号。当前 timer 方案不依赖它结束窗口，但保留作后续 HUD/调试扩展。 | 否。 | 是，默认 0。 | 死亡、换英雄、清理时递增。 |
-
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |
@@ -56,4 +55,5 @@
 - TODO：确认芙蕾娅 E 技能在 Workshop 中是否稳定对应 `技能2`；当前新版法阵使用 `isUsingAbility2()`。
 - TODO：确认路霸钩子、索杰恩滑铲、伊拉锐爆发在实战中是否分别对应 `技能1`、`技能1`、`技能2`。
 - TODO：确认源氏 Shift 在 Workshop 中是否稳定对应 `技能1`；当前疯狗窗口用设置技能 1 冷却模拟禁用/解锁。
+- TODO：确认 `强制按下按钮(终极技能)` 能稳定让击杀后的源氏进入龙刃状态；当前已在击杀规则中先设 100% 充能再强制按大招键。
 - TODO：确认 `事件技能 == 按钮(终极技能)` 能稳定识别龙刃伤害；当前另有窗口内 `设置造成伤害(70)` 作为近似兜底。

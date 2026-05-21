@@ -447,6 +447,7 @@ rule "[genji] start blade window on final blow":
     eventPlayer.setUltCharge(100)
     eventPlayer.setAbilityCooldown(Button.ABILITY_1, 0)
     eventPlayer.setDamageDealt(70)
+    eventPlayer.forceButtonPress(Button.ULTIMATE)
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer, 2)
     smallMessage(eventPlayer, "疯狗时间：8秒")
 
