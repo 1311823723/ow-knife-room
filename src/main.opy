@@ -226,6 +226,7 @@ rule "雾子法阵击倒":
 rule "[mei] freeze target on damage chance":
     @Event playerDealtDamage
     @Hero mei
-    @Condition random.uniform(0, 100) < 10
 
-    victim.setStatusEffect(eventPlayer, Status.FROZEN, 1)
+    if random.randint(1, 100) <= 10:
+        victim.setStatusEffect(eventPlayer, Status.FROZEN, 1)
+        smallMessage(eventPlayer, "小美冰冻触发")
