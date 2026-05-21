@@ -296,7 +296,7 @@ rule "[baptiste] mirror giant effect":
     @Condition eventPlayer.baptiste_mirror_target_active == true
     @Condition eventPlayer.baptiste_mirror_roll == 1
 
-    eventPlayer.startScalingSize(1.6)
+    eventPlayer.startScalingSize(32)
     eventPlayer.setMoveSpeed(80)
     eventPlayer.setDamageDealt(115)
     eventPlayer.setKnockbackReceived(130)
@@ -315,7 +315,7 @@ rule "[baptiste] mirror tiny effect":
     @Condition eventPlayer.baptiste_mirror_target_active == true
     @Condition eventPlayer.baptiste_mirror_roll == 2
 
-    eventPlayer.startScalingSize(0.65)
+    eventPlayer.startScalingSize(0.01)
     eventPlayer.setMoveSpeed(130)
     eventPlayer.setDamageDealt(70)
     eventPlayer.setKnockbackReceived(160)
