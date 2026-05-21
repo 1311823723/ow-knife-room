@@ -113,5 +113,12 @@
 
 ## OverPy / 语法不确定项
 
-- 当前没有可靠 OverPy 构建方式，本轮没有生成大量 `.opy` 代码。
+- 当前已有最小 OverPy 构建方式，但本阶段仍不生成大规模迁移代码。
 - 以下 Workshop 表达式需要后续确认：`英雄(士兵：76) == 真`、`开始持续伤害(..., 存活(事件玩家), 30)`、`矢量(视角中的玩家(...), 5, 5)`、`被攻击方 == 真`、禁用规则中的 `禁用 按钮被按下(...)`。
+
+## 自动反编译补充
+
+- 已从 RTF 包裹的旧代码生成纯文本副本：`legacy/current-workshop.zh-cn.plain.txt`。
+- `corepack pnpm run decompile:legacy` 已成功生成 `src/legacy-decompiled.opy`。
+- 自动反编译结果只作为迁移参考，不作为当前可玩版本来源。
+- OverPy 在 `天使复活` 处生成注释：`this '__while__' had no 'end' action`，进一步确认该规则存在高风险控制流问题。

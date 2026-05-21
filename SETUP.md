@@ -31,11 +31,18 @@ corepack pnpm run overpy:help
 ## Current Limits
 
 - `src/main.opy` is only a minimal compile smoke test. It does not contain migrated legacy gameplay yet.
-- `legacy/current-workshop.zh-cn.txt` is currently RTF-wrapped Chinese Workshop text, not clean Workshop source text.
-- Running `corepack pnpm run decompile:legacy` currently fails with:
+- `legacy/current-workshop.zh-cn.txt` is RTF-wrapped Chinese Workshop text and must stay unchanged.
+- `legacy/current-workshop.zh-cn.plain.txt` is the generated plain-text copy used for OverPy decompilation attempts.
+- If the plain-text copy needs to be regenerated, run:
 
-```text
-Error: Invalid rule (mismatched brackets): has 0 top-level brackets, should be 4
+```bash
+textutil -format rtf -convert txt -encoding UTF-8 -output legacy/current-workshop.zh-cn.plain.txt legacy/current-workshop.zh-cn.txt
 ```
 
-Before decompiling legacy code, create a clean plain-text Workshop copy from the playable legacy source and keep the original `legacy/current-workshop.zh-cn.txt` unchanged.
+Decompile the plain-text legacy copy:
+
+```bash
+corepack pnpm run decompile:legacy
+```
+
+This writes `src/legacy-decompiled.opy`. Treat that file as reference material for migration, not as the active source of truth. The playable fallback remains the original legacy Workshop code.

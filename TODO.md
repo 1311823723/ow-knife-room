@@ -20,9 +20,9 @@
   - 风险等级：中。
   - 进游戏测试方法：运行 `corepack pnpm run build`，把 `dist/overpy-smoke.zh-cn.txt` 粘贴到 Workshop，确认能保存。
 
-- [ ] 准备干净的 legacy Workshop 纯文本
+- [x] 准备干净的 legacy Workshop 纯文本
   - 目标：从当前可玩版本导出不带 RTF 包裹的 Workshop 文本，供 OverPy decompile 使用。
-  - 涉及文件：建议新增 `legacy/current-workshop.zh-cn.plain.txt`。
+  - 涉及文件：`legacy/current-workshop.zh-cn.plain.txt`。
   - 风险等级：低。
   - 进游戏测试方法：把纯文本重新粘贴进 Workshop，确认与旧版表现一致。
 

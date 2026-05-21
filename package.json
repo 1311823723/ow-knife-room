@@ -6,7 +6,7 @@
   "scripts": {
     "overpy:help": "overpy --help",
     "build": "overpy compile -i src/main.opy -o dist/overpy-smoke.zh-cn.txt -l zh-CN",
-    "decompile:legacy": "overpy decompile -i legacy/current-workshop.zh-cn.txt -o src/legacy-decompiled.opy -l zh-CN --ignore-variable-index"
+    "decompile:legacy": "overpy decompile -i legacy/current-workshop.zh-cn.plain.txt -o src/legacy-decompiled.opy -l zh-CN --ignore-variable-index"
   },
   "devDependencies": {
     "overpy": "^9.6.5"

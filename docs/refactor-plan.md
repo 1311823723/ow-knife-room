@@ -7,8 +7,8 @@
 - 项目里有 `src/main.opy`，但它只是最小占位入口，不承载旧玩法迁移。
 - 已通过官方 npm 包安装 `overpy`，项目使用 `corepack pnpm` 管理依赖。
 - `corepack pnpm run build` 可以把 `src/main.opy` 编译到 `dist/overpy-smoke.zh-cn.txt`。
-- `corepack pnpm run decompile:legacy` 当前会失败，因为 `legacy/current-workshop.zh-cn.txt` 是 RTF 包裹文本，不是干净的 Workshop 纯文本。
-- 因此下一步仍然不做大量 `.opy` 迁移；需要先准备干净的 legacy Workshop 文本，或逐条手工迁移并进游戏验证。
+- 已生成 `legacy/current-workshop.zh-cn.plain.txt` 作为不带 RTF 包裹的 Workshop 纯文本副本。
+- `corepack pnpm run decompile:legacy` 可以生成 `src/legacy-decompiled.opy`。该文件只作为迁移参考，不作为当前可玩版本来源。
 
 ## Phase 0：保留旧版
 
