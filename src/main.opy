@@ -33,10 +33,76 @@ playervar torb_parts_hud_created 55
 playervar torb_parts_hud_id 56
 playervar genji_ult_window_hud_created 57
 playervar genji_ult_window_hud_id 58
+playervar ability_guide_hud_created 59
+playervar ability_guide_hud_id 60
+playervar soldier_resize_cooldown 61
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
 #!optimizeStrict
+
+
+def applySoldierAntmanState():
+    @Name "Apply Soldier Antman State"
+
+    eventPlayer.startScalingSize(eventPlayer.Y)
+    if eventPlayer.Y == 32:
+        eventPlayer.Z = 70
+        eventPlayer.setDamageDealt(70)
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.startModifyingVoicelinePitch(0.5)
+    elif eventPlayer.Y == 16:
+        eventPlayer.Z = 76
+        eventPlayer.setDamageDealt(76)
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.startModifyingVoicelinePitch(0.6)
+    elif eventPlayer.Y == 8:
+        eventPlayer.Z = 82
+        eventPlayer.setDamageDealt(82)
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.startModifyingVoicelinePitch(0.7)
+    elif eventPlayer.Y == 4:
+        eventPlayer.Z = 88
+        eventPlayer.setDamageDealt(88)
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.startModifyingVoicelinePitch(0.8)
+    elif eventPlayer.Y == 2:
+        eventPlayer.Z = 94
+        eventPlayer.setDamageDealt(94)
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.startModifyingVoicelinePitch(0.9)
+    elif eventPlayer.Y == 0.5:
+        eventPlayer.Z = 106
+        eventPlayer.setDamageDealt(100)
+        eventPlayer.setMoveSpeed(106)
+        eventPlayer.startModifyingVoicelinePitch(1.1)
+    elif eventPlayer.Y == 0.25:
+        eventPlayer.Z = 112
+        eventPlayer.setDamageDealt(100)
+        eventPlayer.setMoveSpeed(112)
+        eventPlayer.startModifyingVoicelinePitch(1.2)
+    elif eventPlayer.Y == 0.1:
+        eventPlayer.Z = 118
+        eventPlayer.setDamageDealt(100)
+        eventPlayer.setMoveSpeed(118)
+        eventPlayer.startModifyingVoicelinePitch(1.3)
+    elif eventPlayer.Y == 0.01:
+        eventPlayer.Z = 124
+        eventPlayer.setDamageDealt(100)
+        eventPlayer.setMoveSpeed(124)
+        eventPlayer.startModifyingVoicelinePitch(1.4)
+    elif eventPlayer.Y == 0.001:
+        eventPlayer.Z = 130
+        eventPlayer.setDamageDealt(100)
+        eventPlayer.setMoveSpeed(130)
+        eventPlayer.startModifyingVoicelinePitch(1.5)
+    else:
+        eventPlayer.Y = 1
+        eventPlayer.Z = 100
+        eventPlayer.stopScalingSize()
+        eventPlayer.setDamageDealt(100)
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.stopModifyingVoicelinePitch()
 
 
 rule "规则 1":
@@ -103,7 +169,6 @@ rule "被入侵回归":
 
 rule "击败回血":
     @Event playerDealtFinalBlow
-    @Condition isGameInProgress() == true
 
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ROSE, getLastHealingModification(), 1)
     bigMessage(eventPlayer, "造成击杀，恢复体力")
@@ -128,46 +193,86 @@ rule "被睡冷却":
     eventPlayer.ana_sleep_fx_active = false
 
 
-rule "76初始化":
-    @Event eachPlayer
-    @Hero soldier
-
-    eventPlayer.Y++
-
-
-rule "76变大":
-    @Event eachPlayer
-    @Hero soldier
-    @Condition eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true
-    @Condition eventPlayer.Y <= 32
-
-    eventPlayer.Y *= 2
-    eventPlayer.Z -= 6
-    eventPlayer.setDamageDealt(eventPlayer.Z)
-    eventPlayer.startModifyingVoicelinePitch(0.5)
-
-
-rule "76变小":
-    @Event eachPlayer
-    @Hero soldier
-    @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true
-    @Condition eventPlayer.Y >= 0.001
-
-    eventPlayer.Y /= 2
-    eventPlayer.Z += 6
-    eventPlayer.setMoveSpeed(eventPlayer.Z)
-    eventPlayer.startModifyingVoicelinePitch(1.5)
-
-
-rule "76复活后回归":
+rule "[soldier] initialize antman state":
     @Event eachPlayer
     @Hero soldier
     @Condition eventPlayer.isAlive() == true
-    @Condition Hero.SOLDIER == true
+    @Condition eventPlayer.Y == 0
 
-    eventPlayer.startScalingSize(eventPlayer.Y)
-    eventPlayer.setMoveSpeed(100)
+    eventPlayer.Y = 1
     eventPlayer.Z = 100
+    eventPlayer.soldier_resize_cooldown = false
+    applySoldierAntmanState()
+
+
+rule "[soldier] grow one antman step":
+    @Event eachPlayer
+    @Hero soldier
+    @Condition eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.soldier_resize_cooldown == false
+    @Condition eventPlayer.Y < 32
+
+    eventPlayer.soldier_resize_cooldown = true
+    if eventPlayer.Y < 0.01:
+        eventPlayer.Y = 0.01
+    elif eventPlayer.Y < 0.1:
+        eventPlayer.Y = 0.1
+    elif eventPlayer.Y < 0.25:
+        eventPlayer.Y = 0.25
+    elif eventPlayer.Y < 0.5:
+        eventPlayer.Y = 0.5
+    elif eventPlayer.Y < 1:
+        eventPlayer.Y = 1
+    elif eventPlayer.Y < 2:
+        eventPlayer.Y = 2
+    elif eventPlayer.Y < 4:
+        eventPlayer.Y = 4
+    elif eventPlayer.Y < 8:
+        eventPlayer.Y = 8
+    elif eventPlayer.Y < 16:
+        eventPlayer.Y = 16
+    else:
+        eventPlayer.Y = 32
+    applySoldierAntmanState()
+    smallMessage(eventPlayer, "体型档位：{}".format(eventPlayer.Y))
+    wait(0.25)
+    eventPlayer.soldier_resize_cooldown = false
+
+
+rule "[soldier] shrink one antman step":
+    @Event eachPlayer
+    @Hero soldier
+    @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.soldier_resize_cooldown == false
+    @Condition eventPlayer.Y > 0.001
+
+    eventPlayer.soldier_resize_cooldown = true
+    if eventPlayer.Y > 16:
+        eventPlayer.Y = 16
+    elif eventPlayer.Y > 8:
+        eventPlayer.Y = 8
+    elif eventPlayer.Y > 4:
+        eventPlayer.Y = 4
+    elif eventPlayer.Y > 2:
+        eventPlayer.Y = 2
+    elif eventPlayer.Y > 1:
+        eventPlayer.Y = 1
+    elif eventPlayer.Y > 0.5:
+        eventPlayer.Y = 0.5
+    elif eventPlayer.Y > 0.25:
+        eventPlayer.Y = 0.25
+    elif eventPlayer.Y > 0.1:
+        eventPlayer.Y = 0.1
+    elif eventPlayer.Y > 0.01:
+        eventPlayer.Y = 0.01
+    else:
+        eventPlayer.Y = 0.001
+    applySoldierAntmanState()
+    smallMessage(eventPlayer, "体型档位：{}".format(eventPlayer.Y))
+    wait(0.25)
+    eventPlayer.soldier_resize_cooldown = false
 
 
 rule "规则 19":
@@ -177,6 +282,33 @@ rule "规则 19":
     eventPlayer.stopScalingSize()
 
 
+rule "[soldier] clear antman state on death":
+    @Event playerDied
+    @Hero soldier
+
+    eventPlayer.Y = 0
+    eventPlayer.Z = 0
+    eventPlayer.soldier_resize_cooldown = false
+    eventPlayer.stopScalingSize()
+    eventPlayer.setDamageDealt(100)
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.stopModifyingVoicelinePitch()
+
+
+rule "[soldier] clear antman state after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.SOLDIER
+    @Condition eventPlayer.Y != 0 or eventPlayer.soldier_resize_cooldown == true
+
+    eventPlayer.Y = 0
+    eventPlayer.Z = 0
+    eventPlayer.soldier_resize_cooldown = false
+    eventPlayer.stopScalingSize()
+    eventPlayer.setDamageDealt(100)
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.stopModifyingVoicelinePitch()
+
+
 rule "移除机器人":
     @Condition hostPlayer.isHoldingButton(Button.RELOAD) == true
 
@@ -184,14 +316,54 @@ rule "移除机器人":
 
 
 rule "[hud] create ability guide prompt":
-    hudHeader(getAllPlayers(), "按住互动键查看技能说明", HudPosition.ACTUALLY_LEFT, -999, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    hudHeader(getAllPlayers(), "按住互动键查看当前英雄技能", HudPosition.ACTUALLY_LEFT, -999, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
 
 
-rule "[hud] show ability guide while holding interact":
+rule "[hud] create current hero ability guide while holding interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.ability_guide_hud_created == false
 
-    bigMessage(eventPlayer, "技能说明\n被入侵：变大并持续扣血\n蚁人76：左键变大，右键变小\n天使：每条命一次复活甲，致命伤回血并震开敌人\n巴蒂：大招哈哈镜随机变形；伤害有概率打出假药副作用\n源氏：击杀开启8秒疯狗时间；续杀刷新，结束后沉睡\n托比昂：击杀收集3个零件，按E触发随机非法改装\n小美：造成伤害时20%概率冰冻目标\n路霸：钩中缩小目标，并强化下一次近战击退\n卢西奥：落地弹起附近其他玩家，自己短暂加速\n索杰恩：滑铲撞人会伤害、击倒并铲飞\n伊拉锐：概率晒黑目标；爆发弹开附近玩家\n芙蕾娅：E技能生成法阵，范围内玩家一起高飞\n安娜：睡针命中会添加醒目睡眠标记")
+    eventPlayer.ability_guide_hud_created = true
+    if eventPlayer.getHero() == Hero.SOLDIER:
+        hudSubtext(eventPlayer, "士兵76：蚁人体型\n左键变大，右键变小，共 11 档\n最大 32，最小 0.001\n变大后伤害逐档降低，变小后移速逐档提高，音调随体型变化", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.MERCY:
+        hudSubtext(eventPlayer, "天使：复活甲\n每条命一次复活甲\n受到致命伤时回血到 60，震开周围敌人，并短暂无敌\n复活甲破碎后本条命不再触发", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.BAPTISTE:
+        hudSubtext(eventPlayer, "巴蒂：哈哈镜与假药\n大招触发哈哈镜，附近玩家随机极大、极小、变脆或变硬\n造成伤害有概率让目标获得短暂假药副作用", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.GENJI:
+        hudSubtext(eventPlayer, "源氏：疯狗龙刃窗口\n平时 Shift 被锁\n击杀开启 8 秒疯狗时间，自动开大并解锁 Shift\n续杀刷新时间，结束后沉睡 5 秒", HudPosition.ACTUALLY_LEFT, -998, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.TORBJORN:
+        hudSubtext(eventPlayer, "托比昂：非法改装\n击杀获得零件，3 个零件后按 E 触发随机改装\n可能变巨型、迷你、防爆，也可能改装失败\n死亡或换英雄清空零件和改装", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.MEI:
+        hudSubtext(eventPlayer, "小美：冰冻拳\n造成伤害时有 20% 概率冰冻目标 1 秒\n概率按每次造成伤害独立判定", HudPosition.ACTUALLY_LEFT, -998, Color.AQUA, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.ROADHOG:
+        hudSubtext(eventPlayer, "路霸：钩中改造\n钩中敌人会让目标缩小 3 秒\n目标移速提高但受到击退增加\n路霸下一次近战会附加强击退", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.LUCIO:
+        hudSubtext(eventPlayer, "卢西奥：落地冲击\n从空中落地时弹起附近其他玩家\n不会弹起自己，并获得短暂加速\n带冷却，避免连续触发", HudPosition.ACTUALLY_LEFT, -998, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.SOJOURN:
+        hudSubtext(eventPlayer, "索杰恩：滑铲创飞\n滑铲靠近玩家时造成 20 伤害、击倒并铲飞\n索杰恩自己不受影响\n有短冷却，避免滑铲期间连续触发", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.ILLARI:
+        hudSubtext(eventPlayer, "伊拉锐：晒黑与爆发\n造成伤害有概率晒黑目标，使其变大、变慢、更容易被击飞\n再次命中晒黑目标会小弹飞\n技能 2 会弹开附近玩家", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.FREJA:
+        hudSubtext(eventPlayer, "芙蕾娅：飞天法阵\n按 E 生成法阵\n短暂前摇后，范围内玩家一起高高飞起\n带冷却并会清理特效", HudPosition.ACTUALLY_LEFT, -998, Color.AQUA, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.ANA:
+        hudSubtext(eventPlayer, "安娜：睡眠标记与激素控制\n睡针命中会给目标添加明显睡眠标记\n大招按下时可让视角附近目标沉睡", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.KIRIKO:
+        hudSubtext(eventPlayer, "雾子：法阵击倒\n使用技能 2 时生成短暂法阵特效\n范围内玩家会被击倒\n法阵结束后自动清理效果", HudPosition.ACTUALLY_LEFT, -998, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
+    else:
+        hudSubtext(eventPlayer, "通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.ability_guide_hud_id = getLastCreatedText()
+
+
+rule "[hud] clear current hero ability guide":
+    @Event eachPlayer
+    @Condition eventPlayer.ability_guide_hud_created == true
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == false or eventPlayer.isDead() == true
+
+    destroyHudText(eventPlayer.ability_guide_hud_id)
+    eventPlayer.ability_guide_hud_created = false
+    eventPlayer.ability_guide_hud_id = null
 
 
 rule "[mercy] grant revive armor on spawn":
@@ -238,6 +410,7 @@ rule "76长时间变大":
     @Event eachPlayer
     @Hero soldier
     @Condition eventPlayer.Y >= 8
+    @Disabled
 
     eventPlayer.startDamageOverTime(null, eventPlayer.isAlive(), 30)
 
@@ -582,7 +755,6 @@ rule "[torbjorn] gain parts on final blow":
     @Event playerDealtFinalBlow
     @Hero torbjorn
     @Condition eventPlayer.isAlive() == true
-    @Condition isGameInProgress() == true
     @Condition eventPlayer.torb_mod_active == false
 
     if eventPlayer.torb_parts < 3:

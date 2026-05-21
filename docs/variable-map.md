@@ -10,8 +10,8 @@
 | `B` | `movement_double_jump_ready` | 两条 `二段跳`、`规则 3`、`规则 5` | 二段跳许可标记。离地松开跳跃后设真，执行或耗尽后设假。 | 是。 | 是，默认应为假。 | 死亡、落地、换英雄、离开时应设假。 |
 | `C` | `mercy_revive_armor_available` / `mercy_revive_armor_state` | `[mercy] grant revive armor on spawn`、`[mercy] revive armor breaks on lethal damage`、`[mercy] clear revive armor state on death` | 天使复活甲状态。当前 `0` 表示本条命未初始化，`1` 表示复活甲可用，`2` 表示本条命复活甲已破碎。 | 是，后续迁移时建议改成语义变量；当前保留 `C` 避免重排旧变量。 | 是。天使存活且 `C == 0` 时设为 `1`。 | 死亡时重置为 `0`；换英雄和离开时后续应补生命周期清理。 |
 | `D` | `kiriko_zone_effects` | `雾子法阵击倒` | 保存雾子法阵创建的 3 个效果实体句柄，5 秒后按索引清理并清空数组。 | 是。 | 是，使用技能前设为空数组；更好是在玩家加入/换英雄时也初始化。 | 死亡、换英雄、离开时应清理已有实体并清空数组。 |
-| `Y` | `soldier_antman_scale` | `76初始化`、`76变大`、`76变小`、`76复活后回归`、`76长时间变大` | 士兵 76 体型倍率。当前 `76初始化` 持续 `+= 1`，所以实际值不可靠。 | 是。 | 是，士兵 76 初始化时应设为明确基准值，例如 1；不要持续累加。 | 死亡、换出士兵 76、离开时应停止调整体型并重置。 |
-| `Z` | `soldier_antman_stat_percent`，后续建议拆为 `soldier_antman_damage_percent` / `soldier_antman_move_speed_percent` | `76变大`、`76变小`、`76复活后回归` | 当前同时作为伤害百分比和移动速度百分比使用。`76变大` 降低 `Z` 后设置造成伤害，`76变小` 增加 `Z` 后设置移动速度，复活后回归持续设 100。 | 是，且建议拆分或改为由 `Y` 派生。 | 是，默认应为 100。 | 死亡、换英雄、离开时应重置伤害和速度。 |
+| `Y` | `soldier_antman_scale` | `[soldier] initialize antman state`、`[soldier] grow one antman step`、`[soldier] shrink one antman step`、`applySoldierAntmanState`、士兵 76 清理规则 | 士兵 76 当前体型档位。当前档位为 `0.001 / 0.01 / 0.1 / 0.25 / 0.5 / 1 / 2 / 4 / 8 / 16 / 32`。 | 是，后续可迁移为语义变量；当前保留 `Y` 避免重排旧变量。 | 是，士兵 76 存活且 `Y == 0` 时初始化为 `1`。 | 死亡、换出士兵 76、离开时停止调整体型并重置为 `0`。 |
+| `Z` | `soldier_antman_stat_percent` | `applySoldierAntmanState`、士兵 76 清理规则 | 士兵 76 当前派生属性数值。变大时作为伤害百分比，按档位降到最低 70；变小时作为移动速度百分比，最高 130；离开士兵后用 `0` 表示 inactive。 | 是，后续可拆成伤害/速度两个语义变量。 | 是，士兵 76 初始化时设为 100。 | 死亡、换英雄、离开时恢复伤害/速度为 100，并将变量设为 0。 |
 | `Kiriko_Skill` | `kiriko_zone_active` | 变量表显式声明；`雾子法阵击倒` 中设真/设假 | 标记雾子法阵是否正在运行。当前没有作为条件使用，所以不能阻止重复触发。 | 是。 | 是，默认应为假。 | 死亡、换英雄、离开时应设假，并清理 `D` 中效果。 |
 | `roadhog_hook_melee_boost_ready` | `roadhog_hook_melee_boost_ready` | `[roadhog] hook weakens target`、`[roadhog] consume boosted melee knockback` | 路霸钩中目标后，标记下一次近战附加击退。 | 否，已按命名规范。 | 是，默认假；钩中后设真，近战触发后设假。 | 死亡、换英雄、离开时应重置为假。 |
 | `lucio_was_airborne` | `lucio_was_airborne` | `[lucio] remember airborne state`、`[lucio] landing bounce` | 记录卢西奥是否从空中落地，用于落地边沿触发，避免站地上连续弹人。 | 否，已按命名规范。 | 是，默认假；空中设真，落地触发后设假。 | 死亡、换英雄、离开时应重置为假。 |
@@ -45,6 +45,9 @@
 | `torb_parts_hud_id` | `torb_parts_hud_id` | `[torbjorn] create parts hud`、`[torbjorn] clear illegal modification after hero swap` | 保存托比昂零件 HUD 文本 ID，用于离开托比昂时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 换英雄、离开托比昂时 `destroyHudText` 并清空。 |
 | `genji_ult_window_hud_created` | `genji_ult_window_hud_created` | `[genji] start blade window on final blow`、源氏清理规则 | 标记源氏疯狗时间倒计时 HUD 是否已创建，避免重复创建。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开源氏时销毁 HUD 后设假。 |
 | `genji_ult_window_hud_id` | `genji_ult_window_hud_id` | `[genji] start blade window on final blow`、源氏清理规则 | 保存源氏疯狗时间 HUD 文本 ID，用于窗口结束或清理时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 自然结束、死亡、换英雄、离开源氏时 `destroyHudText` 并清空。 |
+| `ability_guide_hud_created` | `ability_guide_hud_created` | `[hud] create current hero ability guide while holding interact`、`[hud] clear current hero ability guide` | 标记当前英雄技能说明 HUD 是否已经创建，避免按住互动键时每帧重复创建。 | 否。 | 是，默认假。 | 松开互动键或死亡时销毁 HUD 并设假。 |
+| `ability_guide_hud_id` | `ability_guide_hud_id` | `[hud] create current hero ability guide while holding interact`、`[hud] clear current hero ability guide` | 保存当前英雄技能说明 HUD 文本 ID，用于松开互动键时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 松开互动键或死亡时 `destroyHudText` 并清空。 |
+| `soldier_resize_cooldown` | `soldier_resize_cooldown` | `[soldier] grow one antman step`、`[soldier] shrink one antman step`、士兵 76 清理规则 | 士兵 76 体型调整短冷却，防止按住左键/右键时一帧内跳过多个档位。 | 否。 | 是，默认假。 | 每次变档约 0.25 秒后设假；死亡、换英雄、离开时设假。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |
@@ -54,7 +57,6 @@
 | `hacked_lightshaft_effect` | 玩家实体句柄 | 保存每名玩家被入侵时创建的光柱 | 替代 `最后创建的实体`。 |
 | `hacked_damage_active` | 玩家布尔或伤害句柄 | 避免被入侵持续伤害重复叠加 | Workshop 持续伤害是否可保存句柄需确认。 |
 | `sleep_penalty_active` | 玩家布尔 | 避免沉睡惩罚重复播放效果 | 也可以改为状态变化触发，具体语法待确认。 |
-| `soldier_resize_locked` | 玩家布尔 | 防止士兵 76 按住左/右键连续变大/变小 | 后续可以改为按键边沿或短冷却。 |
 
 ## TODO
 
