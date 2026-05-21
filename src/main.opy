@@ -143,6 +143,10 @@ rule "移除机器人":
     destroyAllDummies()
 
 
+rule "[hud] create ability guide prompt":
+    hudHeader(getAllPlayers(), "按住互动键查看技能说明", HudPosition.LEFT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
+
+
 rule "[hud] show ability guide while holding interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
