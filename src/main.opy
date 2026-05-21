@@ -144,14 +144,14 @@ rule "移除机器人":
 
 
 rule "[hud] create ability guide prompt":
-    hudHeader(getAllPlayers(), "按住互动键查看技能说明", HudPosition.LEFT, 0, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
+    hudHeader(getAllPlayers(), "按住互动键查看技能说明", HudPosition.ACTUALLY_LEFT, -999, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
 
 
 rule "[hud] show ability guide while holding interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
 
-    smallMessage(eventPlayer, "技能说明：被入侵会变大并持续扣血；铁拳拥有全部技能但伤害降低；蚁人76左键变大右键变小；天使拥有一层复活甲；所有角色拥有二段跳；小美造成伤害时有10%概率冰冻目标。")
+    bigMessage(eventPlayer, "技能说明\n被入侵：变大并持续扣血\n铁拳：拥有全部技能但伤害降低\n蚁人76：左键变大，右键变小\n天使：拥有一层复活甲\n全英雄：拥有二段跳\n小美：造成伤害时10%概率冰冻目标")
 
 
 rule "天使复活":
