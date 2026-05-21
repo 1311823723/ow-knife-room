@@ -13,6 +13,8 @@
 | `Y` | `soldier_antman_scale` | `76初始化`、`76变大`、`76变小`、`76复活后回归`、`76长时间变大` | 士兵 76 体型倍率。当前 `76初始化` 持续 `+= 1`，所以实际值不可靠。 | 是。 | 是，士兵 76 初始化时应设为明确基准值，例如 1；不要持续累加。 | 死亡、换出士兵 76、离开时应停止调整体型并重置。 |
 | `Z` | `soldier_antman_stat_percent`，后续建议拆为 `soldier_antman_damage_percent` / `soldier_antman_move_speed_percent` | `76变大`、`76变小`、`76复活后回归` | 当前同时作为伤害百分比和移动速度百分比使用。`76变大` 降低 `Z` 后设置造成伤害，`76变小` 增加 `Z` 后设置移动速度，复活后回归持续设 100。 | 是，且建议拆分或改为由 `Y` 派生。 | 是，默认应为 100。 | 死亡、换英雄、离开时应重置伤害和速度。 |
 | `Kiriko_Skill` | `kiriko_zone_active` | 变量表显式声明；`雾子法阵击倒` 中设真/设假 | 标记雾子法阵是否正在运行。当前没有作为条件使用，所以不能阻止重复触发。 | 是。 | 是，默认应为假。 | 死亡、换英雄、离开时应设假，并清理 `D` 中效果。 |
+| `roadhog_hook_melee_boost_ready` | `roadhog_hook_melee_boost_ready` | `[roadhog] hook weakens target`、`[roadhog] consume boosted melee knockback` | 路霸钩中目标后，标记下一次近战附加击退。 | 否，已按命名规范。 | 是，默认假；钩中后设真，近战触发后设假。 | 死亡、换英雄、离开时应重置为假。 |
+| `lucio_was_airborne` | `lucio_was_airborne` | `[lucio] remember airborne state`、`[lucio] landing bounce` | 记录卢西奥是否从空中落地，用于落地边沿触发，避免站地上连续弹人。 | 否，已按命名规范。 | 是，默认假；空中设真，落地触发后设假。 | 死亡、换英雄、离开时应重置为假。 |
 
 ## 建议新增变量
 

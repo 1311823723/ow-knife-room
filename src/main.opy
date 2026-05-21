@@ -1,6 +1,8 @@
 #Player variables
 
 playervar Kiriko_Skill 26
+playervar roadhog_hook_melee_boost_ready 27
+playervar lucio_was_airborne 28
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -151,7 +153,7 @@ rule "[hud] show ability guide while holding interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
 
-    bigMessage(eventPlayer, "技能说明\n被入侵：变大并持续扣血\n铁拳：拥有全部技能但伤害降低\n蚁人76：左键变大，右键变小\n天使：拥有一层复活甲\n全英雄：拥有二段跳\n小美：造成伤害时10%概率冰冻目标")
+    bigMessage(eventPlayer, "技能说明\n被入侵：变大并持续扣血\n铁拳：拥有全部技能但伤害降低\n蚁人76：左键变大，右键变小\n天使：拥有一层复活甲\n全英雄：拥有二段跳\n小美：造成伤害时10%概率冰冻目标\n路霸：钩中后缩小目标，并强化下一次近战击退\n卢西奥：落地弹起周围玩家，自己短暂加速")
 
 
 rule "天使复活":
@@ -230,3 +232,53 @@ rule "[mei] freeze target on damage chance":
     if random.randint(1, 100) <= 10:
         victim.setStatusEffect(eventPlayer, Status.FROZEN, 1)
         smallMessage(eventPlayer, "小美冰冻触发")
+
+
+rule "[roadhog] hook weakens target":
+    @Event playerDealtDamage
+    @Hero roadhog
+    @Condition eventAbility == Button.ABILITY_1
+
+    victim.startScalingSize(0.5)
+    victim.setMoveSpeed(140)
+    victim.setKnockbackReceived(180)
+    eventPlayer.roadhog_hook_melee_boost_ready = true
+    smallMessage(eventPlayer, "钩中目标：下一次近战击退增强")
+    wait(3)
+    victim.stopScalingSize()
+    victim.setMoveSpeed(100)
+    victim.setKnockbackReceived(100)
+
+
+rule "[roadhog] consume boosted melee knockback":
+    @Event playerDealtDamage
+    @Hero roadhog
+    @Condition eventPlayer.roadhog_hook_melee_boost_ready == true
+    @Condition eventPlayer.isMeleeing() == true
+
+    eventPlayer.roadhog_hook_melee_boost_ready = false
+    victim.applyImpulse(directionTowards(eventPlayer.getPosition(), victim.getPosition()), 25, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    smallMessage(eventPlayer, "强化近战击退触发")
+
+
+rule "[lucio] remember airborne state":
+    @Event eachPlayer
+    @Hero lucio
+    @Condition eventPlayer.isInAir() == true
+
+    eventPlayer.lucio_was_airborne = true
+
+
+rule "[lucio] landing bounce":
+    @Event eachPlayer
+    @Hero lucio
+    @Condition eventPlayer.lucio_was_airborne == true
+    @Condition eventPlayer.isInAir() == false
+    @Condition eventPlayer.isAlive() == true
+
+    eventPlayer.lucio_was_airborne = false
+    getPlayersInRadius(eventPlayer.getPosition(), 8, Team.ALL).applyImpulse(Vector.UP, 15, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    eventPlayer.setMoveSpeed(150)
+    smallMessage(eventPlayer, "落地冲击")
+    wait(1.5)
+    eventPlayer.setMoveSpeed(100)
