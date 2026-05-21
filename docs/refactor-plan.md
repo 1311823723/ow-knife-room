@@ -9,6 +9,7 @@
 - `corepack pnpm run build` 可以把 `src/main.opy` 编译到 `dist/overpy-smoke.zh-cn.txt`。
 - 已生成 `legacy/current-workshop.zh-cn.plain.txt` 作为不带 RTF 包裹的 Workshop 纯文本副本。
 - `corepack pnpm run decompile:legacy` 可以生成 `src/legacy-decompiled.opy`。该文件只作为迁移参考，不作为当前可玩版本来源。
+- 新增 `docs/naming-conventions.md` 作为后续 OverPy 迁移的命名规则；自动反编译文件保持原样，迁移模块再应用规范命名。
 
 ## Phase 0：保留旧版
 
@@ -28,6 +29,7 @@
 - HUD 改成只创建一次。
 - 主机生成机器人增加防连发。
 - 文档化所有玩家变量。
+- 按 `docs/naming-conventions.md` 为新 OverPy 模块命名，不直接手改自动反编译参考文件。
 - 明确禁用规则归档，不把禁用规则直接迁移成启用玩法。
 
 ## Phase 2：修高风险 bug

@@ -28,6 +28,12 @@
 
 ## Phase 0：审计与保护
 
+- [x] 制定 OverPy 命名规范
+  - 目标：统一变量、规则、文件、子程序和宏命名方式，避免迁移时继续沿用 `A`、`规则 1` 这类不可维护命名。
+  - 涉及文件：`docs/naming-conventions.md`、`docs/variable-map.md`。
+  - 风险等级：低。
+  - 进游戏测试方法：不需要进游戏；后续每个迁移模块按规范复查。
+
 - [ ] 保存并保护旧版 Workshop 代码
   - 目标：确认 `legacy/current-workshop.zh-cn.txt` 作为原始可回退版本，不直接编辑。
   - 涉及文件：`legacy/current-workshop.zh-cn.txt`。

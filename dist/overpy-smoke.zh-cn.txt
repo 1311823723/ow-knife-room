@@ -1,4 +1,4 @@
-规则 ("ow_knife_room_minimal_compile_check") {
+规则 ("[build] overpy smoke check") {
     事件 {
         持续 - 全局;
     }
