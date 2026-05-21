@@ -5,7 +5,8 @@
   "packageManager": "pnpm@11.1.3",
   "scripts": {
     "overpy:help": "overpy --help",
-    "build": "overpy compile -i src/main.opy -o dist/overpy-smoke.zh-cn.txt -l zh-CN",
+    "build": "overpy compile -i src/main.opy -o dist/current-workshop.zh-cn.copy-paste.txt -l zh-CN && perl -0pi -e 's/\\n+\\z/\\n/' dist/current-workshop.zh-cn.copy-paste.txt",
+    "build:smoke": "overpy compile -i src/smoke.opy -o dist/overpy-smoke.zh-cn.txt -l zh-CN && perl -0pi -e 's/\\n+\\z/\\n/' dist/overpy-smoke.zh-cn.txt",
     "decompile:legacy": "overpy decompile -i legacy/current-workshop.zh-cn.plain.txt -o src/legacy-decompiled.opy -l zh-CN --ignore-variable-index"
   },
   "devDependencies": {

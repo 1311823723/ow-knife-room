@@ -16,9 +16,9 @@
 
 - [x] 确认 OverPy 编译方式
   - 目标：确定使用 `overpy`、`overpyc`、`opy` 还是项目内脚本构建。
-  - 涉及文件：`package.json`、`pnpm-lock.yaml`、`SETUP.md`、`src/main.opy`。
+  - 涉及文件：`package.json`、`pnpm-lock.yaml`、`SETUP.md`、`src/main.opy`、`src/smoke.opy`。
   - 风险等级：中。
-  - 进游戏测试方法：运行 `corepack pnpm run build`，把 `dist/overpy-smoke.zh-cn.txt` 粘贴到 Workshop，确认能保存。
+  - 进游戏测试方法：运行 `corepack pnpm run build`，把 `dist/current-workshop.zh-cn.copy-paste.txt` 粘贴到 Workshop，确认能保存。
 
 - [x] 准备干净的 legacy Workshop 纯文本
   - 目标：从当前可玩版本导出不带 RTF 包裹的 Workshop 文本，供 OverPy decompile 使用。
@@ -54,11 +54,17 @@
 
 ## Phase 1：低风险结构修复
 
-- [ ] 修复 HUD 重复创建问题
-  - 目标：让 `规则提示` 只创建一次，避免 HUD 文本重复堆叠。
-  - 涉及文件：未来补丁文件或迁移后的 Workshop/OverPy 文件。
+- [x] 修复 HUD 重复创建问题
+  - 目标：移除常驻左侧大 HUD，改为按住互动键显示技能说明。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`。
   - 风险等级：中。
-  - 进游戏测试方法：进入房间等待 30 秒，确认左侧提示只出现一组，不会持续增加。
+  - 进游戏测试方法：进入房间等待 30 秒，确认左侧不再常驻堆叠提示；按住互动键时出现技能说明。
+
+- [x] 添加小美 10% 冰冻攻击
+  - 目标：小美造成伤害时有 10% 概率冻结目标。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`。
+  - 风险等级：中。
+  - 进游戏测试方法：小美连续攻击敌人，观察约每 10 次伤害触发 1 次短暂冻结；确认不会冻结自己或队友。
 
 - [ ] 修复主机按住蹲下疯狂生成机器人问题
   - 目标：给主机生成机器人规则增加防连发或按键边沿。

@@ -19,7 +19,7 @@ corepack pnpm run build
 The compiled Workshop text is written to:
 
 ```text
-dist/overpy-smoke.zh-cn.txt
+dist/current-workshop.zh-cn.copy-paste.txt
 ```
 
 Show OverPy CLI help:
@@ -28,9 +28,22 @@ Show OverPy CLI help:
 corepack pnpm run overpy:help
 ```
 
+Run the minimal compiler smoke test:
+
+```bash
+corepack pnpm run build:smoke
+```
+
+The smoke-test Workshop text is written to:
+
+```text
+dist/overpy-smoke.zh-cn.txt
+```
+
 ## Current Limits
 
-- `src/main.opy` is only a minimal compile smoke test. It does not contain migrated legacy gameplay yet.
+- `src/main.opy` is the current active OverPy source.
+- `src/smoke.opy` is the minimal compiler smoke test.
 - `legacy/current-workshop.zh-cn.txt` is RTF-wrapped Chinese Workshop text and must stay unchanged.
 - `legacy/current-workshop.zh-cn.plain.txt` is the generated plain-text copy used for OverPy decompilation attempts.
 - If the plain-text copy needs to be regenerated, run:

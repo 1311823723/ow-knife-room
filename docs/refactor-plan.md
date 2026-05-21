@@ -4,12 +4,14 @@
 
 ## 当前 OverPy 状态
 
-- 项目里有 `src/main.opy`，但它只是最小占位入口，不承载旧玩法迁移。
+- `src/main.opy` 是当前 active OverPy 源文件，基于 legacy 自动反编译结果做小步改动。
 - 已通过官方 npm 包安装 `overpy`，项目使用 `corepack pnpm` 管理依赖。
-- `corepack pnpm run build` 可以把 `src/main.opy` 编译到 `dist/overpy-smoke.zh-cn.txt`。
+- `corepack pnpm run build` 可以把 `src/main.opy` 编译到 `dist/current-workshop.zh-cn.copy-paste.txt`。
+- `corepack pnpm run build:smoke` 保留最小编译烟测，输出到 `dist/overpy-smoke.zh-cn.txt`。
 - 已生成 `legacy/current-workshop.zh-cn.plain.txt` 作为不带 RTF 包裹的 Workshop 纯文本副本。
 - `corepack pnpm run decompile:legacy` 可以生成 `src/legacy-decompiled.opy`。该文件只作为迁移参考，不作为当前可玩版本来源。
 - 新增 `docs/naming-conventions.md` 作为后续 OverPy 迁移的命名规则；自动反编译文件保持原样，迁移模块再应用规范命名。
+- 注意：active 源仍保留大部分 legacy 结构和风险点，本阶段只验证了可编译性和本次小改动；还没有完成全面语义重构。
 
 ## Phase 0：保留旧版
 
