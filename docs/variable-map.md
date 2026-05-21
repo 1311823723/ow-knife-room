@@ -34,8 +34,17 @@
 | `baptiste_fake_drug_target_active` | `baptiste_fake_drug_target_active` | `[baptiste] fake drug injection` | 目标正在承受假药副作用，防止同一目标叠多个假药状态。 | 否。 | 是，默认假。 | 3 秒后恢复；死亡、换英雄、离开时后续可补强制恢复。 |
 | `baptiste_fake_drug_roll` | `baptiste_fake_drug_roll` | `[baptiste] fake drug injection` | 目标本次假药副作用随机结果。 | 否。 | 是，触发时设为 1-4。 | 下次触发覆盖即可。 |
 | `genji_ult_window_active` | `genji_ult_window_active` | `[genji] lock swift strike outside blade window`、`[genji] start blade window on final blow`、`[genji] blade damage cap during window`、源氏清理规则 | 源氏 8 秒疯狗龙刃窗口是否开启。开启时 Shift 解锁、终极充能 100。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开时应设假。 |
-| `genji_ult_window_timer` | `genji_ult_window_timer` | `[genji] start blade window on final blow`、`[genji] blade window countdown`、`[genji] end blade window with sleep`、源氏清理规则 | 源氏疯狗窗口剩余时间。击杀设为 8，倒计时规则每秒减 1，续杀重新设为 8。 | 否。 | 是，默认 0。 | 自然结束、死亡、换英雄、离开时设 0。 |
+| `genji_ult_window_timer` | `genji_ult_window_timer` | `[genji] start blade window on final blow`、`[genji] refresh blade window on final blow`、源氏清理规则 | 源氏疯狗窗口剩余时间。第一次击杀设为 8 并进入受控倒计时，窗口内续杀重新设为 8。 | 否。 | 是，默认 0。 | 自然结束、死亡、换英雄、离开时设 0。 |
 | `genji_ult_window_token` | `genji_ult_window_token` | `[genji] start blade window on final blow`、源氏清理规则 | 每次击杀或清理时递增的窗口版本号。当前 timer 方案不依赖它结束窗口，但保留作后续 HUD/调试扩展。 | 否。 | 是，默认 0。 | 死亡、换英雄、清理时递增。 |
+| `torb_parts` | `torb_parts` | `[torbjorn] gain parts on final blow`、`[torbjorn] create parts hud`、`[torbjorn] activate illegal modification`、托比昂清理规则 | 托比昂击杀获得的零件数，0 到 3。满 3 后可按技能 2 触发非法改装。 | 否。 | 是，默认 0。 | 死亡、换英雄、离开托比昂时设为 0。 |
+| `torb_mod_ready` | `torb_mod_ready` | `[torbjorn] gain parts on final blow`、`[torbjorn] activate illegal modification`、托比昂清理规则 | 标记零件已满，非法改装就绪。 | 否。 | 是，默认假。 | 触发改装、死亡、换英雄、离开托比昂时设假。 |
+| `torb_mod_active` | `torb_mod_active` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 标记托比昂正在非法改装状态。成功改装持续到死亡或换英雄；失败改装 2 秒后恢复。 | 否。 | 是，默认假。 | 死亡、换英雄、离开托比昂时恢复属性并设假。 |
+| `torb_mod_roll` | `torb_mod_roll` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 本次非法改装随机结果，1 巨型、2 迷你、3 防爆、4 失败。 | 否。 | 是，触发时设为 1-4。 | 死亡、换英雄、离开托比昂时设 0。 |
+| `torb_mod_cooldown` | `torb_mod_cooldown` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 防止托比昂技能 2 按住时重复触发非法改装。 | 否。 | 是，默认假。 | 死亡、换英雄、离开托比昂时设假。 |
+| `torb_parts_hud_created` | `torb_parts_hud_created` | `[torbjorn] create parts hud`、`[torbjorn] clear illegal modification after hero swap` | 标记托比昂零件 HUD 是否已创建，避免每帧重复创建。 | 否。 | 是，默认假。 | 换英雄、离开托比昂时销毁 HUD 后设假。 |
+| `torb_parts_hud_id` | `torb_parts_hud_id` | `[torbjorn] create parts hud`、`[torbjorn] clear illegal modification after hero swap` | 保存托比昂零件 HUD 文本 ID，用于离开托比昂时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 换英雄、离开托比昂时 `destroyHudText` 并清空。 |
+| `genji_ult_window_hud_created` | `genji_ult_window_hud_created` | `[genji] start blade window on final blow`、源氏清理规则 | 标记源氏疯狗时间倒计时 HUD 是否已创建，避免重复创建。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开源氏时销毁 HUD 后设假。 |
+| `genji_ult_window_hud_id` | `genji_ult_window_hud_id` | `[genji] start blade window on final blow`、源氏清理规则 | 保存源氏疯狗时间 HUD 文本 ID，用于窗口结束或清理时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 自然结束、死亡、换英雄、离开源氏时 `destroyHudText` 并清空。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |

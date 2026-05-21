@@ -24,6 +24,15 @@ playervar baptiste_fake_drug_roll 46
 playervar genji_ult_window_active 47
 playervar genji_ult_window_timer 48
 playervar genji_ult_window_token 49
+playervar torb_parts 50
+playervar torb_mod_ready 51
+playervar torb_mod_active 52
+playervar torb_mod_roll 53
+playervar torb_mod_cooldown 54
+playervar torb_parts_hud_created 55
+playervar torb_parts_hud_id 56
+playervar genji_ult_window_hud_created 57
+playervar genji_ult_window_hud_id 58
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -182,7 +191,7 @@ rule "[hud] show ability guide while holding interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
 
-    bigMessage(eventPlayer, "技能说明\n被入侵：变大并持续扣血\n蚁人76：左键变大，右键变小\n天使：每条命一次复活甲，致命伤回血并震开敌人\n巴蒂：大招哈哈镜随机变形；伤害有概率打出假药副作用\n源氏：击杀开启8秒疯狗时间；续杀刷新，结束后沉睡\n小美：造成伤害时20%概率冰冻目标\n路霸：钩中缩小目标，并强化下一次近战击退\n卢西奥：落地弹起附近其他玩家，自己短暂加速\n索杰恩：滑铲撞人会伤害、击倒并铲飞\n伊拉锐：概率晒黑目标；爆发弹开附近玩家\n芙蕾娅：E技能生成法阵，范围内玩家一起高飞\n安娜：睡针命中会添加醒目睡眠标记")
+    bigMessage(eventPlayer, "技能说明\n被入侵：变大并持续扣血\n蚁人76：左键变大，右键变小\n天使：每条命一次复活甲，致命伤回血并震开敌人\n巴蒂：大招哈哈镜随机变形；伤害有概率打出假药副作用\n源氏：击杀开启8秒疯狗时间；续杀刷新，结束后沉睡\n托比昂：击杀收集3个零件，按E触发随机非法改装\n小美：造成伤害时20%概率冰冻目标\n路霸：钩中缩小目标，并强化下一次近战击退\n卢西奥：落地弹起附近其他玩家，自己短暂加速\n索杰恩：滑铲撞人会伤害、击倒并铲飞\n伊拉锐：概率晒黑目标；爆发弹开附近玩家\n芙蕾娅：E技能生成法阵，范围内玩家一起高飞\n安娜：睡针命中会添加醒目睡眠标记")
 
 
 rule "[mercy] grant revive armor on spawn":
@@ -439,47 +448,53 @@ rule "[genji] start blade window on final blow":
     @Event playerDealtFinalBlow
     @Hero genji
     @Condition eventPlayer.isAlive() == true
-    @Condition isGameInProgress() == true
+    @Condition eventPlayer.genji_ult_window_active != true
 
     eventPlayer.genji_ult_window_token += 1
     eventPlayer.genji_ult_window_timer = 8
     eventPlayer.genji_ult_window_active = true
+    eventPlayer.genji_ult_window_hud_created = true
     eventPlayer.setUltCharge(100)
     eventPlayer.setAbilityCooldown(Button.ABILITY_1, 0)
     eventPlayer.setDamageDealt(70)
     eventPlayer.forceButtonPress(Button.ULTIMATE)
+    hudHeader(eventPlayer, "疯狗时间：{}秒".format(eventPlayer.genji_ult_window_timer), HudPosition.RIGHT, -900, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.genji_ult_window_hud_id = getLastCreatedText()
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer, 2)
     smallMessage(eventPlayer, "疯狗时间：8秒")
+    while eventPlayer.genji_ult_window_active == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.GENJI and eventPlayer.genji_ult_window_timer > 0:
+        wait(1)
+        eventPlayer.genji_ult_window_timer -= 1
+    if eventPlayer.genji_ult_window_active == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.GENJI and eventPlayer.genji_ult_window_timer <= 0:
+        eventPlayer.genji_ult_window_active = false
+        eventPlayer.genji_ult_window_timer = 0
+        eventPlayer.setUltCharge(0)
+        eventPlayer.setAbilityCooldown(Button.ABILITY_1, 999)
+        eventPlayer.setDamageDealt(100)
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.setDamageReceived(100)
+        eventPlayer.stopScalingSize()
+        if eventPlayer.genji_ult_window_hud_created == true:
+            destroyHudText(eventPlayer.genji_ult_window_hud_id)
+        eventPlayer.genji_ult_window_hud_created = false
+        eventPlayer.genji_ult_window_hud_id = null
+        eventPlayer.setStatusEffect(null, Status.ASLEEP, 5)
+        smallMessage(eventPlayer, "疯狗时间结束，源氏睡着了")
 
 
-rule "[genji] blade window countdown":
-    @Event eachPlayer
+rule "[genji] refresh blade window on final blow":
+    @Event playerDealtFinalBlow
     @Hero genji
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.genji_ult_window_active == true
-    @Condition eventPlayer.genji_ult_window_timer > 0
 
-    wait(1)
-    eventPlayer.genji_ult_window_timer -= 1
-
-
-rule "[genji] end blade window with sleep":
-    @Event eachPlayer
-    @Hero genji
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.genji_ult_window_active == true
-    @Condition eventPlayer.genji_ult_window_timer <= 0
-
-    eventPlayer.genji_ult_window_active = false
-    eventPlayer.genji_ult_window_timer = 0
-    eventPlayer.setUltCharge(0)
-    eventPlayer.setAbilityCooldown(Button.ABILITY_1, 999)
-    eventPlayer.setDamageDealt(100)
-    eventPlayer.setMoveSpeed(100)
-    eventPlayer.setDamageReceived(100)
-    eventPlayer.stopScalingSize()
-    eventPlayer.setStatusEffect(null, Status.ASLEEP, 5)
-    smallMessage(eventPlayer, "疯狗时间结束，源氏睡着了")
+    eventPlayer.genji_ult_window_token += 1
+    eventPlayer.genji_ult_window_timer = 8
+    eventPlayer.setUltCharge(100)
+    eventPlayer.setAbilityCooldown(Button.ABILITY_1, 0)
+    eventPlayer.setDamageDealt(70)
+    eventPlayer.forceButtonPress(Button.ULTIMATE)
+    smallMessage(eventPlayer, "疯狗时间刷新：8秒")
 
 
 rule "[genji] blade damage cap during window":
@@ -501,6 +516,10 @@ rule "[genji] clear blade window on death":
     eventPlayer.genji_ult_window_timer = 0
     eventPlayer.genji_dash_reset_cooldown = false
     eventPlayer.genji_overheat_active = false
+    if eventPlayer.genji_ult_window_hud_created == true:
+        destroyHudText(eventPlayer.genji_ult_window_hud_id)
+    eventPlayer.genji_ult_window_hud_created = false
+    eventPlayer.genji_ult_window_hud_id = null
     eventPlayer.setUltCharge(0)
     eventPlayer.setDamageDealt(100)
     eventPlayer.setMoveSpeed(100)
@@ -518,6 +537,10 @@ rule "[genji] clear blade window after hero swap":
     eventPlayer.genji_ult_window_timer = 0
     eventPlayer.genji_dash_reset_cooldown = false
     eventPlayer.genji_overheat_active = false
+    if eventPlayer.genji_ult_window_hud_created == true:
+        destroyHudText(eventPlayer.genji_ult_window_hud_id)
+    eventPlayer.genji_ult_window_hud_created = false
+    eventPlayer.genji_ult_window_hud_id = null
     eventPlayer.setUltCharge(0)
     eventPlayer.setDamageDealt(100)
     eventPlayer.setMoveSpeed(100)
@@ -534,11 +557,142 @@ rule "[genji] clear blade window after leaving alive window":
     eventPlayer.genji_ult_window_token += 1
     eventPlayer.genji_ult_window_active = false
     eventPlayer.genji_ult_window_timer = 0
+    if eventPlayer.genji_ult_window_hud_created == true:
+        destroyHudText(eventPlayer.genji_ult_window_hud_id)
+    eventPlayer.genji_ult_window_hud_created = false
+    eventPlayer.genji_ult_window_hud_id = null
     eventPlayer.setUltCharge(0)
     eventPlayer.setDamageDealt(100)
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageReceived(100)
     eventPlayer.stopScalingSize()
+
+
+rule "[torbjorn] create parts hud":
+    @Event eachPlayer
+    @Hero torbjorn
+    @Condition eventPlayer.torb_parts_hud_created == false
+
+    eventPlayer.torb_parts_hud_created = true
+    hudHeader(eventPlayer, "托比昂零件：{}/3".format(eventPlayer.torb_parts), HudPosition.RIGHT, -850, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.torb_parts_hud_id = getLastCreatedText()
+
+
+rule "[torbjorn] gain parts on final blow":
+    @Event playerDealtFinalBlow
+    @Hero torbjorn
+    @Condition eventPlayer.isAlive() == true
+    @Condition isGameInProgress() == true
+    @Condition eventPlayer.torb_mod_active == false
+
+    if eventPlayer.torb_parts < 3:
+        eventPlayer.torb_parts += 1
+    if eventPlayer.torb_parts >= 3:
+        eventPlayer.torb_parts = 3
+        eventPlayer.torb_mod_ready = true
+        smallMessage(eventPlayer, "非法改装就绪")
+    else:
+        smallMessage(eventPlayer, "获得零件：{}/3".format(eventPlayer.torb_parts))
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 1.5)
+
+
+rule "[torbjorn] activate illegal modification":
+    @Event eachPlayer
+    @Hero torbjorn
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.torb_parts >= 3
+    @Condition eventPlayer.torb_mod_active == false
+    @Condition eventPlayer.torb_mod_cooldown == false
+    @Condition eventPlayer.isUsingAbility2() == true
+
+    eventPlayer.torb_mod_active = true
+    eventPlayer.torb_mod_ready = false
+    eventPlayer.torb_mod_cooldown = true
+    eventPlayer.torb_parts = 0
+    eventPlayer.torb_mod_roll = random.randint(1, 4)
+    smallMessage(eventPlayer, "非法改装启动！")
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
+    if eventPlayer.torb_mod_roll == 1:
+        eventPlayer.startScalingSize(1.6)
+        eventPlayer.setDamageDealt(120)
+        eventPlayer.setMoveSpeed(80)
+        eventPlayer.setKnockbackReceived(130)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
+        smallMessage(eventPlayer, "非法改装：巨型模块")
+        wait(1)
+        eventPlayer.torb_mod_cooldown = false
+    elif eventPlayer.torb_mod_roll == 2:
+        eventPlayer.startScalingSize(0.65)
+        eventPlayer.setMoveSpeed(140)
+        eventPlayer.setDamageDealt(70)
+        eventPlayer.setKnockbackReceived(160)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 2)
+        smallMessage(eventPlayer, "非法改装：迷你模块")
+        wait(1)
+        eventPlayer.torb_mod_cooldown = false
+    elif eventPlayer.torb_mod_roll == 3:
+        eventPlayer.startScalingSize(1.25)
+        eventPlayer.setDamageReceived(70)
+        eventPlayer.setMoveSpeed(75)
+        eventPlayer.setDamageDealt(80)
+        eventPlayer.setKnockbackReceived(70)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.WHITE, eventPlayer, 2.5)
+        smallMessage(eventPlayer, "非法改装：防爆模块")
+        wait(1)
+        eventPlayer.torb_mod_cooldown = false
+    else:
+        eventPlayer.startScalingSize(1.8)
+        eventPlayer.setMoveSpeed(60)
+        eventPlayer.setDamageReceived(130)
+        eventPlayer.setStatusEffect(null, Status.KNOCKED_DOWN, 0.75)
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer, 3)
+        smallMessage(eventPlayer, "非法改装失败！")
+        wait(2)
+        eventPlayer.stopScalingSize()
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.setDamageDealt(100)
+        eventPlayer.setDamageReceived(100)
+        eventPlayer.setKnockbackReceived(100)
+        eventPlayer.torb_mod_active = false
+        wait(1)
+        eventPlayer.torb_mod_cooldown = false
+
+
+rule "[torbjorn] clear illegal modification on death":
+    @Event playerDied
+    @Hero torbjorn
+
+    eventPlayer.torb_parts = 0
+    eventPlayer.torb_mod_ready = false
+    eventPlayer.torb_mod_active = false
+    eventPlayer.torb_mod_roll = 0
+    eventPlayer.torb_mod_cooldown = false
+    eventPlayer.stopScalingSize()
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageDealt(100)
+    eventPlayer.setDamageReceived(100)
+    eventPlayer.setKnockbackReceived(100)
+
+
+rule "[torbjorn] clear illegal modification after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.TORBJORN
+    @Condition eventPlayer.torb_parts > 0 or eventPlayer.torb_mod_ready == true or eventPlayer.torb_mod_active == true or eventPlayer.torb_mod_cooldown == true or eventPlayer.torb_parts_hud_created == true
+
+    if eventPlayer.torb_parts_hud_created == true:
+        destroyHudText(eventPlayer.torb_parts_hud_id)
+    eventPlayer.torb_parts = 0
+    eventPlayer.torb_mod_ready = false
+    eventPlayer.torb_mod_active = false
+    eventPlayer.torb_mod_roll = 0
+    eventPlayer.torb_mod_cooldown = false
+    eventPlayer.torb_parts_hud_created = false
+    eventPlayer.torb_parts_hud_id = null
+    eventPlayer.stopScalingSize()
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageDealt(100)
+    eventPlayer.setDamageReceived(100)
+    eventPlayer.setKnockbackReceived(100)
 
 
 rule "[roadhog] hook weakens target":
