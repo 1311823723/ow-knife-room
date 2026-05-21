@@ -66,6 +66,12 @@
   - 风险等级：中。
   - 进游戏测试方法：小美连续攻击敌人，观察约每 10 次伤害触发 1 次短暂冻结，并看到“小美冰冻触发”提示；确认不会冻结自己或队友。
 
+- [x] 削弱源氏击杀刷新 Shift
+  - 目标：保留击杀刷新 Shift 爽感，但加入 8 秒内置冷却和 4 秒过热惩罚，避免连续滚雪球。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：源氏第一次击杀刷新 Shift；8 秒内第二次击杀只提示“龙刃过热中”；过热 4 秒内更脆，死亡或换英雄后状态清理。
+
 - [x] 添加路霸钩中削弱和近战击退强化
   - 目标：路霸钩中敌人后，目标缩小 3 秒、移速提高、受到击退增加，并让路霸下一次近战附加更强击退。
   - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`。

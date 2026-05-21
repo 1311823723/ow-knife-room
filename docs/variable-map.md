@@ -25,6 +25,8 @@
 | `ana_sleep_fx_handle` | `ana_sleep_fx_handle` | `被睡冷却` | 保存沉睡标记效果实体句柄，用于醒来后清理。 | 否。 | 是，默认空。 | 不再沉睡、死亡、换英雄、离开时应销毁并清空。 |
 | `illari_sunburn_pop_cooldown` | `illari_sunburn_pop_cooldown` | `[illari] apply sunburn on damage`、`[illari] pop sunburned target on damage` | 晒黑目标被二次命中弹飞的小冷却，避免连续伤害一帧内反复弹飞。 | 否。 | 是，默认假。 | 晒黑结束、死亡、换英雄、离开时应设假。 |
 | `freya_launch_circle_effects` | `freya_launch_circle_effects` | `[freya] launch circle` | 保存芙蕾娅法阵效果句柄数组，发射后清理。 | 否。 | 是，触发前设为空数组。 | 死亡、换英雄、离开时应清理已有实体并清空数组。 |
+| `genji_dash_reset_cooldown` | `genji_dash_reset_cooldown` | `[genji] dash reset on kill with overheat`、`[genji] dash reset blocked while overheated`、`[genji] clear overheat on death`、`[genji] clear overheat after hero swap` | 源氏击杀刷新 Shift 的 8 秒内置冷却。冷却中再次击杀只提示，不刷新。 | 否。 | 是，默认假。 | 死亡、换英雄、离开时应设假。 |
+| `genji_overheat_active` | `genji_overheat_active` | `[genji] dash reset on kill with overheat`、`[genji] clear overheat on death`、`[genji] clear overheat after hero swap` | 源氏击杀刷新后的 4 秒过热状态标记，用于清理受到伤害、移速和体型调整。 | 否。 | 是，默认假。 | 死亡、换英雄、离开时应恢复属性并设假。 |
 
 ## 建议新增变量
 
@@ -44,3 +46,4 @@
 - TODO：确认换英雄事件或玩家离开事件在目标 Workshop/OverPy 版本中的写法，再补全生命周期规则。
 - TODO：确认芙蕾娅“飞天”的准确 Workshop 检测方式；当前新版法阵临时使用跳跃键触发。
 - TODO：确认路霸钩子、索杰恩滑铲、伊拉锐爆发在实战中是否分别对应 `技能1`、`技能1`、`技能2`。
+- TODO：确认源氏 Shift 在 Workshop 中是否稳定对应 `技能1`；当前沿用 `Button.ABILITY_1` / `isUsingAbility1()`。
