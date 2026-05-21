@@ -122,3 +122,4 @@
 - `corepack pnpm run decompile:legacy` 已成功生成 `src/legacy-decompiled.opy`。
 - 自动反编译结果只作为迁移参考，不作为当前可玩版本来源。
 - OverPy 在 `天使复活` 处生成注释：`this '__while__' had no 'end' action`，进一步确认该规则存在高风险控制流问题。
+- 变量索引必须保留：`Kiriko_Skill` 在旧版中是玩家变量 `26`。如果省略索引，OverPy 会自动分配到 `4`，进游戏会报玩家变量重复命名。

@@ -59,3 +59,5 @@ corepack pnpm run decompile:legacy
 ```
 
 This writes `src/legacy-decompiled.opy`. Treat that file as reference material for migration, not as the active source of truth. The playable fallback remains the original legacy Workshop code.
+
+Keep variable indexes during decompilation. The legacy Workshop uses `26: Kiriko_Skill`; dropping indexes lets OverPy auto-assign it to index 4, which collides with the default A-Z player variable range in-game.
