@@ -25,8 +25,17 @@
 | `ana_sleep_fx_handle` | `ana_sleep_fx_handle` | `被睡冷却` | 保存沉睡标记效果实体句柄，用于醒来后清理。 | 否。 | 是，默认空。 | 不再沉睡、死亡、换英雄、离开时应销毁并清空。 |
 | `illari_sunburn_pop_cooldown` | `illari_sunburn_pop_cooldown` | `[illari] apply sunburn on damage`、`[illari] pop sunburned target on damage` | 晒黑目标被二次命中弹飞的小冷却，避免连续伤害一帧内反复弹飞。 | 否。 | 是，默认假。 | 晒黑结束、死亡、换英雄、离开时应设假。 |
 | `freya_launch_circle_effects` | `freya_launch_circle_effects` | `[freya] launch circle` | 保存芙蕾娅法阵效果句柄数组，发射后清理。 | 否。 | 是，触发前设为空数组。 | 死亡、换英雄、离开时应清理已有实体并清空数组。 |
-| `genji_dash_reset_cooldown` | `genji_dash_reset_cooldown` | `[genji] dash reset on kill with overheat`、`[genji] dash reset blocked while overheated`、`[genji] clear overheat on death`、`[genji] clear overheat after hero swap` | 源氏击杀刷新 Shift 的 8 秒内置冷却。冷却中再次击杀只提示，不刷新。 | 否。 | 是，默认假。 | 死亡、换英雄、离开时应设假。 |
-| `genji_overheat_active` | `genji_overheat_active` | `[genji] dash reset on kill with overheat`、`[genji] clear overheat on death`、`[genji] clear overheat after hero swap` | 源氏击杀刷新后的 4 秒过热状态标记，用于清理受到伤害、移速和体型调整。 | 否。 | 是，默认假。 | 死亡、换英雄、离开时应恢复属性并设假。 |
+| `genji_dash_reset_cooldown` | `genji_dash_reset_cooldown` | 旧源氏过热机制变量；当前只在新源氏清理规则中兜底设假 | 旧版“击杀刷新 Shift + 过热”遗留变量。当前新机制不用它判定，只保留编号避免重排。 | 后续可废弃，但不要重排编号。 | 默认假。 | 死亡、换英雄、离开时设假。 |
+| `genji_overheat_active` | `genji_overheat_active` | 旧源氏过热机制变量；当前只在新源氏清理规则中兜底设假 | 旧版 4 秒过热状态遗留变量。当前新机制不用它判定，只保留编号避免重排。 | 后续可废弃，但不要重排编号。 | 默认假。 | 死亡、换英雄、离开时恢复属性并设假。 |
+| `baptiste_mirror_active` | `baptiste_mirror_active` | `[baptiste] mirror matrix trigger`、`[baptiste] clear mirror active on death`、`[baptiste] clear mirror active after hero swap` | 巴蒂斯特哈哈镜技能运行中标记，防止终极按住时重复触发。 | 否。 | 是，默认假。 | 巴蒂死亡、换英雄、离开时应设假。 |
+| `baptiste_mirror_roll` | `baptiste_mirror_roll` | `[baptiste] mirror matrix trigger` | 本次哈哈镜随机结果。当前第一版为巴蒂每次开大随机一种镜像，范围内玩家获得同一种变形。 | 否。 | 是，触发时设为 1-4。 | 下次触发覆盖即可。 |
+| `baptiste_mirror_target_active` | `baptiste_mirror_target_active` | `[baptiste] mirror matrix trigger`、四条 `[baptiste] mirror ... effect` | 目标正处于哈哈镜变形中，防止同一目标叠加多种哈哈镜效果。 | 否。 | 是，默认假。 | 6 秒后恢复；死亡、换英雄、离开时后续可补强制恢复。 |
+| `baptiste_fake_drug_cooldown` | `baptiste_fake_drug_cooldown` | `[baptiste] fake drug injection` | 巴蒂假药注射 4 秒内置冷却。 | 否。 | 是，默认假。 | 死亡、换英雄、离开时应设假。 |
+| `baptiste_fake_drug_target_active` | `baptiste_fake_drug_target_active` | `[baptiste] fake drug injection` | 目标正在承受假药副作用，防止同一目标叠多个假药状态。 | 否。 | 是，默认假。 | 3 秒后恢复；死亡、换英雄、离开时后续可补强制恢复。 |
+| `baptiste_fake_drug_roll` | `baptiste_fake_drug_roll` | `[baptiste] fake drug injection` | 目标本次假药副作用随机结果。 | 否。 | 是，触发时设为 1-4。 | 下次触发覆盖即可。 |
+| `genji_ult_window_active` | `genji_ult_window_active` | `[genji] lock swift strike outside blade window`、`[genji] start blade window on final blow`、`[genji] blade damage cap during window`、源氏清理规则 | 源氏 8 秒疯狗龙刃窗口是否开启。开启时 Shift 解锁、终极充能 100。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开时应设假。 |
+| `genji_ult_window_timer` | `genji_ult_window_timer` | `[genji] start blade window on final blow`、`[genji] blade window countdown`、`[genji] end blade window with sleep`、源氏清理规则 | 源氏疯狗窗口剩余时间。击杀设为 8，倒计时规则每秒减 1，续杀重新设为 8。 | 否。 | 是，默认 0。 | 自然结束、死亡、换英雄、离开时设 0。 |
+| `genji_ult_window_token` | `genji_ult_window_token` | `[genji] start blade window on final blow`、源氏清理规则 | 每次击杀或清理时递增的窗口版本号。当前 timer 方案不依赖它结束窗口，但保留作后续 HUD/调试扩展。 | 否。 | 是，默认 0。 | 死亡、换英雄、清理时递增。 |
 
 ## 建议新增变量
 
@@ -46,4 +55,5 @@
 - TODO：确认换英雄事件或玩家离开事件在目标 Workshop/OverPy 版本中的写法，再补全生命周期规则。
 - TODO：确认芙蕾娅 E 技能在 Workshop 中是否稳定对应 `技能2`；当前新版法阵使用 `isUsingAbility2()`。
 - TODO：确认路霸钩子、索杰恩滑铲、伊拉锐爆发在实战中是否分别对应 `技能1`、`技能1`、`技能2`。
-- TODO：确认源氏 Shift 在 Workshop 中是否稳定对应 `技能1`；当前沿用 `Button.ABILITY_1` / `isUsingAbility1()`。
+- TODO：确认源氏 Shift 在 Workshop 中是否稳定对应 `技能1`；当前疯狗窗口用设置技能 1 冷却模拟禁用/解锁。
+- TODO：确认 `事件技能 == 按钮(终极技能)` 能稳定识别龙刃伤害；当前另有窗口内 `设置造成伤害(70)` 作为近似兜底。

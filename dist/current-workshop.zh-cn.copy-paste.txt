@@ -21,6 +21,15 @@
         38: freya_launch_circle_effects
         39: genji_dash_reset_cooldown
         40: genji_overheat_active
+        41: baptiste_mirror_active
+        42: baptiste_mirror_roll
+        43: baptiste_mirror_target_active
+        44: baptiste_fake_drug_cooldown
+        45: baptiste_fake_drug_target_active
+        46: baptiste_fake_drug_roll
+        47: genji_ult_window_active
+        48: genji_ult_window_timer
+        49: genji_ult_window_token
 }
 
 //Strict optimizations enabled
@@ -289,7 +298,7 @@
         按钮被按下(事件玩家, 按钮(互动)) == 真;
     }
     动作 {
-        大字体信息(事件玩家, 自定义字符串("技能说明\n被入侵：变大并持续扣血\n蚁人76：左键变大，右键变小\n天使：每条命一次复活甲，致命伤回血并震开敌人\n源氏：击杀可刷新Shift，但刷新后会过热，短时间内更脆\n小美：造成伤害时20%概率冰冻目标\n路霸：钩中缩小目标，并强化下一次近战击退\n卢西{0}", 自定义字符串("奥：落地弹起附近其他玩家，自己短暂加速\n索杰恩：滑铲撞人会伤害、击倒并铲飞\n伊拉锐：概率晒黑目标；爆发弹开附近玩家\n芙蕾娅：E技能生成法阵，范围内玩家一起高飞\n安娜：睡针命中会添加醒目睡眠标记")));
+        大字体信息(事件玩家, 自定义字符串("技能说明\n被入侵：变大并持续扣血\n蚁人76：左键变大，右键变小\n天使：每条命一次复活甲，致命伤回血并震开敌人\n巴蒂：大招哈哈镜随机变形；伤害有概率打出假药副作用\n源氏：击杀开启8秒疯狗时间；续杀刷新，结束后沉睡\n小美：造成伤害时20%概率冰冻目标\n路{0}", 自定义字符串("霸：钩中缩小目标，并强化下一次近战击退\n卢西奥：落地弹起附近其他玩家，自己短暂加速\n索杰恩：滑铲撞人会伤害、击倒并铲飞\n伊拉锐：概率晒黑目标；爆发弹开附近玩家\n芙蕾娅：E技能生成法阵，范围内玩家一起高飞\n安娜：睡针命中会添加醒目睡眠标记")));
     }
 }
 
@@ -421,78 +430,327 @@
     }
 }
 
-规则 ("[genji] swift strike base cooldown") {
+规则 ("[baptiste] mirror matrix tri­gger") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        巴蒂斯特;
+    }
+    条件 {
+        存活(事件玩家) == 真;
+        (事件玩家).baptiste_mirror_active == 假;
+        终极技能充能百分比(事件玩家) == 100;
+        按钮被按下(事件玩家, 按钮(终极技能)) == 真;
+    }
+    动作 {
+        设置玩家变量(事件玩家, baptiste_mirror_active, 真);
+        设置玩家变量(事件玩家, baptiste_mirror_roll, 随机整数(1, 4));
+        设置玩家变量(已过滤的数组(范围内玩家(所选位置(事件玩家), 8, 所有队伍, 关闭), 比较((当前数组元素).baptiste_mirror_target_active, ==, 假)), baptiste_mirror_roll, (事件玩家).baptiste_mirror_roll);
+        设置玩家变量(已过滤的数组(范围内玩家(所选位置(事件玩家), 8, 所有队伍, 关闭), 比较((当前数组元素).baptiste_mirror_target_active, ==, 假)), baptiste_mirror_target_active, 真);
+        播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(蓝色), 事件玩家, 8);
+        小字体信息(事件玩家, 自定义字符串("增幅矩阵哈哈镜"));
+        等待(6, 无视条件);
+        设置玩家变量(事件玩家, baptiste_mirror_active, 假);
+    }
+}
+
+规则 ("[baptiste] mirror giant effect") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        (事件玩家).baptiste_mirror_target_active == 真;
+        (事件玩家).baptiste_mirror_roll == 1;
+    }
+    动作 {
+        开始调整玩家大小(事件玩家, 1.6, 真);
+        设置移动速度(事件玩家, 80);
+        设置造成伤害(事件玩家, 115);
+        设置受到的击退(事件玩家, 130);
+        小字体信息(事件玩家, 自定义字符串("哈哈镜：巨人"));
+        等待(6, 无视条件);
+        停止调整玩家大小(事件玩家);
+        设置移动速度(事件玩家, 100);
+        设置造成伤害(事件玩家, 100);
+        设置受到伤害(事件玩家, 100);
+        设置受到的击退(事件玩家, 100);
+        设置玩家变量(事件玩家, baptiste_mirror_target_active, 假);
+    }
+}
+
+规则 ("[baptiste] mirror tiny effect") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        (事件玩家).baptiste_mirror_target_active == 真;
+        (事件玩家).baptiste_mirror_roll == 2;
+    }
+    动作 {
+        开始调整玩家大小(事件玩家, 0.65, 真);
+        设置移动速度(事件玩家, 130);
+        设置造成伤害(事件玩家, 70);
+        设置受到的击退(事件玩家, 160);
+        小字体信息(事件玩家, 自定义字符串("哈哈镜：小人"));
+        等待(6, 无视条件);
+        停止调整玩家大小(事件玩家);
+        设置移动速度(事件玩家, 100);
+        设置造成伤害(事件玩家, 100);
+        设置受到伤害(事件玩家, 100);
+        设置受到的击退(事件玩家, 100);
+        设置玩家变量(事件玩家, baptiste_mirror_target_active, 假);
+    }
+}
+
+规则 ("[baptiste] mirror glass effect") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        (事件玩家).baptiste_mirror_target_active == 真;
+        (事件玩家).baptiste_mirror_roll == 3;
+    }
+    动作 {
+        开始调整玩家大小(事件玩家, 0.85, 真);
+        设置移动速度(事件玩家, 140);
+        设置造成伤害(事件玩家, 110);
+        设置受到伤害(事件玩家, 130);
+        小字体信息(事件玩家, 自定义字符串("哈哈镜：玻璃人"));
+        等待(6, 无视条件);
+        停止调整玩家大小(事件玩家);
+        设置移动速度(事件玩家, 100);
+        设置造成伤害(事件玩家, 100);
+        设置受到伤害(事件玩家, 100);
+        设置受到的击退(事件玩家, 100);
+        设置玩家变量(事件玩家, baptiste_mirror_target_active, 假);
+    }
+}
+
+规则 ("[baptiste] mirror iron effect") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        (事件玩家).baptiste_mirror_target_active == 真;
+        (事件玩家).baptiste_mirror_roll == 4;
+    }
+    动作 {
+        开始调整玩家大小(事件玩家, 1.25, 真);
+        设置移动速度(事件玩家, 75);
+        设置造成伤害(事件玩家, 75);
+        设置受到伤害(事件玩家, 70);
+        小字体信息(事件玩家, 自定义字符串("哈哈镜：铁块"));
+        等待(6, 无视条件);
+        停止调整玩家大小(事件玩家);
+        设置移动速度(事件玩家, 100);
+        设置造成伤害(事件玩家, 100);
+        设置受到伤害(事件玩家, 100);
+        设置受到的击退(事件玩家, 100);
+        设置玩家变量(事件玩家, baptiste_mirror_target_active, 假);
+    }
+}
+
+规则 ("[baptiste] clear mirror active on death") {
+    事件 {
+        玩家阵亡;
+        双方;
+        巴蒂斯特;
+    }
+    动作 {
+        设置玩家变量(事件玩家, baptiste_mirror_active, 假);
+    }
+}
+
+规则 ("[baptiste] clear mirror active after hero swap") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        所用英雄(事件玩家) != 英雄(巴蒂斯特);
+        (事件玩家).baptiste_mirror_active == 真;
+    }
+    动作 {
+        设置玩家变量(事件玩家, baptiste_mirror_active, 假);
+    }
+}
+
+规则 ("[baptiste] fake drug injection") {
+    事件 {
+        玩家造成伤害;
+        双方;
+        巴蒂斯特;
+    }
+    条件 {
+        存活(被攻击方) == 真;
+        (事件玩家).baptiste_fake_drug_cooldown == 假;
+        (被攻击方).baptiste_fake_drug_target_active == 假;
+    }
+    动作 {
+        If(比较(随机整数(1, 100), <=, 18));
+            设置玩家变量(事件玩家, baptiste_fake_drug_cooldown, 真);
+            设置玩家变量(被攻击方, baptiste_fake_drug_target_active, 真);
+            设置玩家变量(被攻击方, baptiste_fake_drug_roll, 随机整数(1, 4));
+            播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(黄色), 被攻击方, 1.5);
+            小字体信息(事件玩家, 自定义字符串("假药注射成功"));
+            If(比较((被攻击方).baptiste_fake_drug_roll, ==, 1));
+                开始调整玩家大小(被攻击方, 1.35, 真);
+                设置移动速度(被攻击方, 85);
+                设置受到的击退(被攻击方, 130);
+                小字体信息(被攻击方, 自定义字符串("假药副作用：大头针"));
+            Else If(比较((被攻击方).baptiste_fake_drug_roll, ==, 2));
+                开始调整玩家大小(被攻击方, 0.7, 真);
+                设置移动速度(被攻击方, 125);
+                设置造成伤害(被攻击方, 75);
+                设置受到的击退(被攻击方, 150);
+                小字体信息(被攻击方, 自定义字符串("假药副作用：缩水针"));
+            Else If(比较((被攻击方).baptiste_fake_drug_roll, ==, 3));
+                设置移动速度(被攻击方, 135);
+                设置受到伤害(被攻击方, 125);
+                小字体信息(被攻击方, 自定义字符串("假药副作用：兴奋剂过量"));
+            Else;
+                设置移动速度(被攻击方, 70);
+                设置受到伤害(被攻击方, 80);
+                设置造成伤害(被攻击方, 80);
+                小字体信息(被攻击方, 自定义字符串("假药副作用：镇定剂"));
+            End;
+            等待(3, 无视条件);
+            停止调整玩家大小(被攻击方);
+            设置移动速度(被攻击方, 100);
+            设置造成伤害(被攻击方, 100);
+            设置受到伤害(被攻击方, 100);
+            设置受到的击退(被攻击方, 100);
+            设置玩家变量(被攻击方, baptiste_fake_drug_target_active, 假);
+            等待(1, 无视条件);
+            设置玩家变量(事件玩家, baptiste_fake_drug_cooldown, 假);
+    }
+}
+
+规则 ("[genji] lock swift strike outside blade window") {
     事件 {
         持续 - 每名玩家;
         双方;
         源氏;
     }
     条件 {
-        正在使用技能 1(事件玩家) == 真;
+        存活(事件玩家) == 真;
+        (事件玩家).genji_ult_window_active != 真;
     }
     动作 {
-        设置技能冷却(事件玩家, 按钮(技能1), 40);
+        设置技能冷却(事件玩家, 按钮(技能1), 999);
     }
 }
 
-规则 ("[genji] dash reset on kill with overheat") {
+规则 ("[genji] start blade window on final b­low") {
     事件 {
         玩家造成最后一击;
         双方;
         源氏;
     }
     条件 {
-        (事件玩家).genji_dash_reset_cooldown == 假;
+        存活(事件玩家) == 真;
+        游戏正在进行中 == 真;
     }
     动作 {
+        修改玩家变量(事件玩家, genji_ult_window_token, 加, 1);
+        设置玩家变量(事件玩家, genji_ult_window_timer, 8);
+        设置玩家变量(事件玩家, genji_ult_window_active, 真);
+        设置终极技能充能(事件玩家, 100);
         设置技能冷却(事件玩家, 按钮(技能1), 0);
-        设置玩家变量(事件玩家, genji_dash_reset_cooldown, 真);
-        设置玩家变量(事件玩家, genji_overheat_active, 真);
-        设置受到伤害(事件玩家, 125);
-        设置移动速度(事件玩家, 115);
-        开始调整玩家大小(事件玩家, 1.15, 真);
-        播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(红色), 事件玩家, 2);
-        小字体信息(事件玩家, 自定义字符串("影刷新：过热"));
-        等待(4, 无视条件);
-        设置受到伤害(事件玩家, 100);
-        设置移动速度(事件玩家, 100);
-        停止调整玩家大小(事件玩家);
-        设置玩家变量(事件玩家, genji_overheat_active, 假);
-        等待(4, 无视条件);
-        设置玩家变量(事件玩家, genji_dash_reset_cooldown, 假);
+        设置造成伤害(事件玩家, 70);
+        播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(绿色), 事件玩家, 2);
+        小字体信息(事件玩家, 自定义字符串("疯狗时间：8秒"));
     }
 }
 
-规则 ("[genji] dash reset blocked while overheated") {
+规则 ("[genji] blade window countdown") {
     事件 {
-        玩家造成最后一击;
+        持续 - 每名玩家;
         双方;
         源氏;
     }
     条件 {
-        (事件玩家).genji_dash_reset_cooldown == 真;
+        存活(事件玩家) == 真;
+        (事件玩家).genji_ult_window_active == 真;
+        (事件玩家).genji_ult_window_timer > 0;
     }
     动作 {
-        小字体信息(事件玩家, 自定义字符串("龙刃过热中"));
+        等待(1, 无视条件);
+        修改玩家变量(事件玩家, genji_ult_window_timer, 减, 1);
     }
 }
 
-规则 ("[genji] clear overheat on death") {
+规则 ("[genji] end blade window with sleep") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        源氏;
+    }
+    条件 {
+        存活(事件玩家) == 真;
+        (事件玩家).genji_ult_window_active == 真;
+        (事件玩家).genji_ult_window_timer <= 0;
+    }
+    动作 {
+        设置玩家变量(事件玩家, genji_ult_window_active, 假);
+        设置玩家变量(事件玩家, genji_ult_window_timer, 0);
+        设置终极技能充能(事件玩家, 0);
+        设置技能冷却(事件玩家, 按钮(技能1), 999);
+        设置造成伤害(事件玩家, 100);
+        设置移动速度(事件玩家, 100);
+        设置受到伤害(事件玩家, 100);
+        停止调整玩家大小(事件玩家);
+        设置状态(事件玩家, 空, 沉睡, 5);
+        小字体信息(事件玩家, 自定义字符串("疯狗时间结束，源氏睡着了"));
+    }
+}
+
+规则 ("[genji] blade damage cap during window") {
+    事件 {
+        玩家造成伤害;
+        双方;
+        源氏;
+    }
+    条件 {
+        (事件玩家).genji_ult_window_active == 真;
+        事件技能 == 按钮(终极技能);
+        事件伤害 > 70;
+    }
+    动作 {
+        治疗(被攻击方, 空, 减(事件伤害, 70));
+    }
+}
+
+规则 ("[genji] clear blade window on death") {
     事件 {
         玩家阵亡;
         双方;
         源氏;
     }
     动作 {
+        修改玩家变量(事件玩家, genji_ult_window_token, 加, 1);
+        设置玩家变量(事件玩家, genji_ult_window_active, 假);
+        设置玩家变量(事件玩家, genji_ult_window_timer, 0);
         设置玩家变量(事件玩家, genji_dash_reset_cooldown, 假);
         设置玩家变量(事件玩家, genji_overheat_active, 假);
-        设置受到伤害(事件玩家, 100);
+        设置终极技能充能(事件玩家, 0);
+        设置造成伤害(事件玩家, 100);
         设置移动速度(事件玩家, 100);
+        设置受到伤害(事件玩家, 100);
         停止调整玩家大小(事件玩家);
     }
 }
 
-规则 ("[genji] clear overheat after hero swap") {
+规则 ("[genji] clear blade window after hero swap") {
     事件 {
         持续 - 每名玩家;
         双方;
@@ -500,13 +758,40 @@
     }
     条件 {
         所用英雄(事件玩家) != 英雄(源氏);
-        或(比较((事件玩家).genji_overheat_active, ==, 真), 比较((事件玩家).genji_dash_reset_cooldown, ==, 真)) == 真;
+        或(或(或(比较((事件玩家).genji_ult_window_active, ==, 真), 比较((事件玩家).genji_ult_window_timer, >, 0)), 比较((事件玩家).genji_dash_reset_cooldown, ==, 真)), 比较((事件玩家).genji_overheat_active, ==, 真)) == 真;
     }
     动作 {
+        修改玩家变量(事件玩家, genji_ult_window_token, 加, 1);
+        设置玩家变量(事件玩家, genji_ult_window_active, 假);
+        设置玩家变量(事件玩家, genji_ult_window_timer, 0);
         设置玩家变量(事件玩家, genji_dash_reset_cooldown, 假);
         设置玩家变量(事件玩家, genji_overheat_active, 假);
-        设置受到伤害(事件玩家, 100);
+        设置终极技能充能(事件玩家, 0);
+        设置造成伤害(事件玩家, 100);
         设置移动速度(事件玩家, 100);
+        设置受到伤害(事件玩家, 100);
+        停止调整玩家大小(事件玩家);
+    }
+}
+
+规则 ("[genji] clear blade window after leaving alive window") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        源氏;
+    }
+    条件 {
+        死亡(事件玩家) == 真;
+        (事件玩家).genji_ult_window_active == 真;
+    }
+    动作 {
+        修改玩家变量(事件玩家, genji_ult_window_token, 加, 1);
+        设置玩家变量(事件玩家, genji_ult_window_active, 假);
+        设置玩家变量(事件玩家, genji_ult_window_timer, 0);
+        设置终极技能充能(事件玩家, 0);
+        设置造成伤害(事件玩家, 100);
+        设置移动速度(事件玩家, 100);
+        设置受到伤害(事件玩家, 100);
         停止调整玩家大小(事件玩家);
     }
 }

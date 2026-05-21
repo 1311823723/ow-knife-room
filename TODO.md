@@ -72,6 +72,24 @@
   - 风险等级：中。
   - 进游戏测试方法：源氏第一次击杀刷新 Shift；8 秒内第二次击杀只提示“龙刃过热中”；过热 4 秒内更脆，死亡或换英雄后状态清理。
 
+- [x] 重构源氏疯狗龙刃窗口
+  - 目标：删除旧击杀刷新 Shift 机制，改为击杀开启 8 秒窗口；窗口内解锁 Shift 和大招，续杀刷新，结束后沉睡。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：高。
+  - 进游戏测试方法：源氏普通状态不能 Shift；击杀后 8 秒内可 Shift 和开大；续杀刷新窗口；自然结束后沉睡 5 秒；死亡或换英雄不残留。
+
+- [x] 添加巴蒂斯特增幅矩阵哈哈镜
+  - 目标：巴蒂斯特开大时让半径 8 米内玩家获得 6 秒随机体型、速度、伤害、承伤或击退变化。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：巴蒂斯特满大按大招，确认范围内玩家获得一种哈哈镜效果，6 秒后全部恢复。
+
+- [x] 添加巴蒂斯特假药注射
+  - 目标：巴蒂斯特造成伤害时 18% 概率给目标添加 3 秒随机副作用，并有 4 秒内置冷却。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：巴蒂斯特连续攻击目标，确认偶发假药提示和副作用；同一目标不叠加，4 秒内不连续触发。
+
 - [x] 添加路霸钩中削弱和近战击退强化
   - 目标：路霸钩中敌人后，目标缩小 3 秒、移速提高、受到击退增加，并让路霸下一次近战附加更强击退。
   - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`。
