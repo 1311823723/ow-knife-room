@@ -3,5 +3,5 @@
 # It exists only to verify the future OverPy compiler/decompiler workflow.
 
 rule "ow_knife_room_minimal_compile_check":
+    @Delimiter
     @Event global
-    wait(1)

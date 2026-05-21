@@ -14,11 +14,17 @@
   - 风险等级：低。
   - 进游戏测试方法：不需要进游戏；确认 `git branch --show-current`。
 
-- [ ] 确认 OverPy 编译方式
+- [x] 确认 OverPy 编译方式
   - 目标：确定使用 `overpy`、`overpyc`、`opy` 还是项目内脚本构建。
-  - 涉及文件：`src/main.opy`、未来的构建脚本或 SETUP 文档。
+  - 涉及文件：`package.json`、`pnpm-lock.yaml`、`SETUP.md`、`src/main.opy`。
   - 风险等级：中。
-  - 进游戏测试方法：编译成功后把输出粘贴到 Workshop，确认能保存。
+  - 进游戏测试方法：运行 `corepack pnpm run build`，把 `dist/overpy-smoke.zh-cn.txt` 粘贴到 Workshop，确认能保存。
+
+- [ ] 准备干净的 legacy Workshop 纯文本
+  - 目标：从当前可玩版本导出不带 RTF 包裹的 Workshop 文本，供 OverPy decompile 使用。
+  - 涉及文件：建议新增 `legacy/current-workshop.zh-cn.plain.txt`。
+  - 风险等级：低。
+  - 进游戏测试方法：把纯文本重新粘贴进 Workshop，确认与旧版表现一致。
 
 ## Phase 0：审计与保护
 

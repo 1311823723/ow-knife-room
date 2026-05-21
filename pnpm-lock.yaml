@@ -1,0 +1,23 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      overpy:
+        specifier: ^9.6.5
+        version: 9.6.5
+
+packages:
+
+  overpy@9.6.5:
+    resolution: {integrity: sha512-LcGEJywYvnpmBN6zEnVkd8lYYkGdJ8U2zlPJUeg/QFEokXGk2DopY0m4v1KXGmYDmNd5ZmkLO7e3aOH4n3WkHw==}
+    hasBin: true
+
+snapshots:
+
+  overpy@9.6.5: {}

@@ -1,0 +1,14 @@
+{
+  "name": "ow-knife-room",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.1.3",
+  "scripts": {
+    "overpy:help": "overpy --help",
+    "build": "overpy compile -i src/main.opy -o dist/overpy-smoke.zh-cn.txt -l zh-CN",
+    "decompile:legacy": "overpy decompile -i legacy/current-workshop.zh-cn.txt -o src/legacy-decompiled.opy -l zh-CN --ignore-variable-index"
+  },
+  "devDependencies": {
+    "overpy": "^9.6.5"
+  }
+}

@@ -1,0 +1,6 @@
+规则 ("ow_knife_room_minimal_compile_check") {
+    事件 {
+        持续 - 全局;
+    }
+}
+

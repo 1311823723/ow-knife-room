@@ -5,9 +5,10 @@
 ## 当前 OverPy 状态
 
 - 项目里有 `src/main.opy`，但它只是最小占位入口，不承载旧玩法迁移。
-- 本轮未发现 `package.json`、构建脚本、OverPy 工具目录或其它可靠编译配置。
-- 本机未找到 `overpy`、`overpyc` 或 `opy` 命令。
-- 因此本轮不生成大量 `.opy` 代码，不假装能编译；需要后续先确认 OverPy 编译方式。
+- 已通过官方 npm 包安装 `overpy`，项目使用 `corepack pnpm` 管理依赖。
+- `corepack pnpm run build` 可以把 `src/main.opy` 编译到 `dist/overpy-smoke.zh-cn.txt`。
+- `corepack pnpm run decompile:legacy` 当前会失败，因为 `legacy/current-workshop.zh-cn.txt` 是 RTF 包裹文本，不是干净的 Workshop 纯文本。
+- 因此下一步仍然不做大量 `.opy` 迁移；需要先准备干净的 legacy Workshop 文本，或逐条手工迁移并进游戏验证。
 
 ## Phase 0：保留旧版
 
@@ -16,7 +17,7 @@
 - 保存 `legacy/current-workshop.zh-cn.txt` 原始代码。
 - 确保旧版本可回退，不直接删除或覆盖。
 - 建立审计文档和变量映射。
-- 记录当前不是 git 仓库这一事实；等仓库恢复后再创建 `audit/legacy-workshop-review` 分支并提交。
+- 已创建 git 仓库、审计分支 `audit/legacy-workshop-review`，并把初始审计提交推送到 GitHub。
 
 ## Phase 1：不改变玩法，只修明显结构问题
 
