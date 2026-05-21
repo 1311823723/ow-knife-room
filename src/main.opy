@@ -173,7 +173,7 @@ rule "[hud] show ability guide while holding interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
 
-    bigMessage(eventPlayer, "技能说明\n被入侵：变大并持续扣血\n蚁人76：左键变大，右键变小\n天使：每条命一次复活甲，致命伤回血并震开敌人\n源氏：击杀可刷新Shift，但刷新后会过热，短时间内更脆\n小美：造成伤害时10%概率冰冻目标\n路霸：钩中缩小目标，并强化下一次近战击退\n卢西奥：落地弹起附近其他玩家，自己短暂加速\n索杰恩：滑铲撞人会伤害、击倒并铲飞\n伊拉锐：概率晒黑目标；爆发弹开附近玩家\n芙蕾娅：飞天时生成法阵，范围内玩家一起高飞\n安娜：睡针命中会添加醒目睡眠标记")
+    bigMessage(eventPlayer, "技能说明\n被入侵：变大并持续扣血\n蚁人76：左键变大，右键变小\n天使：每条命一次复活甲，致命伤回血并震开敌人\n源氏：击杀可刷新Shift，但刷新后会过热，短时间内更脆\n小美：造成伤害时20%概率冰冻目标\n路霸：钩中缩小目标，并强化下一次近战击退\n卢西奥：落地弹起附近其他玩家，自己短暂加速\n索杰恩：滑铲撞人会伤害、击倒并铲飞\n伊拉锐：概率晒黑目标；爆发弹开附近玩家\n芙蕾娅：E技能生成法阵，范围内玩家一起高飞\n安娜：睡针命中会添加醒目睡眠标记")
 
 
 rule "[mercy] grant revive armor on spawn":
@@ -259,7 +259,7 @@ rule "[mei] freeze target on damage chance":
     @Event playerDealtDamage
     @Hero mei
 
-    if random.randint(1, 100) <= 10:
+    if random.randint(1, 100) <= 20:
         victim.setStatusEffect(eventPlayer, Status.FROZEN, 1)
         smallMessage(eventPlayer, "小美冰冻触发")
 
@@ -371,8 +371,8 @@ rule "[lucio] landing bounce":
 
     eventPlayer.lucio_was_airborne = false
     eventPlayer.lucio_landing_bounce_cooldown = true
-    getPlayersInRadius(eventPlayer.getPosition(), 4.5, Team.ALL).filter(lambda player: player != eventPlayer).lucio_landing_bounce_cooldown = true
-    getPlayersInRadius(eventPlayer.getPosition(), 4.5, Team.ALL).filter(lambda player: player != eventPlayer).applyImpulse(Vector.UP, 12, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    getPlayersInRadius(eventPlayer.getPosition(), 8, Team.ALL).filter(lambda player: player != eventPlayer).lucio_landing_bounce_cooldown = true
+    getPlayersInRadius(eventPlayer.getPosition(), 8, Team.ALL).filter(lambda player: player != eventPlayer).applyImpulse(Vector.UP, 12, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     eventPlayer.setMoveSpeed(140)
     smallMessage(eventPlayer, "落地冲击")
     wait(1.5)
@@ -398,7 +398,7 @@ rule "[sojourn] power slide launches nearby players":
 
     eventPlayer.sojourn_slide_bump_cooldown = true
     damage(getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer), eventPlayer, 20)
-    getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.75)
+    getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 1.25)
     getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer).applyImpulse(directionTowards(eventPlayer.getPosition(), getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer).getPosition()), 18, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 2.6)
     smallMessage(eventPlayer, "滑铲创飞！")
@@ -466,7 +466,7 @@ rule "[freya] launch circle":
     @Hero freja
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.freya_launch_circle_cooldown == false
-    @Condition eventPlayer.isHoldingButton(Button.JUMP) == true
+    @Condition eventPlayer.isUsingAbility2() == true
 
     eventPlayer.freya_launch_circle_cooldown = true
     eventPlayer.freya_launch_circle_effects = []
