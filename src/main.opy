@@ -39,6 +39,12 @@ playervar soldier_resize_cooldown 61
 playervar ability_guide_toggle_locked 62
 playervar tracer_auto_recall_state 63
 playervar tracer_debt_active 64
+playervar bastion_scrap 65
+playervar bastion_scrap_gain_cooldown 66
+playervar bastion_mod_active 67
+playervar bastion_mod_roll 68
+playervar bastion_scrap_hud_created 69
+playervar bastion_scrap_hud_id 70
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -358,6 +364,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "雾子：法阵击倒\n使用技能 2 时生成短暂法阵特效\n范围内玩家会被击倒\n法阵结束后自动清理效果", HudPosition.ACTUALLY_LEFT, -998, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.TRACER:
         hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.BASTION:
+        hudSubtext(eventPlayer, "堡垒：废铁非法改装\n造成有效伤害攒废铁，满 6 个自动随机改装\n死亡不掉废铁，换英雄清零\n改装结束后属性会恢复", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     else:
         hudSubtext(eventPlayer, "通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     eventPlayer.ability_guide_hud_id = getLastCreatedText()
@@ -486,6 +494,134 @@ rule "[tracer] clear auto recall after hero swap":
     eventPlayer.stopScalingSize()
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageReceived(100)
+
+
+rule "[bastion] create scrap hud":
+    @Event eachPlayer
+    @Hero bastion
+    @Condition eventPlayer.bastion_scrap_hud_created == false
+
+    eventPlayer.bastion_scrap_hud_created = true
+    hudHeader(eventPlayer, "废铁：{}/6".format(eventPlayer.bastion_scrap), HudPosition.RIGHT, -800, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.bastion_scrap_hud_id = getLastCreatedText()
+
+
+rule "[bastion] gain scrap on damage":
+    @Event playerDealtDamage
+    @Hero bastion
+    @Condition eventPlayer.isAlive() == true
+    @Condition victim.isAlive() == true
+    @Condition victim.getTeam() != eventPlayer.getTeam()
+    @Condition eventDamage > 0
+    @Condition eventPlayer.bastion_scrap < 6
+    @Condition eventPlayer.bastion_scrap_gain_cooldown == false
+    @Condition eventPlayer.bastion_mod_active == false
+
+    eventPlayer.bastion_scrap_gain_cooldown = true
+    eventPlayer.bastion_scrap += 1
+    if eventPlayer.bastion_scrap >= 6:
+        eventPlayer.bastion_scrap = 6
+        bigMessage(eventPlayer, "非法改装启动")
+    else:
+        smallMessage(eventPlayer, "废铁：{}/6".format(eventPlayer.bastion_scrap))
+    wait(0.45)
+    eventPlayer.bastion_scrap_gain_cooldown = false
+
+
+rule "[bastion] activate scrap modification":
+    @Event eachPlayer
+    @Hero bastion
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.bastion_scrap >= 6
+    @Condition eventPlayer.bastion_mod_active == false
+
+    eventPlayer.bastion_mod_active = true
+    eventPlayer.bastion_scrap = 0
+    eventPlayer.bastion_mod_roll = random.randint(1, 4)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
+    if eventPlayer.bastion_mod_roll == 1:
+        eventPlayer.setDamageDealt(125)
+        eventPlayer.setDamageReceived(125)
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
+        bigMessage(eventPlayer, "非法改装：破甲机枪")
+        wait(6)
+        if eventPlayer.bastion_mod_active == true and eventPlayer.getHero() == Hero.BASTION:
+            eventPlayer.setDamageDealt(100)
+            eventPlayer.setDamageReceived(100)
+            eventPlayer.bastion_mod_active = false
+    elif eventPlayer.bastion_mod_roll == 2:
+        eventPlayer.startScalingSize(1.2)
+        eventPlayer.setDamageReceived(70)
+        eventPlayer.setMoveSpeed(55)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.WHITE, eventPlayer, 3)
+        bigMessage(eventPlayer, "非法改装：铁皮乌龟")
+        wait(6)
+        if eventPlayer.bastion_mod_active == true and eventPlayer.getHero() == Hero.BASTION:
+            eventPlayer.stopScalingSize()
+            eventPlayer.setDamageReceived(100)
+            eventPlayer.setMoveSpeed(100)
+            eventPlayer.bastion_mod_active = false
+    elif eventPlayer.bastion_mod_roll == 3:
+        eventPlayer.startScalingSize(0.65)
+        eventPlayer.setMoveSpeed(135)
+        eventPlayer.setDamageDealt(75)
+        eventPlayer.setKnockbackReceived(160)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 2.5)
+        bigMessage(eventPlayer, "非法改装：迷你履带")
+        wait(6)
+        if eventPlayer.bastion_mod_active == true and eventPlayer.getHero() == Hero.BASTION:
+            eventPlayer.stopScalingSize()
+            eventPlayer.setMoveSpeed(100)
+            eventPlayer.setDamageDealt(100)
+            eventPlayer.setKnockbackReceived(100)
+            eventPlayer.bastion_mod_active = false
+    else:
+        eventPlayer.startScalingSize(1.5)
+        eventPlayer.setMoveSpeed(60)
+        eventPlayer.setDamageReceived(130)
+        eventPlayer.setStatusEffect(null, Status.KNOCKED_DOWN, 0.75)
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer, 3)
+        bigMessage(eventPlayer, "非法改装失败：废铁爆仓")
+        wait(2)
+        if eventPlayer.bastion_mod_active == true and eventPlayer.getHero() == Hero.BASTION:
+            eventPlayer.stopScalingSize()
+            eventPlayer.setMoveSpeed(100)
+            eventPlayer.setDamageReceived(100)
+            eventPlayer.bastion_mod_active = false
+
+
+rule "[bastion] clear modification on death keep scrap":
+    @Event playerDied
+    @Hero bastion
+
+    eventPlayer.bastion_mod_active = false
+    eventPlayer.bastion_scrap_gain_cooldown = false
+    eventPlayer.bastion_mod_roll = 0
+    eventPlayer.stopScalingSize()
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageDealt(100)
+    eventPlayer.setDamageReceived(100)
+    eventPlayer.setKnockbackReceived(100)
+
+
+rule "[bastion] clear scrap after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.BASTION
+    @Condition eventPlayer.bastion_scrap > 0 or eventPlayer.bastion_scrap_gain_cooldown == true or eventPlayer.bastion_mod_active == true or eventPlayer.bastion_scrap_hud_created == true
+
+    if eventPlayer.bastion_scrap_hud_created == true:
+        destroyHudText(eventPlayer.bastion_scrap_hud_id)
+    eventPlayer.bastion_scrap = 0
+    eventPlayer.bastion_scrap_gain_cooldown = false
+    eventPlayer.bastion_mod_active = false
+    eventPlayer.bastion_mod_roll = 0
+    eventPlayer.bastion_scrap_hud_created = false
+    eventPlayer.bastion_scrap_hud_id = null
+    eventPlayer.stopScalingSize()
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageDealt(100)
+    eventPlayer.setDamageReceived(100)
+    eventPlayer.setKnockbackReceived(100)
 
 
 rule "弗让你飞起来":
