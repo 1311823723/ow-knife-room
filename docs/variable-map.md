@@ -43,6 +43,8 @@
 | `torb_mod_cooldown` | `torb_mod_cooldown` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 防止托比昂技能 2 按住时重复触发非法改装。 | 否。 | 是，默认假。 | 死亡、换英雄、离开托比昂时设假。 |
 | `torb_parts_hud_created` | `torb_parts_hud_created` | `[torbjorn] create parts hud`、`[torbjorn] clear illegal modification after hero swap` | 标记托比昂零件 HUD 是否已创建，避免每帧重复创建。 | 否。 | 是，默认假。 | 换英雄、离开托比昂时销毁 HUD 后设假。 |
 | `torb_parts_hud_id` | `torb_parts_hud_id` | `[torbjorn] create parts hud`、`[torbjorn] clear illegal modification after hero swap` | 保存托比昂零件 HUD 文本 ID，用于离开托比昂时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 换英雄、离开托比昂时 `destroyHudText` 并清空。 |
+| `torb_mod_status_hud_created` | `torb_mod_status_hud_created` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 标记托比昂当前改装状态 HUD 是否已创建。 | 否。 | 是，触发改装时设真。 | 失败改装结束、死亡、换英雄/离开托比昂时销毁 HUD 后设假。 |
+| `torb_mod_status_hud_id` | `torb_mod_status_hud_id` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 保存托比昂当前改装状态 HUD 文本 ID，用于状态结束或清理时销毁。 | 否。 | 是，创建状态 HUD 后保存 `getLastCreatedText()`。 | 失败改装结束、死亡、换英雄/离开托比昂时 `destroyHudText` 并清空。 |
 | `genji_ult_window_hud_created` | `genji_ult_window_hud_created` | `[genji] start blade window on final blow`、源氏清理规则 | 标记源氏疯狗时间倒计时 HUD 是否已创建，避免重复创建。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开源氏时销毁 HUD 后设假。 |
 | `genji_ult_window_hud_id` | `genji_ult_window_hud_id` | `[genji] start blade window on final blow`、源氏清理规则 | 保存源氏疯狗时间 HUD 文本 ID，用于窗口结束或清理时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 自然结束、死亡、换英雄、离开源氏时 `destroyHudText` 并清空。 |
 | `ability_guide_hud_created` | `ability_guide_hud_created` | `[hud] open current hero ability guide on interact`、`[hud] close current hero ability guide on interact`、`[hud] clear current hero ability guide on death` | 标记当前英雄技能说明 HUD 是否已经打开。按一次互动键打开，再按一次关闭。 | 否。 | 是，默认假。 | 再次按互动键或死亡时销毁 HUD 并设假。 |
@@ -57,6 +59,8 @@
 | `bastion_mod_roll` | `bastion_mod_roll` | `[bastion] activate scrap modification`、堡垒清理规则 | 本次堡垒非法改装随机结果，1 破甲机枪、2 铁皮乌龟、3 迷你履带、4 废铁爆仓。 | 否。 | 是，触发时设为 1-4。 | 死亡、换英雄、离开堡垒时设 0。 |
 | `bastion_scrap_hud_created` | `bastion_scrap_hud_created` | `[bastion] create scrap hud`、`[bastion] clear scrap after hero swap` | 标记堡垒废铁 HUD 是否已创建，避免每帧重复创建。 | 否。 | 是，默认假。 | 换英雄/离开堡垒时销毁 HUD 后设假。 |
 | `bastion_scrap_hud_id` | `bastion_scrap_hud_id` | `[bastion] create scrap hud`、`[bastion] clear scrap after hero swap` | 保存堡垒废铁 HUD 文本 ID，用于离开堡垒时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 换英雄/离开堡垒时 `destroyHudText` 并清空。 |
+| `bastion_mod_status_hud_created` | `bastion_mod_status_hud_created` | `[bastion] activate scrap modification`、堡垒清理规则 | 标记堡垒当前改装状态 HUD 是否已创建。 | 否。 | 是，触发改装时设真。 | 改装计时结束、死亡、换英雄/离开堡垒时销毁 HUD 后设假。 |
+| `bastion_mod_status_hud_id` | `bastion_mod_status_hud_id` | `[bastion] activate scrap modification`、堡垒清理规则 | 保存堡垒当前改装状态 HUD 文本 ID，用于状态结束或清理时销毁。 | 否。 | 是，创建状态 HUD 后保存 `getLastCreatedText()`。 | 改装计时结束、死亡、换英雄/离开堡垒时 `destroyHudText` 并清空。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |

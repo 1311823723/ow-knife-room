@@ -51,6 +51,10 @@
         68: bastion_mod_roll
         69: bastion_scrap_hud_created
         70: bastion_scrap_hud_id
+        71: torb_mod_status_hud_created
+        72: torb_mod_status_hud_id
+        73: bastion_mod_status_hud_created
+        74: bastion_mod_status_hud_id
 }
 
 子程序 {
@@ -752,18 +756,29 @@
         If(比较((事件玩家).bastion_mod_roll, ==, 1));
             设置造成伤害(事件玩家, 125);
             设置受到伤害(事件玩家, 125);
+            设置玩家变量(事件玩家, bastion_mod_status_hud_created, 真);
+            创建HUD文本(事件玩家, 自定义字符串("当前改装：破甲机枪"), 空, 空, 右边, -799, 颜色(橙色), 空, 空, 可见和字符串, 默认可见度);
+            设置玩家变量(事件玩家, bastion_mod_status_hud_id, 上一个文本ID);
             播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(橙色), 事件玩家, 3);
             大字体信息(事件玩家, 自定义字符串("非法改装：破甲机枪"));
             等待(6, 无视条件);
             If(与(比较((事件玩家).bastion_mod_active, ==, 真), 比较(所用英雄(事件玩家), ==, 英雄(堡垒))));
                 设置造成伤害(事件玩家, 100);
                 设置受到伤害(事件玩家, 100);
+                If(比较((事件玩家).bastion_mod_status_hud_created, ==, 真));
+                    消除HUD文本((事件玩家).bastion_mod_status_hud_id);
+                End;
+                设置玩家变量(事件玩家, bastion_mod_status_hud_created, 假);
+                设置玩家变量(事件玩家, bastion_mod_status_hud_id, 空);
                 设置玩家变量(事件玩家, bastion_mod_active, 假);
             End;
         Else If(比较((事件玩家).bastion_mod_roll, ==, 2));
             开始调整玩家大小(事件玩家, 1.2, 真);
             设置受到伤害(事件玩家, 70);
             设置移动速度(事件玩家, 55);
+            设置玩家变量(事件玩家, bastion_mod_status_hud_created, 真);
+            创建HUD文本(事件玩家, 自定义字符串("当前改装：铁皮乌龟"), 空, 空, 右边, -799, 颜色(白色), 空, 空, 可见和字符串, 默认可见度);
+            设置玩家变量(事件玩家, bastion_mod_status_hud_id, 上一个文本ID);
             播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(白色), 事件玩家, 3);
             大字体信息(事件玩家, 自定义字符串("非法改装：铁皮乌龟"));
             等待(6, 无视条件);
@@ -771,6 +786,11 @@
                 停止调整玩家大小(事件玩家);
                 设置受到伤害(事件玩家, 100);
                 设置移动速度(事件玩家, 100);
+                If(比较((事件玩家).bastion_mod_status_hud_created, ==, 真));
+                    消除HUD文本((事件玩家).bastion_mod_status_hud_id);
+                End;
+                设置玩家变量(事件玩家, bastion_mod_status_hud_created, 假);
+                设置玩家变量(事件玩家, bastion_mod_status_hud_id, 空);
                 设置玩家变量(事件玩家, bastion_mod_active, 假);
             End;
         Else If(比较((事件玩家).bastion_mod_roll, ==, 3));
@@ -778,6 +798,9 @@
             设置移动速度(事件玩家, 135);
             设置造成伤害(事件玩家, 75);
             设置受到的击退(事件玩家, 160);
+            设置玩家变量(事件玩家, bastion_mod_status_hud_created, 真);
+            创建HUD文本(事件玩家, 自定义字符串("当前改装：迷你履带"), 空, 空, 右边, -799, 颜色(蓝色), 空, 空, 可见和字符串, 默认可见度);
+            设置玩家变量(事件玩家, bastion_mod_status_hud_id, 上一个文本ID);
             播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(蓝色), 事件玩家, 2.5);
             大字体信息(事件玩家, 自定义字符串("非法改装：迷你履带"));
             等待(6, 无视条件);
@@ -786,6 +809,11 @@
                 设置移动速度(事件玩家, 100);
                 设置造成伤害(事件玩家, 100);
                 设置受到的击退(事件玩家, 100);
+                If(比较((事件玩家).bastion_mod_status_hud_created, ==, 真));
+                    消除HUD文本((事件玩家).bastion_mod_status_hud_id);
+                End;
+                设置玩家变量(事件玩家, bastion_mod_status_hud_created, 假);
+                设置玩家变量(事件玩家, bastion_mod_status_hud_id, 空);
                 设置玩家变量(事件玩家, bastion_mod_active, 假);
             End;
         Else;
@@ -793,6 +821,9 @@
             设置移动速度(事件玩家, 60);
             设置受到伤害(事件玩家, 130);
             设置状态(事件玩家, 空, 击倒, 0.75);
+            设置玩家变量(事件玩家, bastion_mod_status_hud_created, 真);
+            创建HUD文本(事件玩家, 自定义字符串("当前改装：废铁爆仓"), 空, 空, 右边, -799, 颜色(红色), 空, 空, 可见和字符串, 默认可见度);
+            设置玩家变量(事件玩家, bastion_mod_status_hud_id, 上一个文本ID);
             播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(红色), 事件玩家, 3);
             大字体信息(事件玩家, 自定义字符串("非法改装失败：废铁爆仓"));
             等待(2, 无视条件);
@@ -800,6 +831,11 @@
                 停止调整玩家大小(事件玩家);
                 设置移动速度(事件玩家, 100);
                 设置受到伤害(事件玩家, 100);
+                If(比较((事件玩家).bastion_mod_status_hud_created, ==, 真));
+                    消除HUD文本((事件玩家).bastion_mod_status_hud_id);
+                End;
+                设置玩家变量(事件玩家, bastion_mod_status_hud_created, 假);
+                设置玩家变量(事件玩家, bastion_mod_status_hud_id, 空);
                 设置玩家变量(事件玩家, bastion_mod_active, 假);
     }
 }
@@ -814,6 +850,11 @@
         设置玩家变量(事件玩家, bastion_mod_active, 假);
         设置玩家变量(事件玩家, bastion_scrap_gain_cooldown, 假);
         设置玩家变量(事件玩家, bastion_mod_roll, 0);
+        If(比较((事件玩家).bastion_mod_status_hud_created, ==, 真));
+            消除HUD文本((事件玩家).bastion_mod_status_hud_id);
+        End;
+        设置玩家变量(事件玩家, bastion_mod_status_hud_created, 假);
+        设置玩家变量(事件玩家, bastion_mod_status_hud_id, 空);
         停止调整玩家大小(事件玩家);
         设置移动速度(事件玩家, 100);
         设置造成伤害(事件玩家, 100);
@@ -830,11 +871,14 @@
     }
     条件 {
         所用英雄(事件玩家) != 英雄(堡垒);
-        或(或(或(比较((事件玩家).bastion_scrap, >, 0), 比较((事件玩家).bastion_scrap_gain_cooldown, ==, 真)), 比较((事件玩家).bastion_mod_active, ==, 真)), 比较((事件玩家).bastion_scrap_hud_created, ==, 真)) == 真;
+        或(或(或(或(比较((事件玩家).bastion_scrap, >, 0), 比较((事件玩家).bastion_scrap_gain_cooldown, ==, 真)), 比较((事件玩家).bastion_mod_active, ==, 真)), 比较((事件玩家).bastion_scrap_hud_created, ==, 真)), 比较((事件玩家).bastion_mod_status_hud_created, ==, 真)) == 真;
     }
     动作 {
         If(比较((事件玩家).bastion_scrap_hud_created, ==, 真));
             消除HUD文本((事件玩家).bastion_scrap_hud_id);
+        End;
+        If(比较((事件玩家).bastion_mod_status_hud_created, ==, 真));
+            消除HUD文本((事件玩家).bastion_mod_status_hud_id);
         End;
         设置玩家变量(事件玩家, bastion_scrap, 0);
         设置玩家变量(事件玩家, bastion_scrap_gain_cooldown, 假);
@@ -842,6 +886,8 @@
         设置玩家变量(事件玩家, bastion_mod_roll, 0);
         设置玩家变量(事件玩家, bastion_scrap_hud_created, 假);
         设置玩家变量(事件玩家, bastion_scrap_hud_id, 空);
+        设置玩家变量(事件玩家, bastion_mod_status_hud_created, 假);
+        设置玩家变量(事件玩家, bastion_mod_status_hud_id, 空);
         停止调整玩家大小(事件玩家);
         设置移动速度(事件玩家, 100);
         设置造成伤害(事件玩家, 100);
@@ -1382,6 +1428,9 @@
             设置造成伤害(事件玩家, 120);
             设置移动速度(事件玩家, 80);
             设置受到的击退(事件玩家, 130);
+            设置玩家变量(事件玩家, torb_mod_status_hud_created, 真);
+            创建HUD文本(事件玩家, 自定义字符串("当前改装：巨型模块"), 空, 空, 右边, -849, 颜色(橙色), 空, 空, 可见和字符串, 默认可见度);
+            设置玩家变量(事件玩家, torb_mod_status_hud_id, 上一个文本ID);
             播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(橙色), 事件玩家, 3);
             大字体信息(事件玩家, 自定义字符串("非法改装：巨型模块"));
             等待(1, 无视条件);
@@ -1391,6 +1440,9 @@
             设置移动速度(事件玩家, 140);
             设置造成伤害(事件玩家, 70);
             设置受到的击退(事件玩家, 160);
+            设置玩家变量(事件玩家, torb_mod_status_hud_created, 真);
+            创建HUD文本(事件玩家, 自定义字符串("当前改装：迷你模块"), 空, 空, 右边, -849, 颜色(蓝色), 空, 空, 可见和字符串, 默认可见度);
+            设置玩家变量(事件玩家, torb_mod_status_hud_id, 上一个文本ID);
             播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(蓝色), 事件玩家, 2);
             大字体信息(事件玩家, 自定义字符串("非法改装：迷你模块"));
             等待(1, 无视条件);
@@ -1401,6 +1453,9 @@
             设置移动速度(事件玩家, 75);
             设置造成伤害(事件玩家, 80);
             设置受到的击退(事件玩家, 70);
+            设置玩家变量(事件玩家, torb_mod_status_hud_created, 真);
+            创建HUD文本(事件玩家, 自定义字符串("当前改装：防爆模块"), 空, 空, 右边, -849, 颜色(白色), 空, 空, 可见和字符串, 默认可见度);
+            设置玩家变量(事件玩家, torb_mod_status_hud_id, 上一个文本ID);
             播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(白色), 事件玩家, 2.5);
             大字体信息(事件玩家, 自定义字符串("非法改装：防爆模块"));
             等待(1, 无视条件);
@@ -1410,6 +1465,9 @@
             设置移动速度(事件玩家, 60);
             设置受到伤害(事件玩家, 130);
             设置状态(事件玩家, 空, 击倒, 0.75);
+            设置玩家变量(事件玩家, torb_mod_status_hud_created, 真);
+            创建HUD文本(事件玩家, 自定义字符串("当前改装：失败改装"), 空, 空, 右边, -849, 颜色(红色), 空, 空, 可见和字符串, 默认可见度);
+            设置玩家变量(事件玩家, torb_mod_status_hud_id, 上一个文本ID);
             播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(红色), 事件玩家, 3);
             大字体信息(事件玩家, 自定义字符串("非法改装失败！"));
             等待(2, 无视条件);
@@ -1418,6 +1476,11 @@
             设置造成伤害(事件玩家, 100);
             设置受到伤害(事件玩家, 100);
             设置受到的击退(事件玩家, 100);
+            If(比较((事件玩家).torb_mod_status_hud_created, ==, 真));
+                消除HUD文本((事件玩家).torb_mod_status_hud_id);
+            End;
+            设置玩家变量(事件玩家, torb_mod_status_hud_created, 假);
+            设置玩家变量(事件玩家, torb_mod_status_hud_id, 空);
             设置玩家变量(事件玩家, torb_mod_active, 假);
             等待(1, 无视条件);
             设置玩家变量(事件玩家, torb_mod_cooldown, 假);
@@ -1436,6 +1499,11 @@
         设置玩家变量(事件玩家, torb_mod_active, 假);
         设置玩家变量(事件玩家, torb_mod_roll, 0);
         设置玩家变量(事件玩家, torb_mod_cooldown, 假);
+        If(比较((事件玩家).torb_mod_status_hud_created, ==, 真));
+            消除HUD文本((事件玩家).torb_mod_status_hud_id);
+        End;
+        设置玩家变量(事件玩家, torb_mod_status_hud_created, 假);
+        设置玩家变量(事件玩家, torb_mod_status_hud_id, 空);
         停止调整玩家大小(事件玩家);
         设置移动速度(事件玩家, 100);
         设置造成伤害(事件玩家, 100);
@@ -1452,11 +1520,14 @@
     }
     条件 {
         所用英雄(事件玩家) != 英雄(托比昂);
-        或(或(或(或(比较((事件玩家).torb_parts, >, 0), 比较((事件玩家).torb_mod_ready, ==, 真)), 比较((事件玩家).torb_mod_active, ==, 真)), 比较((事件玩家).torb_mod_cooldown, ==, 真)), 比较((事件玩家).torb_parts_hud_created, ==, 真)) == 真;
+        或(或(或(或(或(比较((事件玩家).torb_parts, >, 0), 比较((事件玩家).torb_mod_ready, ==, 真)), 比较((事件玩家).torb_mod_active, ==, 真)), 比较((事件玩家).torb_mod_cooldown, ==, 真)), 比较((事件玩家).torb_parts_hud_created, ==, 真)), 比较((事件玩家).torb_mod_status_hud_created, ==, 真)) == 真;
     }
     动作 {
         If(比较((事件玩家).torb_parts_hud_created, ==, 真));
             消除HUD文本((事件玩家).torb_parts_hud_id);
+        End;
+        If(比较((事件玩家).torb_mod_status_hud_created, ==, 真));
+            消除HUD文本((事件玩家).torb_mod_status_hud_id);
         End;
         设置玩家变量(事件玩家, torb_parts, 0);
         设置玩家变量(事件玩家, torb_mod_ready, 假);
@@ -1465,6 +1536,8 @@
         设置玩家变量(事件玩家, torb_mod_cooldown, 假);
         设置玩家变量(事件玩家, torb_parts_hud_created, 假);
         设置玩家变量(事件玩家, torb_parts_hud_id, 空);
+        设置玩家变量(事件玩家, torb_mod_status_hud_created, 假);
+        设置玩家变量(事件玩家, torb_mod_status_hud_id, 空);
         停止调整玩家大小(事件玩家);
         设置移动速度(事件玩家, 100);
         设置造成伤害(事件玩家, 100);
