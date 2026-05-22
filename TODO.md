@@ -34,6 +34,12 @@
   - 风险等级：低。
   - 进游戏测试方法：不需要进游戏；后续每个迁移模块按规范复查。
 
+- [x] 制定刀战房 UI 分层规范
+  - 目标：固定技能说明、资源 HUD、状态 HUD、大字关键事件和小字频繁反馈的使用边界，避免后续新增英雄时 UI 越堆越乱。
+  - 涉及文件：`docs/ui-guidelines.md`、`docs/naming-conventions.md`、`docs/testing-checklist.md`。
+  - 风险等级：低。
+  - 进游戏测试方法：确认左侧只放入口和当前英雄说明，右侧资源/状态 HUD 不重叠，死亡/换英雄/状态结束后 HUD 会清理。
+
 - [ ] 保存并保护旧版 Workshop 代码
   - 目标：确认 `legacy/current-workshop.zh-cn.txt` 作为原始可回退版本，不直接编辑。
   - 涉及文件：`legacy/current-workshop.zh-cn.txt`。
