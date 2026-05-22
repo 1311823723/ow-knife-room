@@ -36,6 +36,9 @@ playervar genji_ult_window_hud_id 58
 playervar ability_guide_hud_created 59
 playervar ability_guide_hud_id 60
 playervar soldier_resize_cooldown 61
+playervar ability_guide_toggle_locked 62
+playervar tracer_auto_recall_state 63
+playervar tracer_debt_active 64
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -71,27 +74,27 @@ def applySoldierAntmanState():
         eventPlayer.setDamageDealt(94)
         eventPlayer.setMoveSpeed(100)
         eventPlayer.startModifyingVoicelinePitch(0.9)
-    elif eventPlayer.Y == 0.5:
+    elif eventPlayer.Y == 0.75:
         eventPlayer.Z = 106
         eventPlayer.setDamageDealt(100)
         eventPlayer.setMoveSpeed(106)
         eventPlayer.startModifyingVoicelinePitch(1.1)
-    elif eventPlayer.Y == 0.25:
+    elif eventPlayer.Y == 0.5:
         eventPlayer.Z = 112
         eventPlayer.setDamageDealt(100)
         eventPlayer.setMoveSpeed(112)
         eventPlayer.startModifyingVoicelinePitch(1.2)
-    elif eventPlayer.Y == 0.1:
+    elif eventPlayer.Y == 0.25:
         eventPlayer.Z = 118
         eventPlayer.setDamageDealt(100)
         eventPlayer.setMoveSpeed(118)
         eventPlayer.startModifyingVoicelinePitch(1.3)
-    elif eventPlayer.Y == 0.01:
+    elif eventPlayer.Y == 0.1:
         eventPlayer.Z = 124
         eventPlayer.setDamageDealt(100)
         eventPlayer.setMoveSpeed(124)
         eventPlayer.startModifyingVoicelinePitch(1.4)
-    elif eventPlayer.Y == 0.001:
+    elif eventPlayer.Y == 0.01:
         eventPlayer.Z = 130
         eventPlayer.setDamageDealt(100)
         eventPlayer.setMoveSpeed(130)
@@ -214,14 +217,14 @@ rule "[soldier] grow one antman step":
     @Condition eventPlayer.Y < 32
 
     eventPlayer.soldier_resize_cooldown = true
-    if eventPlayer.Y < 0.01:
-        eventPlayer.Y = 0.01
-    elif eventPlayer.Y < 0.1:
+    if eventPlayer.Y < 0.1:
         eventPlayer.Y = 0.1
     elif eventPlayer.Y < 0.25:
         eventPlayer.Y = 0.25
     elif eventPlayer.Y < 0.5:
         eventPlayer.Y = 0.5
+    elif eventPlayer.Y < 0.75:
+        eventPlayer.Y = 0.75
     elif eventPlayer.Y < 1:
         eventPlayer.Y = 1
     elif eventPlayer.Y < 2:
@@ -246,7 +249,7 @@ rule "[soldier] shrink one antman step":
     @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.soldier_resize_cooldown == false
-    @Condition eventPlayer.Y > 0.001
+    @Condition eventPlayer.Y > 0.01
 
     eventPlayer.soldier_resize_cooldown = true
     if eventPlayer.Y > 16:
@@ -259,16 +262,16 @@ rule "[soldier] shrink one antman step":
         eventPlayer.Y = 2
     elif eventPlayer.Y > 1:
         eventPlayer.Y = 1
+    elif eventPlayer.Y > 0.75:
+        eventPlayer.Y = 0.75
     elif eventPlayer.Y > 0.5:
         eventPlayer.Y = 0.5
     elif eventPlayer.Y > 0.25:
         eventPlayer.Y = 0.25
     elif eventPlayer.Y > 0.1:
         eventPlayer.Y = 0.1
-    elif eventPlayer.Y > 0.01:
-        eventPlayer.Y = 0.01
     else:
-        eventPlayer.Y = 0.001
+        eventPlayer.Y = 0.01
     applySoldierAntmanState()
     smallMessage(eventPlayer, "体型档位：{}".format(eventPlayer.Y))
     wait(0.25)
@@ -316,17 +319,19 @@ rule "移除机器人":
 
 
 rule "[hud] create ability guide prompt":
-    hudHeader(getAllPlayers(), "按住互动键查看当前英雄技能", HudPosition.ACTUALLY_LEFT, -999, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    hudHeader(getAllPlayers(), "按互动键打开/关闭当前英雄技能说明", HudPosition.ACTUALLY_LEFT, -999, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
 
 
-rule "[hud] create current hero ability guide while holding interact":
+rule "[hud] open current hero ability guide on interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.ability_guide_toggle_locked == false
     @Condition eventPlayer.ability_guide_hud_created == false
 
+    eventPlayer.ability_guide_toggle_locked = true
     eventPlayer.ability_guide_hud_created = true
     if eventPlayer.getHero() == Hero.SOLDIER:
-        hudSubtext(eventPlayer, "士兵76：蚁人体型\n左键变大，右键变小，共 11 档\n最大 32，最小 0.001\n变大后伤害逐档降低，变小后移速逐档提高，音调随体型变化", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "士兵76：蚁人体型\n左键变大，右键变小，共 11 档\n最大 32，最小 0.01\n变大后伤害逐档降低，变小后移速逐档提高，音调随体型变化", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.MERCY:
         hudSubtext(eventPlayer, "天使：复活甲\n每条命一次复活甲\n受到致命伤时回血到 60，震开周围敌人，并短暂无敌\n复活甲破碎后本条命不再触发", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BAPTISTE:
@@ -334,7 +339,7 @@ rule "[hud] create current hero ability guide while holding interact":
     elif eventPlayer.getHero() == Hero.GENJI:
         hudSubtext(eventPlayer, "源氏：疯狗龙刃窗口\n平时 Shift 被锁\n击杀开启 8 秒疯狗时间，自动开大并解锁 Shift\n续杀刷新时间，结束后沉睡 5 秒", HudPosition.ACTUALLY_LEFT, -998, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.TORBJORN:
-        hudSubtext(eventPlayer, "托比昂：非法改装\n击杀获得零件，3 个零件后按 E 触发随机改装\n可能变巨型、迷你、防爆，也可能改装失败\n死亡或换英雄清空零件和改装", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "托比昂：非法改装\n参与击杀获得零件，3 个零件后按 E 触发随机改装\n可能变巨型、迷你、防爆，也可能改装失败\n死亡或换英雄清空零件和改装", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.MEI:
         hudSubtext(eventPlayer, "小美：冰冻拳\n造成伤害时有 20% 概率冰冻目标 1 秒\n概率按每次造成伤害独立判定", HudPosition.ACTUALLY_LEFT, -998, Color.AQUA, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.ROADHOG:
@@ -351,19 +356,42 @@ rule "[hud] create current hero ability guide while holding interact":
         hudSubtext(eventPlayer, "安娜：睡眠标记与激素控制\n睡针命中会给目标添加明显睡眠标记\n大招按下时可让视角附近目标沉睡", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.KIRIKO:
         hudSubtext(eventPlayer, "雾子：法阵击倒\n使用技能 2 时生成短暂法阵特效\n范围内玩家会被击倒\n法阵结束后自动清理效果", HudPosition.ACTUALLY_LEFT, -998, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.TRACER:
+        hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     else:
         hudSubtext(eventPlayer, "通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     eventPlayer.ability_guide_hud_id = getLastCreatedText()
 
 
-rule "[hud] clear current hero ability guide":
+rule "[hud] close current hero ability guide on interact":
+    @Event eachPlayer
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
+    @Condition eventPlayer.ability_guide_toggle_locked == false
+    @Condition eventPlayer.ability_guide_hud_created == true
+
+    eventPlayer.ability_guide_toggle_locked = true
+    destroyHudText(eventPlayer.ability_guide_hud_id)
+    eventPlayer.ability_guide_hud_created = false
+    eventPlayer.ability_guide_hud_id = null
+
+
+rule "[hud] unlock ability guide toggle":
+    @Event eachPlayer
+    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == false
+    @Condition eventPlayer.ability_guide_toggle_locked == true
+
+    eventPlayer.ability_guide_toggle_locked = false
+
+
+rule "[hud] clear current hero ability guide on death":
     @Event eachPlayer
     @Condition eventPlayer.ability_guide_hud_created == true
-    @Condition eventPlayer.isHoldingButton(Button.INTERACT) == false or eventPlayer.isDead() == true
+    @Condition eventPlayer.isDead() == true
 
     destroyHudText(eventPlayer.ability_guide_hud_id)
     eventPlayer.ability_guide_hud_created = false
     eventPlayer.ability_guide_hud_id = null
+    eventPlayer.ability_guide_toggle_locked = false
 
 
 rule "[mercy] grant revive armor on spawn":
@@ -395,6 +423,69 @@ rule "[mercy] clear revive armor state on death":
     @Hero mercy
 
     eventPlayer.C = 0
+
+
+rule "[tracer] grant auto recall on spawn":
+    @Event eachPlayer
+    @Hero tracer
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.tracer_auto_recall_state == 0
+
+    eventPlayer.tracer_auto_recall_state = 1
+    eventPlayer.tracer_debt_active = false
+
+
+rule "[tracer] auto recall on lethal damage":
+    @Event playerTookDamage
+    @Hero tracer
+    @Condition eventPlayer.tracer_auto_recall_state == 1
+    @Condition eventPlayer.getHealth() - eventDamage <= 0
+
+    eventPlayer.tracer_auto_recall_state = 2
+    eventPlayer.tracer_debt_active = false
+    eventPlayer.resurrect()
+    eventPlayer.setHealth(75)
+    eventPlayer.setAbilityCooldown(Button.ABILITY_2, 0)
+    eventPlayer.forceButtonPress(Button.ABILITY_2)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 2.5)
+    bigMessage(eventPlayer, "时间赖账成功")
+    wait(3)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.TRACER and eventPlayer.tracer_auto_recall_state == 2:
+        eventPlayer.tracer_debt_active = true
+        eventPlayer.startScalingSize(1.25)
+        eventPlayer.setMoveSpeed(85)
+        eventPlayer.setDamageReceived(125)
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.BLUE, eventPlayer, 2)
+        bigMessage(eventPlayer, "时间债务到期")
+        wait(4)
+        if eventPlayer.tracer_debt_active == true:
+            eventPlayer.stopScalingSize()
+            eventPlayer.setMoveSpeed(100)
+            eventPlayer.setDamageReceived(100)
+            eventPlayer.tracer_debt_active = false
+
+
+rule "[tracer] clear auto recall on death":
+    @Event playerDied
+    @Hero tracer
+
+    eventPlayer.tracer_auto_recall_state = 0
+    eventPlayer.tracer_debt_active = false
+    eventPlayer.stopScalingSize()
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageReceived(100)
+
+
+rule "[tracer] clear auto recall after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.TRACER
+    @Condition eventPlayer.tracer_auto_recall_state != 0 or eventPlayer.tracer_debt_active == true
+
+    eventPlayer.tracer_auto_recall_state = 0
+    eventPlayer.tracer_debt_active = false
+    eventPlayer.stopScalingSize()
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageReceived(100)
 
 
 rule "弗让你飞起来":
@@ -478,7 +569,7 @@ rule "[baptiste] mirror giant effect":
     @Condition eventPlayer.baptiste_mirror_target_active == true
     @Condition eventPlayer.baptiste_mirror_roll == 1
 
-    eventPlayer.startScalingSize(32)
+    eventPlayer.startScalingSize(20)
     eventPlayer.setMoveSpeed(80)
     eventPlayer.setDamageDealt(115)
     eventPlayer.setKnockbackReceived(130)
@@ -634,7 +725,7 @@ rule "[genji] start blade window on final blow":
     hudHeader(eventPlayer, "疯狗时间：{}秒".format(eventPlayer.genji_ult_window_timer), HudPosition.RIGHT, -900, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
     eventPlayer.genji_ult_window_hud_id = getLastCreatedText()
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer, 2)
-    smallMessage(eventPlayer, "疯狗时间：8秒")
+    bigMessage(eventPlayer, "疯狗模式开启")
     while eventPlayer.genji_ult_window_active == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.GENJI and eventPlayer.genji_ult_window_timer > 0:
         wait(1)
         eventPlayer.genji_ult_window_timer -= 1
@@ -751,8 +842,8 @@ rule "[torbjorn] create parts hud":
     eventPlayer.torb_parts_hud_id = getLastCreatedText()
 
 
-rule "[torbjorn] gain parts on final blow":
-    @Event playerDealtFinalBlow
+rule "[torbjorn] gain parts on elimination":
+    @Event playerEarnedElimination
     @Hero torbjorn
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.torb_mod_active == false
@@ -790,7 +881,7 @@ rule "[torbjorn] activate illegal modification":
         eventPlayer.setMoveSpeed(80)
         eventPlayer.setKnockbackReceived(130)
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
-        smallMessage(eventPlayer, "非法改装：巨型模块")
+        bigMessage(eventPlayer, "非法改装：巨型模块")
         wait(1)
         eventPlayer.torb_mod_cooldown = false
     elif eventPlayer.torb_mod_roll == 2:
@@ -799,7 +890,7 @@ rule "[torbjorn] activate illegal modification":
         eventPlayer.setDamageDealt(70)
         eventPlayer.setKnockbackReceived(160)
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 2)
-        smallMessage(eventPlayer, "非法改装：迷你模块")
+        bigMessage(eventPlayer, "非法改装：迷你模块")
         wait(1)
         eventPlayer.torb_mod_cooldown = false
     elif eventPlayer.torb_mod_roll == 3:
@@ -809,7 +900,7 @@ rule "[torbjorn] activate illegal modification":
         eventPlayer.setDamageDealt(80)
         eventPlayer.setKnockbackReceived(70)
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.WHITE, eventPlayer, 2.5)
-        smallMessage(eventPlayer, "非法改装：防爆模块")
+        bigMessage(eventPlayer, "非法改装：防爆模块")
         wait(1)
         eventPlayer.torb_mod_cooldown = false
     else:
@@ -818,7 +909,7 @@ rule "[torbjorn] activate illegal modification":
         eventPlayer.setDamageReceived(130)
         eventPlayer.setStatusEffect(null, Status.KNOCKED_DOWN, 0.75)
         playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer, 3)
-        smallMessage(eventPlayer, "非法改装失败！")
+        bigMessage(eventPlayer, "非法改装失败！")
         wait(2)
         eventPlayer.stopScalingSize()
         eventPlayer.setMoveSpeed(100)

@@ -10,7 +10,7 @@
 | `B` | `movement_double_jump_ready` | 两条 `二段跳`、`规则 3`、`规则 5` | 二段跳许可标记。离地松开跳跃后设真，执行或耗尽后设假。 | 是。 | 是，默认应为假。 | 死亡、落地、换英雄、离开时应设假。 |
 | `C` | `mercy_revive_armor_available` / `mercy_revive_armor_state` | `[mercy] grant revive armor on spawn`、`[mercy] revive armor breaks on lethal damage`、`[mercy] clear revive armor state on death` | 天使复活甲状态。当前 `0` 表示本条命未初始化，`1` 表示复活甲可用，`2` 表示本条命复活甲已破碎。 | 是，后续迁移时建议改成语义变量；当前保留 `C` 避免重排旧变量。 | 是。天使存活且 `C == 0` 时设为 `1`。 | 死亡时重置为 `0`；换英雄和离开时后续应补生命周期清理。 |
 | `D` | `kiriko_zone_effects` | `雾子法阵击倒` | 保存雾子法阵创建的 3 个效果实体句柄，5 秒后按索引清理并清空数组。 | 是。 | 是，使用技能前设为空数组；更好是在玩家加入/换英雄时也初始化。 | 死亡、换英雄、离开时应清理已有实体并清空数组。 |
-| `Y` | `soldier_antman_scale` | `[soldier] initialize antman state`、`[soldier] grow one antman step`、`[soldier] shrink one antman step`、`applySoldierAntmanState`、士兵 76 清理规则 | 士兵 76 当前体型档位。当前档位为 `0.001 / 0.01 / 0.1 / 0.25 / 0.5 / 1 / 2 / 4 / 8 / 16 / 32`。 | 是，后续可迁移为语义变量；当前保留 `Y` 避免重排旧变量。 | 是，士兵 76 存活且 `Y == 0` 时初始化为 `1`。 | 死亡、换出士兵 76、离开时停止调整体型并重置为 `0`。 |
+| `Y` | `soldier_antman_scale` | `[soldier] initialize antman state`、`[soldier] grow one antman step`、`[soldier] shrink one antman step`、`applySoldierAntmanState`、士兵 76 清理规则 | 士兵 76 当前体型档位。当前档位为 `0.01 / 0.1 / 0.25 / 0.5 / 0.75 / 1 / 2 / 4 / 8 / 16 / 32`。 | 是，后续可迁移为语义变量；当前保留 `Y` 避免重排旧变量。 | 是，士兵 76 存活且 `Y == 0` 时初始化为 `1`。 | 死亡、换出士兵 76、离开时停止调整体型并重置为 `0`。 |
 | `Z` | `soldier_antman_stat_percent` | `applySoldierAntmanState`、士兵 76 清理规则 | 士兵 76 当前派生属性数值。变大时作为伤害百分比，按档位降到最低 70；变小时作为移动速度百分比，最高 130；离开士兵后用 `0` 表示 inactive。 | 是，后续可拆成伤害/速度两个语义变量。 | 是，士兵 76 初始化时设为 100。 | 死亡、换英雄、离开时恢复伤害/速度为 100，并将变量设为 0。 |
 | `Kiriko_Skill` | `kiriko_zone_active` | 变量表显式声明；`雾子法阵击倒` 中设真/设假 | 标记雾子法阵是否正在运行。当前没有作为条件使用，所以不能阻止重复触发。 | 是。 | 是，默认应为假。 | 死亡、换英雄、离开时应设假，并清理 `D` 中效果。 |
 | `roadhog_hook_melee_boost_ready` | `roadhog_hook_melee_boost_ready` | `[roadhog] hook weakens target`、`[roadhog] consume boosted melee knockback` | 路霸钩中目标后，标记下一次近战附加击退。 | 否，已按命名规范。 | 是，默认假；钩中后设真，近战触发后设假。 | 死亡、换英雄、离开时应重置为假。 |
@@ -36,8 +36,8 @@
 | `genji_ult_window_active` | `genji_ult_window_active` | `[genji] lock swift strike outside blade window`、`[genji] start blade window on final blow`、`[genji] blade damage cap during window`、源氏清理规则 | 源氏 8 秒疯狗龙刃窗口是否开启。开启时 Shift 解锁、终极充能 100。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开时应设假。 |
 | `genji_ult_window_timer` | `genji_ult_window_timer` | `[genji] start blade window on final blow`、`[genji] refresh blade window on final blow`、源氏清理规则 | 源氏疯狗窗口剩余时间。第一次击杀设为 8 并进入受控倒计时，窗口内续杀重新设为 8。 | 否。 | 是，默认 0。 | 自然结束、死亡、换英雄、离开时设 0。 |
 | `genji_ult_window_token` | `genji_ult_window_token` | `[genji] start blade window on final blow`、源氏清理规则 | 每次击杀或清理时递增的窗口版本号。当前 timer 方案不依赖它结束窗口，但保留作后续 HUD/调试扩展。 | 否。 | 是，默认 0。 | 死亡、换英雄、清理时递增。 |
-| `torb_parts` | `torb_parts` | `[torbjorn] gain parts on final blow`、`[torbjorn] create parts hud`、`[torbjorn] activate illegal modification`、托比昂清理规则 | 托比昂击杀获得的零件数，0 到 3。满 3 后可按技能 2 触发非法改装。 | 否。 | 是，默认 0。 | 死亡、换英雄、离开托比昂时设为 0。 |
-| `torb_mod_ready` | `torb_mod_ready` | `[torbjorn] gain parts on final blow`、`[torbjorn] activate illegal modification`、托比昂清理规则 | 标记零件已满，非法改装就绪。 | 否。 | 是，默认假。 | 触发改装、死亡、换英雄、离开托比昂时设假。 |
+| `torb_parts` | `torb_parts` | `[torbjorn] gain parts on elimination`、`[torbjorn] create parts hud`、`[torbjorn] activate illegal modification`、托比昂清理规则 | 托比昂参与击杀获得的零件数，0 到 3。满 3 后可按技能 2 触发非法改装。 | 否。 | 是，默认 0。 | 死亡、换英雄、离开托比昂时设为 0。 |
+| `torb_mod_ready` | `torb_mod_ready` | `[torbjorn] gain parts on elimination`、`[torbjorn] activate illegal modification`、托比昂清理规则 | 标记零件已满，非法改装就绪。 | 否。 | 是，默认假。 | 触发改装、死亡、换英雄、离开托比昂时设假。 |
 | `torb_mod_active` | `torb_mod_active` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 标记托比昂正在非法改装状态。成功改装持续到死亡或换英雄；失败改装 2 秒后恢复。 | 否。 | 是，默认假。 | 死亡、换英雄、离开托比昂时恢复属性并设假。 |
 | `torb_mod_roll` | `torb_mod_roll` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 本次非法改装随机结果，1 巨型、2 迷你、3 防爆、4 失败。 | 否。 | 是，触发时设为 1-4。 | 死亡、换英雄、离开托比昂时设 0。 |
 | `torb_mod_cooldown` | `torb_mod_cooldown` | `[torbjorn] activate illegal modification`、托比昂清理规则 | 防止托比昂技能 2 按住时重复触发非法改装。 | 否。 | 是，默认假。 | 死亡、换英雄、离开托比昂时设假。 |
@@ -45,9 +45,12 @@
 | `torb_parts_hud_id` | `torb_parts_hud_id` | `[torbjorn] create parts hud`、`[torbjorn] clear illegal modification after hero swap` | 保存托比昂零件 HUD 文本 ID，用于离开托比昂时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 换英雄、离开托比昂时 `destroyHudText` 并清空。 |
 | `genji_ult_window_hud_created` | `genji_ult_window_hud_created` | `[genji] start blade window on final blow`、源氏清理规则 | 标记源氏疯狗时间倒计时 HUD 是否已创建，避免重复创建。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开源氏时销毁 HUD 后设假。 |
 | `genji_ult_window_hud_id` | `genji_ult_window_hud_id` | `[genji] start blade window on final blow`、源氏清理规则 | 保存源氏疯狗时间 HUD 文本 ID，用于窗口结束或清理时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 自然结束、死亡、换英雄、离开源氏时 `destroyHudText` 并清空。 |
-| `ability_guide_hud_created` | `ability_guide_hud_created` | `[hud] create current hero ability guide while holding interact`、`[hud] clear current hero ability guide` | 标记当前英雄技能说明 HUD 是否已经创建，避免按住互动键时每帧重复创建。 | 否。 | 是，默认假。 | 松开互动键或死亡时销毁 HUD 并设假。 |
-| `ability_guide_hud_id` | `ability_guide_hud_id` | `[hud] create current hero ability guide while holding interact`、`[hud] clear current hero ability guide` | 保存当前英雄技能说明 HUD 文本 ID，用于松开互动键时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 松开互动键或死亡时 `destroyHudText` 并清空。 |
+| `ability_guide_hud_created` | `ability_guide_hud_created` | `[hud] open current hero ability guide on interact`、`[hud] close current hero ability guide on interact`、`[hud] clear current hero ability guide on death` | 标记当前英雄技能说明 HUD 是否已经打开。按一次互动键打开，再按一次关闭。 | 否。 | 是，默认假。 | 再次按互动键或死亡时销毁 HUD 并设假。 |
+| `ability_guide_hud_id` | `ability_guide_hud_id` | `[hud] open current hero ability guide on interact`、`[hud] close current hero ability guide on interact`、`[hud] clear current hero ability guide on death` | 保存当前英雄技能说明 HUD 文本 ID，用于关闭或死亡时销毁。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 再次按互动键或死亡时 `destroyHudText` 并清空。 |
 | `soldier_resize_cooldown` | `soldier_resize_cooldown` | `[soldier] grow one antman step`、`[soldier] shrink one antman step`、士兵 76 清理规则 | 士兵 76 体型调整短冷却，防止按住左键/右键时一帧内跳过多个档位。 | 否。 | 是，默认假。 | 每次变档约 0.25 秒后设假；死亡、换英雄、离开时设假。 |
+| `ability_guide_toggle_locked` | `ability_guide_toggle_locked` | `[hud] open current hero ability guide on interact`、`[hud] close current hero ability guide on interact`、`[hud] unlock ability guide toggle` | 技能说明按键边沿锁，避免按住互动键时 HUD 反复开关。 | 否。 | 是，默认假。 | 松开互动键或死亡时设假。 |
+| `tracer_auto_recall_state` | `tracer_auto_recall_state` | `[tracer] grant auto recall on spawn`、`[tracer] auto recall on lethal damage`、猎空清理规则 | 猎空自动赖账回溯状态。`0` 未初始化/已清理，`1` 本条命可用，`2` 本条命已消耗。 | 否。 | 是，猎空存活且为 0 时设为 1。 | 死亡、换英雄、离开猎空时设为 0。 |
+| `tracer_debt_active` | `tracer_debt_active` | `[tracer] auto recall on lethal damage`、猎空清理规则 | 猎空还债状态是否正在生效，用于恢复体型、速度和承伤并避免状态残留。 | 否。 | 是，默认假。 | 还债结束、死亡、换英雄、离开猎空时设假并恢复属性。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |
