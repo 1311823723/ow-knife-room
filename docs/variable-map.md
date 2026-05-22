@@ -85,6 +85,12 @@
 | `ramattra_core_cooldown` | `ramattra_core_cooldown` | `[ramattra] place pain core`、拉玛刹清理规则 | 痛苦核心冷却锁，防止连续生成多个核心。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
 | `ramattra_core_destroy_target` | `ramattra_core_destroy_target` | `[ramattra] destroy pain core by melee` | 保存本次被近战摧毁的痛苦核心所属拉玛刹，用于销毁效果和清状态。 | 否。 | 是，摧毁时临时赋值。 | 摧毁流程结束后设空。 |
 | `ramattra_overweight_source` | `ramattra_overweight_source` | 超重施加、重力压制和目标清理规则 | 保存最近一次给目标施加超重的拉玛刹，用于击倒状态来源。 | 否。 | 是，施加超重时保存。 | 目标死亡或换英雄时清空。 |
+| `sigma_black_hole_active` | `sigma_black_hole_active` | `[sigma] release small black hole`、西格玛清理规则 | 标记西格玛小黑洞是否正在运行，防止连续生成多个黑洞。 | 否。 | 是，默认假。 | 黑洞结束、死亡或换英雄时设假。 |
+| `sigma_black_hole_cooldown` | `sigma_black_hole_cooldown` | `[sigma] release small black hole`、西格玛清理规则 | 小黑洞内置冷却锁。当前黑洞持续约 3 秒，结束后再等待约 5 秒解除冷却。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
+| `sigma_black_hole_position` | `sigma_black_hole_position` | `[sigma] release small black hole`、西格玛清理规则 | 保存本次小黑洞中心位置。当前第一版放在西格玛眼睛位置前方固定距离。 | 否。 | 是，释放时保存位置。 | 黑洞结束、死亡或换英雄时设空。 |
+| `sigma_black_hole_effects` | `sigma_black_hole_effects` | `[sigma] release small black hole`、西格玛清理规则 | 保存小黑洞光环和光柱效果实体，用于结束或异常中断时销毁。 | 否。 | 是，生成黑洞前设为空数组。 | 黑洞结束、死亡或换英雄时销毁并清空。 |
+| `sigma_black_hole_tick` | `sigma_black_hole_tick` | `[sigma] release small black hole`、西格玛清理规则 | 小黑洞 0.5 秒循环计数。当前运行 6 次，约 3 秒。 | 否。 | 是，释放时设 0。 | 黑洞结束、死亡或换英雄时设 0。 |
+| `sigma_black_hole_damage_taken` | `sigma_black_hole_damage_taken` | `[sigma] release small black hole`、西格玛清理规则 | 记录玩家在当前小黑洞中心持续伤害中已受到的伤害，用于限制单次黑洞中心伤害。 | 否。 | 是，进入黑洞流程时附近玩家设 0。 | 黑洞结束、释放者死亡或换英雄时附近玩家设 0。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |

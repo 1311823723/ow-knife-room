@@ -73,6 +73,12 @@ playervar ramattra_core_effects 95
 playervar ramattra_core_cooldown 96
 playervar ramattra_core_destroy_target 97
 playervar ramattra_overweight_source 98
+playervar sigma_black_hole_active 99
+playervar sigma_black_hole_cooldown 100
+playervar sigma_black_hole_position 101
+playervar sigma_black_hole_effects 102
+playervar sigma_black_hole_tick 103
+playervar sigma_black_hole_damage_taken 104
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -396,6 +402,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "堡垒：废铁非法改装\n造成有效伤害攒废铁，满 6 个自动随机改装\n死亡不掉废铁，换英雄清零\n改装结束后属性会恢复", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.RAMATTRA:
         hudSubtext(eventPlayer, "拉玛刹：痛苦重力\n攻击施加超重，短时间叠满 3 层会重力压制\n技能 2 放置痛苦核心充能，敌人可近战摧毁\n痛苦满后下一次近战变为痛苦拳", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.SIGMA:
+        hudSubtext(eventPlayer, "西格玛：小黑洞\n技能 1 在准星前方释放小黑洞，轻微吸引附近玩家\n中心有少量持续伤害\n结束时爆炸并把附近玩家炸飞", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.WINSTON:
         hudSubtext(eventPlayer, "温斯顿：跳跃撞人可抱摔\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BRIGITTE:
@@ -928,6 +936,88 @@ rule "[ramattra] clear overweight after target death or hero swap":
     eventPlayer.ramattra_overweight_source = null
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setGravity(100)
+
+
+rule "[sigma] release small black hole":
+    @Event eachPlayer
+    @Hero sigma
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.sigma_black_hole_active == false
+    @Condition eventPlayer.sigma_black_hole_cooldown == false
+
+    eventPlayer.sigma_black_hole_active = true
+    eventPlayer.sigma_black_hole_cooldown = true
+    eventPlayer.sigma_black_hole_tick = 0
+    eventPlayer.sigma_black_hole_effects = []
+    eventPlayer.sigma_black_hole_position = eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 8
+    if eventPlayer.sigma_black_hole_position != null:
+        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).sigma_black_hole_damage_taken = 0
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.PURPLE, eventPlayer.sigma_black_hole_position, 6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.sigma_black_hole_effects.append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.BLUE, eventPlayer.sigma_black_hole_position, 6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.sigma_black_hole_effects.append(getLastCreatedEntity())
+    bigMessage(eventPlayer, "小黑洞展开")
+    while eventPlayer.sigma_black_hole_active == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.SIGMA and eventPlayer.sigma_black_hole_tick < 6:
+        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition(), eventPlayer.sigma_black_hole_position), 4, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+        if len(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40)) > 0:
+            damage(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40), eventPlayer, 5)
+            getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40).sigma_black_hole_damage_taken += 5
+        wait(0.5)
+        eventPlayer.sigma_black_hole_tick += 1
+    if eventPlayer.sigma_black_hole_active == true:
+        if len(eventPlayer.sigma_black_hole_effects) > 0:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[0])
+        if len(eventPlayer.sigma_black_hole_effects) > 1:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[1])
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer.sigma_black_hole_position, 4)
+        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(eventPlayer.sigma_black_hole_position, getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition()), 14, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+        damage(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 10)
+    if eventPlayer.sigma_black_hole_position != null:
+        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).sigma_black_hole_damage_taken = 0
+    eventPlayer.sigma_black_hole_active = false
+    eventPlayer.sigma_black_hole_position = null
+    eventPlayer.sigma_black_hole_effects = []
+    eventPlayer.sigma_black_hole_tick = 0
+    wait(5)
+    eventPlayer.sigma_black_hole_cooldown = false
+
+
+rule "[sigma] clear small black hole on death":
+    @Event playerDied
+    @Hero sigma
+
+    if eventPlayer.sigma_black_hole_active == true:
+        if len(eventPlayer.sigma_black_hole_effects) > 0:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[0])
+        if len(eventPlayer.sigma_black_hole_effects) > 1:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[1])
+        if eventPlayer.sigma_black_hole_position != null:
+            getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).sigma_black_hole_damage_taken = 0
+    eventPlayer.sigma_black_hole_active = false
+    eventPlayer.sigma_black_hole_cooldown = false
+    eventPlayer.sigma_black_hole_position = null
+    eventPlayer.sigma_black_hole_effects = []
+    eventPlayer.sigma_black_hole_tick = 0
+
+
+rule "[sigma] clear small black hole after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.SIGMA
+    @Condition eventPlayer.sigma_black_hole_active == true or eventPlayer.sigma_black_hole_cooldown == true
+
+    if eventPlayer.sigma_black_hole_active == true:
+        if len(eventPlayer.sigma_black_hole_effects) > 0:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[0])
+        if len(eventPlayer.sigma_black_hole_effects) > 1:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[1])
+        if eventPlayer.sigma_black_hole_position != null:
+            getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).sigma_black_hole_damage_taken = 0
+    eventPlayer.sigma_black_hole_active = false
+    eventPlayer.sigma_black_hole_cooldown = false
+    eventPlayer.sigma_black_hole_position = null
+    eventPlayer.sigma_black_hole_effects = []
+    eventPlayer.sigma_black_hole_tick = 0
 
 
 rule "弗让你飞起来":
