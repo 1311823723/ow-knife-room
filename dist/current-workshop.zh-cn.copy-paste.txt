@@ -25,7 +25,7 @@
         42: baptiste_mirror_roll
         43: baptiste_mirror_target_active
         44: baptiste_fake_drug_cooldown
-        45: baptiste_fake_drug_target_active
+        45: baptiste_drug_target_active
         46: baptiste_fake_drug_roll
         47: genji_ult_window_active
         48: genji_ult_window_timer
@@ -62,12 +62,12 @@
         79: winston_grapple_original_hero
         80: brigitte_blink_cooldown
         81: brigitte_blink_target
-        82: ramattra_overweight_stacks
-        83: ramattra_overweight_window_active
-        84: ramattra_overweight_hit_cooldown
-        85: ramattra_overweight_compress_cooldown
-        86: ramattra_overweight_active
-        87: ramattra_overweight_original_hero
+        82: ramattra_ow_stacks
+        83: ramattra_ow_window_active
+        84: ramattra_ow_hit_cooldown
+        85: ramattra_ow_compress_cooldown
+        86: ramattra_ow_active
+        87: ramattra_ow_original_hero
         88: ramattra_pain
         89: ramattra_pain_ready
         90: ramattra_pain_hud_created
@@ -78,13 +78,22 @@
         95: ramattra_core_effects
         96: ramattra_core_cooldown
         97: ramattra_core_destroy_target
-        98: ramattra_overweight_source
+        98: ramattra_ow_source
         99: sigma_black_hole_active
         100: sigma_black_hole_cooldown
         101: sigma_black_hole_position
         102: sigma_black_hole_effects
         103: sigma_black_hole_tick
         104: sigma_black_hole_damage_taken
+        105: reaper_anchor_active
+        106: reaper_anchor_pos
+        107: reaper_anchor_fx
+        108: reaper_hunt_cd
+        109: reaper_anchor_timer
+        110: reaper_anchor_timer_on
+        111: reaper_hunt_active
+        112: reaper_hunt_fx
+        113: disabled_secondary_fire
 }
 
 子程序 {
@@ -530,6 +539,8 @@
             创建HUD文本(事件玩家, 空, 空, 自定义字符串("雾子：法阵击倒\n使用技能 2 时生成短暂法阵特效\n范围内玩家会被击倒\n法阵结束后自动清理效果                                                                               {0}", 自定义字符串("                                                                                           ")), 左边, -998, 空, 空, 颜色(紫色), 可见和字符串, 默认可见度);
         Else If(比较(所用英雄(事件玩家), ==, 英雄(猎空)));
             创建HUD文本(事件玩家, 空, 空, 自定义字符串("猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆                                                                    {0}", 自定义字符串("                                                                                                      ")), 左边, -998, 空, 空, 颜色(蓝色), 可见和字符串, 默认可见度);
+        Else If(比较(所用英雄(事件玩家), ==, 英雄(死神)));
+            创建HUD文本(事件玩家, 空, 空, 自定义字符串("死神：收魂追猎\n击杀后留下短暂亡魂锚点\n按 E 借魂传送追猎，并展开黑雾猎场\n右键技能关闭                                                                                {0}", 自定义字符串("                                                                                          ")), 左边, -998, 空, 空, 颜色(亮紫色), 可见和字符串, 默认可见度);
         Else If(比较(所用英雄(事件玩家), ==, 英雄(堡垒)));
             创建HUD文本(事件玩家, 空, 空, 自定义字符串("堡垒：废铁非法改装\n造成有效伤害攒废铁，满 6 个自动随机改装\n死亡不掉废铁，换英雄清零\n改装结束后属性会恢复                                                                      {0}", 自定义字符串("                                                                                                    ")), 左边, -998, 空, 空, 颜色(橙色), 可见和字符串, 默认可见度);
         Else If(比较(所用英雄(事件玩家), ==, 英雄(拉玛刹)));
@@ -961,19 +972,19 @@
         存活(被攻击方) == 真;
         被攻击方 != 事件玩家;
         事件伤害 > 0;
-        (被攻击方).ramattra_overweight_hit_cooldown == 假;
+        (被攻击方).ramattra_ow_hit_cooldown == 假;
     }
     动作 {
-        设置玩家变量(被攻击方, ramattra_overweight_hit_cooldown, 真);
-        设置玩家变量(被攻击方, ramattra_overweight_source, 事件玩家);
-        设置玩家变量(被攻击方, ramattra_overweight_original_hero, 所用英雄(被攻击方));
-        修改玩家变量(被攻击方, ramattra_overweight_stacks, 加, 1);
-        设置玩家变量(被攻击方, ramattra_overweight_active, 真);
+        设置玩家变量(被攻击方, ramattra_ow_hit_cooldown, 真);
+        设置玩家变量(被攻击方, ramattra_ow_source, 事件玩家);
+        设置玩家变量(被攻击方, ramattra_ow_original_hero, 所用英雄(被攻击方));
+        修改玩家变量(被攻击方, ramattra_ow_stacks, 加, 1);
+        设置玩家变量(被攻击方, ramattra_ow_active, 真);
         设置移动速度(被攻击方, 85);
         设置引力(被攻击方, 150);
         施加推力(被攻击方, 下, 10, 至地图, 取消相反运动);
         播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), 被攻击方, 1.5);
-        小字体信息(被攻击方, 自定义字符串("超重：{0}/3", (被攻击方).ramattra_overweight_stacks));
+        小字体信息(被攻击方, 自定义字符串("超重：{0}/3", (被攻击方).ramattra_ow_stacks));
         If(比较((事件玩家).ramattra_pain, <, 100));
             修改玩家变量(事件玩家, ramattra_pain, 加, 6);
         End;
@@ -985,7 +996,7 @@
             End;
         End;
         等待(0.65, 无视条件);
-        设置玩家变量(被攻击方, ramattra_overweight_hit_cooldown, 假);
+        设置玩家变量(被攻击方, ramattra_ow_hit_cooldown, 假);
     }
 }
 
@@ -996,14 +1007,14 @@
         全部;
     }
     条件 {
-        (事件玩家).ramattra_overweight_active == 真;
+        (事件玩家).ramattra_ow_active == 真;
     }
     动作 {
         等待(1.4, 无视条件);
-        If(比较((事件玩家).ramattra_overweight_active, ==, 真));
+        If(比较((事件玩家).ramattra_ow_active, ==, 真));
             设置移动速度(事件玩家, 100);
             设置引力(事件玩家, 100);
-            设置玩家变量(事件玩家, ramattra_overweight_active, 假);
+            设置玩家变量(事件玩家, ramattra_ow_active, 假);
     }
 }
 
@@ -1014,19 +1025,19 @@
         全部;
     }
     条件 {
-        (事件玩家).ramattra_overweight_stacks > 0;
-        (事件玩家).ramattra_overweight_window_active == 假;
+        (事件玩家).ramattra_ow_stacks > 0;
+        (事件玩家).ramattra_ow_window_active == 假;
     }
     动作 {
-        设置玩家变量(事件玩家, ramattra_overweight_window_active, 真);
+        设置玩家变量(事件玩家, ramattra_ow_window_active, 真);
         等待(5, 无视条件);
-        If(比较((事件玩家).ramattra_overweight_stacks, >, 0));
-            设置玩家变量(事件玩家, ramattra_overweight_stacks, 0);
-            设置玩家变量(事件玩家, ramattra_overweight_active, 假);
+        If(比较((事件玩家).ramattra_ow_stacks, >, 0));
+            设置玩家变量(事件玩家, ramattra_ow_stacks, 0);
+            设置玩家变量(事件玩家, ramattra_ow_active, 假);
             设置移动速度(事件玩家, 100);
             设置引力(事件玩家, 100);
         End;
-        设置玩家变量(事件玩家, ramattra_overweight_window_active, 假);
+        设置玩家变量(事件玩家, ramattra_ow_window_active, 假);
     }
 }
 
@@ -1037,21 +1048,21 @@
         全部;
     }
     条件 {
-        (事件玩家).ramattra_overweight_stacks >= 3;
-        (事件玩家).ramattra_overweight_compress_cooldown == 假;
+        (事件玩家).ramattra_ow_stacks >= 3;
+        (事件玩家).ramattra_ow_compress_cooldown == 假;
     }
     动作 {
-        设置玩家变量(事件玩家, ramattra_overweight_compress_cooldown, 真);
-        设置玩家变量(事件玩家, ramattra_overweight_stacks, 0);
-        设置玩家变量(事件玩家, ramattra_overweight_window_active, 假);
-        设置玩家变量(事件玩家, ramattra_overweight_active, 假);
+        设置玩家变量(事件玩家, ramattra_ow_compress_cooldown, 真);
+        设置玩家变量(事件玩家, ramattra_ow_stacks, 0);
+        设置玩家变量(事件玩家, ramattra_ow_window_active, 假);
+        设置玩家变量(事件玩家, ramattra_ow_active, 假);
         设置移动速度(事件玩家, 100);
         设置引力(事件玩家, 100);
         播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), 事件玩家, 3);
-        设置状态(事件玩家, (事件玩家).ramattra_overweight_source, 击倒, 0.85);
+        设置状态(事件玩家, (事件玩家).ramattra_ow_source, 击倒, 0.85);
         小字体信息(事件玩家, 自定义字符串("重力压制"));
         等待(1.2, 无视条件);
-        设置玩家变量(事件玩家, ramattra_overweight_compress_cooldown, 假);
+        设置玩家变量(事件玩家, ramattra_ow_compress_cooldown, 假);
     }
 }
 
@@ -1072,10 +1083,10 @@
         设置玩家变量(事件玩家, ramattra_pain_punch_cooldown, 真);
         设置玩家变量(事件玩家, ramattra_pain, 0);
         设置玩家变量(事件玩家, ramattra_pain_ready, 假);
-        设置玩家变量(被攻击方, ramattra_overweight_source, 事件玩家);
-        设置玩家变量(被攻击方, ramattra_overweight_original_hero, 所用英雄(被攻击方));
-        修改玩家变量(被攻击方, ramattra_overweight_stacks, 加, 2);
-        设置玩家变量(被攻击方, ramattra_overweight_active, 真);
+        设置玩家变量(被攻击方, ramattra_ow_source, 事件玩家);
+        设置玩家变量(被攻击方, ramattra_ow_original_hero, 所用英雄(被攻击方));
+        修改玩家变量(被攻击方, ramattra_ow_stacks, 加, 2);
+        设置玩家变量(被攻击方, ramattra_ow_active, 真);
         设置移动速度(被攻击方, 85);
         设置引力(被攻击方, 150);
         施加推力(被攻击方, 下, 14, 至地图, 取消相反运动);
@@ -1251,17 +1262,17 @@
         全部;
     }
     条件 {
-        或(或(或(或(比较((事件玩家).ramattra_overweight_stacks, >, 0), 比较((事件玩家).ramattra_overweight_active, ==, 真)), 比较((事件玩家).ramattra_overweight_hit_cooldown, ==, 真)), 比较((事件玩家).ramattra_overweight_window_active, ==, 真)), 比较((事件玩家).ramattra_overweight_compress_cooldown, ==, 真)) == 真;
-        或(死亡(事件玩家), 与(比较((事件玩家).ramattra_overweight_original_hero, !=, 空), 比较(所用英雄(事件玩家), !=, (事件玩家).ramattra_overweight_original_hero))) == 真;
+        或(或(或(或(比较((事件玩家).ramattra_ow_stacks, >, 0), 比较((事件玩家).ramattra_ow_active, ==, 真)), 比较((事件玩家).ramattra_ow_hit_cooldown, ==, 真)), 比较((事件玩家).ramattra_ow_window_active, ==, 真)), 比较((事件玩家).ramattra_ow_compress_cooldown, ==, 真)) == 真;
+        或(死亡(事件玩家), 与(比较((事件玩家).ramattra_ow_original_hero, !=, 空), 比较(所用英雄(事件玩家), !=, (事件玩家).ramattra_ow_original_hero))) == 真;
     }
     动作 {
-        设置玩家变量(事件玩家, ramattra_overweight_stacks, 0);
-        设置玩家变量(事件玩家, ramattra_overweight_window_active, 假);
-        设置玩家变量(事件玩家, ramattra_overweight_hit_cooldown, 假);
-        设置玩家变量(事件玩家, ramattra_overweight_compress_cooldown, 假);
-        设置玩家变量(事件玩家, ramattra_overweight_active, 假);
-        设置玩家变量(事件玩家, ramattra_overweight_original_hero, 空);
-        设置玩家变量(事件玩家, ramattra_overweight_source, 空);
+        设置玩家变量(事件玩家, ramattra_ow_stacks, 0);
+        设置玩家变量(事件玩家, ramattra_ow_window_active, 假);
+        设置玩家变量(事件玩家, ramattra_ow_hit_cooldown, 假);
+        设置玩家变量(事件玩家, ramattra_ow_compress_cooldown, 假);
+        设置玩家变量(事件玩家, ramattra_ow_active, 假);
+        设置玩家变量(事件玩家, ramattra_ow_original_hero, 空);
+        设置玩家变量(事件玩家, ramattra_ow_source, 空);
         设置移动速度(事件玩家, 100);
         设置引力(事件玩家, 100);
     }
@@ -1378,6 +1389,245 @@
         设置玩家变量(事件玩家, sigma_black_hole_position, 空);
         设置玩家变量(事件玩家, sigma_black_hole_effects, 空数组);
         设置玩家变量(事件玩家, sigma_black_hole_tick, 0);
+    }
+}
+
+规则 ("[reaper] disable secondary fire") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        死神;
+    }
+    条件 {
+        (事件玩家).disabled_secondary_fire == 假;
+    }
+    动作 {
+        禁用按钮(事件玩家, 按钮(辅助攻击模式));
+        设置玩家变量(事件玩家, disabled_secondary_fire, 真);
+    }
+}
+
+规则 ("[winston] disable secondary fire") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        温斯顿;
+    }
+    条件 {
+        (事件玩家).disabled_secondary_fire == 假;
+    }
+    动作 {
+        禁用按钮(事件玩家, 按钮(辅助攻击模式));
+        设置玩家变量(事件玩家, disabled_secondary_fire, 真);
+    }
+}
+
+规则 ("[reaper and winston] restore secondary fire after hero swap") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        所用英雄(事件玩家) != 英雄(死神);
+        所用英雄(事件玩家) != 英雄(温斯顿);
+        (事件玩家).disabled_secondary_fire == 真;
+    }
+    动作 {
+        可用按钮(事件玩家, 按钮(辅助攻击模式));
+        设置玩家变量(事件玩家, disabled_secondary_fire, 假);
+    }
+}
+
+规则 ("[reaper] leave soul anchor on final b­low") {
+    事件 {
+        玩家造成最后一击;
+        双方;
+        死神;
+    }
+    条件 {
+        存活(事件玩家) == 真;
+    }
+    动作 {
+        If(比较((事件玩家).reaper_anchor_active, ==, 真));
+            If(比较(数量((事件玩家).reaper_anchor_fx), >, 0));
+                消除效果(首个((事件玩家).reaper_anchor_fx));
+            End;
+            If(比较(数量((事件玩家).reaper_anchor_fx), >, 1));
+                消除效果(数组中的值((事件玩家).reaper_anchor_fx, 1));
+            End;
+        End;
+        设置玩家变量(事件玩家, reaper_anchor_active, 真);
+        设置玩家变量(事件玩家, reaper_anchor_timer, 7);
+        设置玩家变量(事件玩家, reaper_anchor_pos, 所选位置(被攻击方));
+        设置玩家变量(事件玩家, reaper_anchor_fx, 空数组);
+        创建效果(所有玩家(所有队伍), 有害光环, 颜色(黑色), (事件玩家).reaper_anchor_pos, 3, 可见，位置和半径);
+        修改玩家变量(事件玩家, reaper_anchor_fx, 添加至数组, 最后创建的实体);
+        创建效果(所有玩家(所有队伍), 光柱, 颜色(亮紫色), (事件玩家).reaper_anchor_pos, 3, 可见，位置和半径);
+        修改玩家变量(事件玩家, reaper_anchor_fx, 添加至数组, 最后创建的实体);
+        播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(黑色), (事件玩家).reaper_anchor_pos, 2);
+        小字体信息(事件玩家, 自定义字符串("亡魂锚点已生成，按 E 借魂追猎"));
+    }
+}
+
+规则 ("[reaper] soul anchor timer") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        死神;
+    }
+    条件 {
+        (事件玩家).reaper_anchor_active == 真;
+        (事件玩家).reaper_anchor_timer > 0;
+        (事件玩家).reaper_anchor_timer_on == 假;
+    }
+    动作 {
+        设置玩家变量(事件玩家, reaper_anchor_timer_on, 真);
+        While(与(与(与(比较((事件玩家).reaper_anchor_active, ==, 真), 比较((事件玩家).reaper_anchor_timer, >, 0)), 存活(事件玩家)), 比较(所用英雄(事件玩家), ==, 英雄(死神))));
+            等待(1, 无视条件);
+            修改玩家变量(事件玩家, reaper_anchor_timer, 减, 1);
+        End;
+        If(与(比较((事件玩家).reaper_anchor_active, ==, 真), 比较((事件玩家).reaper_anchor_timer, <=, 0)));
+            If(比较(数量((事件玩家).reaper_anchor_fx), >, 0));
+                消除效果(首个((事件玩家).reaper_anchor_fx));
+            End;
+            If(比较(数量((事件玩家).reaper_anchor_fx), >, 1));
+                消除效果(数组中的值((事件玩家).reaper_anchor_fx, 1));
+            End;
+            设置玩家变量(事件玩家, reaper_anchor_active, 假);
+            设置玩家变量(事件玩家, reaper_anchor_pos, 空);
+            设置玩家变量(事件玩家, reaper_anchor_fx, 空数组);
+            小字体信息(事件玩家, 自定义字符串("亡魂锚点消散"));
+        End;
+        设置玩家变量(事件玩家, reaper_anchor_timer, 0);
+        设置玩家变量(事件玩家, reaper_anchor_timer_on, 假);
+    }
+}
+
+规则 ("[reaper] soul hunt to anchor") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        死神;
+    }
+    条件 {
+        存活(事件玩家) == 真;
+        正在使用技能 2(事件玩家) == 真;
+        (事件玩家).reaper_anchor_active == 真;
+        (事件玩家).reaper_hunt_cd == 假;
+    }
+    动作 {
+        设置玩家变量(事件玩家, reaper_hunt_cd, 真);
+        设置玩家变量(事件玩家, reaper_hunt_active, 真);
+        设置玩家变量(事件玩家, reaper_hunt_fx, 空数组);
+        If(比较(数量((事件玩家).reaper_anchor_fx), >, 0));
+            消除效果(首个((事件玩家).reaper_anchor_fx));
+        End;
+        If(比较(数量((事件玩家).reaper_anchor_fx), >, 1));
+            消除效果(数组中的值((事件玩家).reaper_anchor_fx, 1));
+        End;
+        播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(黑色), 事件玩家, 2);
+        传送(事件玩家, (事件玩家).reaper_anchor_pos);
+        设置玩家变量(事件玩家, reaper_anchor_active, 假);
+        设置玩家变量(事件玩家, reaper_anchor_timer, 0);
+        设置玩家变量(事件玩家, reaper_anchor_timer_on, 假);
+        设置玩家变量(事件玩家, reaper_anchor_pos, 空);
+        设置玩家变量(事件玩家, reaper_anchor_fx, 空数组);
+        播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), 事件玩家, 4);
+        创建效果(所有玩家(所有队伍), 有害光环, 颜色(黑色), 事件玩家, 5, 可见，位置和半径);
+        修改玩家变量(事件玩家, reaper_hunt_fx, 添加至数组, 最后创建的实体);
+        创建效果(所有玩家(所有队伍), 光柱, 颜色(亮紫色), 事件玩家, 5, 可见，位置和半径);
+        修改玩家变量(事件玩家, reaper_hunt_fx, 添加至数组, 最后创建的实体);
+        设置状态(已过滤的数组(范围内玩家(所选位置(事件玩家), 5, 所有队伍, 表面), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))), 事件玩家, 被入侵, 1.25);
+        设置状态(事件玩家, 空, 无敌, 0.6);
+        设置移动速度(事件玩家, 115);
+        大字体信息(事件玩家, 自定义字符串("借魂追猎"));
+        等待(2, 无视条件);
+        If(比较(数量((事件玩家).reaper_hunt_fx), >, 0));
+            消除效果(首个((事件玩家).reaper_hunt_fx));
+        End;
+        If(比较(数量((事件玩家).reaper_hunt_fx), >, 1));
+            消除效果(数组中的值((事件玩家).reaper_hunt_fx, 1));
+        End;
+        设置玩家变量(事件玩家, reaper_hunt_fx, 空数组);
+        设置移动速度(事件玩家, 100);
+        设置玩家变量(事件玩家, reaper_hunt_active, 假);
+        等待(4, 无视条件);
+        设置玩家变量(事件玩家, reaper_hunt_cd, 假);
+    }
+}
+
+规则 ("[reaper] clear soul hunt on death") {
+    事件 {
+        玩家阵亡;
+        双方;
+        死神;
+    }
+    动作 {
+        If(比较((事件玩家).reaper_anchor_active, ==, 真));
+            If(比较(数量((事件玩家).reaper_anchor_fx), >, 0));
+                消除效果(首个((事件玩家).reaper_anchor_fx));
+            End;
+            If(比较(数量((事件玩家).reaper_anchor_fx), >, 1));
+                消除效果(数组中的值((事件玩家).reaper_anchor_fx, 1));
+            End;
+        End;
+        If(比较((事件玩家).reaper_hunt_active, ==, 真));
+            If(比较(数量((事件玩家).reaper_hunt_fx), >, 0));
+                消除效果(首个((事件玩家).reaper_hunt_fx));
+            End;
+            If(比较(数量((事件玩家).reaper_hunt_fx), >, 1));
+                消除效果(数组中的值((事件玩家).reaper_hunt_fx, 1));
+            End;
+        End;
+        设置玩家变量(事件玩家, reaper_anchor_active, 假);
+        设置玩家变量(事件玩家, reaper_anchor_pos, 空);
+        设置玩家变量(事件玩家, reaper_anchor_fx, 空数组);
+        设置玩家变量(事件玩家, reaper_anchor_timer, 0);
+        设置玩家变量(事件玩家, reaper_anchor_timer_on, 假);
+        设置玩家变量(事件玩家, reaper_hunt_cd, 假);
+        设置玩家变量(事件玩家, reaper_hunt_active, 假);
+        设置玩家变量(事件玩家, reaper_hunt_fx, 空数组);
+        设置移动速度(事件玩家, 100);
+    }
+}
+
+规则 ("[reaper] clear soul hunt after hero swap") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        所用英雄(事件玩家) != 英雄(死神);
+        或(或(或(比较((事件玩家).reaper_anchor_active, ==, 真), 比较((事件玩家).reaper_hunt_active, ==, 真)), 比较((事件玩家).reaper_hunt_cd, ==, 真)), 比较((事件玩家).reaper_anchor_timer_on, ==, 真)) == 真;
+    }
+    动作 {
+        If(比较((事件玩家).reaper_anchor_active, ==, 真));
+            If(比较(数量((事件玩家).reaper_anchor_fx), >, 0));
+                消除效果(首个((事件玩家).reaper_anchor_fx));
+            End;
+            If(比较(数量((事件玩家).reaper_anchor_fx), >, 1));
+                消除效果(数组中的值((事件玩家).reaper_anchor_fx, 1));
+            End;
+        End;
+        If(比较((事件玩家).reaper_hunt_active, ==, 真));
+            If(比较(数量((事件玩家).reaper_hunt_fx), >, 0));
+                消除效果(首个((事件玩家).reaper_hunt_fx));
+            End;
+            If(比较(数量((事件玩家).reaper_hunt_fx), >, 1));
+                消除效果(数组中的值((事件玩家).reaper_hunt_fx, 1));
+            End;
+        End;
+        设置玩家变量(事件玩家, reaper_anchor_active, 假);
+        设置玩家变量(事件玩家, reaper_anchor_pos, 空);
+        设置玩家变量(事件玩家, reaper_anchor_fx, 空数组);
+        设置玩家变量(事件玩家, reaper_anchor_timer, 0);
+        设置玩家变量(事件玩家, reaper_anchor_timer_on, 假);
+        设置玩家变量(事件玩家, reaper_hunt_cd, 假);
+        设置玩家变量(事件玩家, reaper_hunt_active, 假);
+        设置玩家变量(事件玩家, reaper_hunt_fx, 空数组);
+        设置移动速度(事件玩家, 100);
     }
 }
 
@@ -1625,12 +1875,12 @@
     条件 {
         存活(被攻击方) == 真;
         (事件玩家).baptiste_fake_drug_cooldown == 假;
-        (被攻击方).baptiste_fake_drug_target_active == 假;
+        (被攻击方).baptiste_drug_target_active == 假;
     }
     动作 {
         If(比较(随机整数(1, 100), <=, 18));
             设置玩家变量(事件玩家, baptiste_fake_drug_cooldown, 真);
-            设置玩家变量(被攻击方, baptiste_fake_drug_target_active, 真);
+            设置玩家变量(被攻击方, baptiste_drug_target_active, 真);
             设置玩家变量(被攻击方, baptiste_fake_drug_roll, 随机整数(1, 4));
             播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(黄色), 被攻击方, 1.5);
             小字体信息(事件玩家, 自定义字符串("假药注射成功"));
@@ -1661,7 +1911,7 @@
             设置造成伤害(被攻击方, 100);
             设置受到伤害(被攻击方, 100);
             设置受到的击退(被攻击方, 100);
-            设置玩家变量(被攻击方, baptiste_fake_drug_target_active, 假);
+            设置玩家变量(被攻击方, baptiste_drug_target_active, 假);
             等待(1, 无视条件);
             设置玩家变量(事件玩家, baptiste_fake_drug_cooldown, 假);
     }

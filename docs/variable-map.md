@@ -31,7 +31,7 @@
 | `baptiste_mirror_roll` | `baptiste_mirror_roll` | `[baptiste] mirror matrix trigger` | 本次哈哈镜随机结果。当前第一版为巴蒂每次开大随机一种镜像，范围内玩家获得同一种变形。 | 否。 | 是，触发时设为 1-4。 | 下次触发覆盖即可。 |
 | `baptiste_mirror_target_active` | `baptiste_mirror_target_active` | `[baptiste] mirror matrix trigger`、四条 `[baptiste] mirror ... effect` | 目标正处于哈哈镜变形中，防止同一目标叠加多种哈哈镜效果。 | 否。 | 是，默认假。 | 6 秒后恢复；死亡、换英雄、离开时后续可补强制恢复。 |
 | `baptiste_fake_drug_cooldown` | `baptiste_fake_drug_cooldown` | `[baptiste] fake drug injection` | 巴蒂假药注射 4 秒内置冷却。 | 否。 | 是，默认假。 | 死亡、换英雄、离开时应设假。 |
-| `baptiste_fake_drug_target_active` | `baptiste_fake_drug_target_active` | `[baptiste] fake drug injection` | 目标正在承受假药副作用，防止同一目标叠多个假药状态。 | 否。 | 是，默认假。 | 3 秒后恢复；死亡、换英雄、离开时后续可补强制恢复。 |
+| `baptiste_drug_target_active` | `baptiste_drug_target_active` | `[baptiste] fake drug injection` | 目标正在承受假药副作用，防止同一目标叠多个假药状态。 | 否。 | 是，默认假。 | 3 秒后恢复；死亡、换英雄、离开时后续可补强制恢复。 |
 | `baptiste_fake_drug_roll` | `baptiste_fake_drug_roll` | `[baptiste] fake drug injection` | 目标本次假药副作用随机结果。 | 否。 | 是，触发时设为 1-4。 | 下次触发覆盖即可。 |
 | `genji_ult_window_active` | `genji_ult_window_active` | `[genji] lock swift strike outside blade window`、`[genji] start blade window on final blow`、`[genji] blade damage cap during window`、源氏清理规则 | 源氏 8 秒疯狗龙刃窗口是否开启。开启时 Shift 解锁、终极充能 100。 | 否。 | 是，默认假。 | 自然结束、死亡、换英雄、离开时应设假。 |
 | `genji_ult_window_timer` | `genji_ult_window_timer` | `[genji] start blade window on final blow`、`[genji] refresh blade window on final blow`、源氏清理规则 | 源氏疯狗窗口剩余时间。第一次击杀设为 8 并进入受控倒计时，窗口内续杀重新设为 8。 | 否。 | 是，默认 0。 | 自然结束、死亡、换英雄、离开时设 0。 |
@@ -68,12 +68,12 @@
 | `winston_grapple_original_hero` | `winston_grapple_original_hero` | 温斯顿抱摔规则 | 记录目标被抓时的英雄，用于检测目标换英雄并清理绑定。 | 否。 | 是，默认空。 | 释放或任一清理路径后清空。 |
 | `brigitte_blink_cooldown` | `brigitte_blink_cooldown` | `[brigitte] shield bash blink stun`、布丽吉塔清理规则 | 布丽吉塔盾击瞬移成功后的冷却锁。失败触发不会设置该变量。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄后设假。 |
 | `brigitte_blink_target` | `brigitte_blink_target` | `[brigitte] shield bash blink stun`、布丽吉塔清理规则 | 保存本次准星附近的有效目标，用于计算传送点和施加短暂眩晕。 | 否。 | 是，默认空。 | 成功或失败后清空；死亡或换英雄后清空。 |
-| `ramattra_overweight_stacks` | `ramattra_overweight_stacks` | 拉玛刹痛苦重力规则、目标清理规则 | 目标当前超重层数。5 秒窗口内叠到 3 层会触发重力压制并清零。 | 否。 | 是，默认 0。 | 层数过期、压制触发、死亡或换英雄时设 0。 |
-| `ramattra_overweight_window_active` | `ramattra_overweight_window_active` | `[ramattra] overweight stack window expires`、拉玛刹目标清理规则 | 标记目标 5 秒超重叠层窗口是否正在计时。 | 否。 | 是，默认假。 | 过期、压制触发、死亡或换英雄时设假。 |
-| `ramattra_overweight_hit_cooldown` | `ramattra_overweight_hit_cooldown` | `[ramattra] apply overweight on damage`、拉玛刹目标清理规则 | 目标被拉玛刹施加超重的短冷却，约 0.65 秒，避免高频伤害瞬间叠满。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
-| `ramattra_overweight_compress_cooldown` | `ramattra_overweight_compress_cooldown` | `[ramattra] trigger gravity suppression at three stacks`、拉玛刹目标清理规则 | 重力压制触发后的短内置冷却，避免同一目标连续被压制。 | 否。 | 是，默认假。 | 压制冷却结束、死亡或换英雄时设假。 |
-| `ramattra_overweight_active` | `ramattra_overweight_active` | `[ramattra] apply overweight on damage`、`[ramattra] overweight temporary slow cleanup`、目标清理规则 | 标记目标当前处于超重临时减速/加重效果中。 | 否。 | 是，默认假。 | 效果结束、压制触发、死亡或换英雄时恢复速度/引力并设假。 |
-| `ramattra_overweight_original_hero` | `ramattra_overweight_original_hero` | `[ramattra] apply overweight on damage`、拉玛刹目标清理规则 | 记录目标被施加超重时的英雄，用于换英雄后清理异常速度/引力。 | 否。 | 是，默认空。 | 目标死亡或换英雄后清空。 |
+| `ramattra_ow_stacks` | `ramattra_ow_stacks` | 拉玛刹痛苦重力规则、目标清理规则 | 目标当前超重层数。5 秒窗口内叠到 3 层会触发重力压制并清零。 | 否。 | 是，默认 0。 | 层数过期、压制触发、死亡或换英雄时设 0。 |
+| `ramattra_ow_window_active` | `ramattra_ow_window_active` | `[ramattra] overweight stack window expires`、拉玛刹目标清理规则 | 标记目标 5 秒超重叠层窗口是否正在计时。 | 否。 | 是，默认假。 | 过期、压制触发、死亡或换英雄时设假。 |
+| `ramattra_ow_hit_cooldown` | `ramattra_ow_hit_cooldown` | `[ramattra] apply overweight on damage`、拉玛刹目标清理规则 | 目标被拉玛刹施加超重的短冷却，约 0.65 秒，避免高频伤害瞬间叠满。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
+| `ramattra_ow_compress_cooldown` | `ramattra_ow_compress_cooldown` | `[ramattra] trigger gravity suppression at three stacks`、拉玛刹目标清理规则 | 重力压制触发后的短内置冷却，避免同一目标连续被压制。 | 否。 | 是，默认假。 | 压制冷却结束、死亡或换英雄时设假。 |
+| `ramattra_ow_active` | `ramattra_ow_active` | `[ramattra] apply overweight on damage`、`[ramattra] overweight temporary slow cleanup`、目标清理规则 | 标记目标当前处于超重临时减速/加重效果中。 | 否。 | 是，默认假。 | 效果结束、压制触发、死亡或换英雄时恢复速度/引力并设假。 |
+| `ramattra_ow_original_hero` | `ramattra_ow_original_hero` | `[ramattra] apply overweight on damage`、拉玛刹目标清理规则 | 记录目标被施加超重时的英雄，用于换英雄后清理异常速度/引力。 | 否。 | 是，默认空。 | 目标死亡或换英雄后清空。 |
 | `ramattra_pain` | `ramattra_pain` | 拉玛刹痛苦 HUD、超重伤害、核心充能、痛苦拳规则 | 拉玛刹痛苦值，0 到 100。造成伤害和靠近痛苦核心会增加，满值后可触发痛苦拳。 | 否。 | 是，默认 0。 | 痛苦拳消耗、死亡或换英雄时设 0。 |
 | `ramattra_pain_ready` | `ramattra_pain_ready` | 拉玛刹痛苦充能规则、痛苦拳规则 | 标记痛苦值是否已经满，用于避免“痛苦已满”大字反复刷屏。 | 否。 | 是，默认假。 | 痛苦拳消耗、死亡或换英雄时设假。 |
 | `ramattra_pain_hud_created` | `ramattra_pain_hud_created` | `[ramattra] create pain hud`、拉玛刹清理规则 | 标记拉玛刹痛苦值 HUD 是否已创建。 | 否。 | 是，默认假。 | 死亡或换英雄时销毁 HUD 后设假。 |
@@ -84,13 +84,22 @@
 | `ramattra_core_effects` | `ramattra_core_effects` | 痛苦核心生成、摧毁和清理规则 | 保存痛苦核心光环和光柱效果实体，用于清理。 | 否。 | 是，生成核心前设为空数组。 | 核心消失、被摧毁、死亡或换英雄时销毁并清空。 |
 | `ramattra_core_cooldown` | `ramattra_core_cooldown` | `[ramattra] place pain core`、拉玛刹清理规则 | 痛苦核心冷却锁，防止连续生成多个核心。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
 | `ramattra_core_destroy_target` | `ramattra_core_destroy_target` | `[ramattra] destroy pain core by melee` | 保存本次被近战摧毁的痛苦核心所属拉玛刹，用于销毁效果和清状态。 | 否。 | 是，摧毁时临时赋值。 | 摧毁流程结束后设空。 |
-| `ramattra_overweight_source` | `ramattra_overweight_source` | 超重施加、重力压制和目标清理规则 | 保存最近一次给目标施加超重的拉玛刹，用于击倒状态来源。 | 否。 | 是，施加超重时保存。 | 目标死亡或换英雄时清空。 |
+| `ramattra_ow_source` | `ramattra_ow_source` | 超重施加、重力压制和目标清理规则 | 保存最近一次给目标施加超重的拉玛刹，用于击倒状态来源。 | 否。 | 是，施加超重时保存。 | 目标死亡或换英雄时清空。 |
 | `sigma_black_hole_active` | `sigma_black_hole_active` | `[sigma] release small black hole`、西格玛清理规则 | 标记西格玛小黑洞是否正在运行，防止连续生成多个黑洞。 | 否。 | 是，默认假。 | 黑洞结束、死亡或换英雄时设假。 |
 | `sigma_black_hole_cooldown` | `sigma_black_hole_cooldown` | `[sigma] release small black hole`、西格玛清理规则 | 小黑洞内置冷却锁。当前黑洞持续约 3 秒，结束后再等待约 5 秒解除冷却。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
 | `sigma_black_hole_position` | `sigma_black_hole_position` | `[sigma] release small black hole`、西格玛清理规则 | 保存本次小黑洞中心位置。当前第一版放在西格玛眼睛位置前方固定距离。 | 否。 | 是，释放时保存位置。 | 黑洞结束、死亡或换英雄时设空。 |
 | `sigma_black_hole_effects` | `sigma_black_hole_effects` | `[sigma] release small black hole`、西格玛清理规则 | 保存小黑洞光环和光柱效果实体，用于结束或异常中断时销毁。 | 否。 | 是，生成黑洞前设为空数组。 | 黑洞结束、死亡或换英雄时销毁并清空。 |
 | `sigma_black_hole_tick` | `sigma_black_hole_tick` | `[sigma] release small black hole`、西格玛清理规则 | 小黑洞 0.5 秒循环计数。当前运行 6 次，约 3 秒。 | 否。 | 是，释放时设 0。 | 黑洞结束、死亡或换英雄时设 0。 |
 | `sigma_black_hole_damage_taken` | `sigma_black_hole_damage_taken` | `[sigma] release small black hole`、西格玛清理规则 | 记录玩家在当前小黑洞中心持续伤害中已受到的伤害，用于限制单次黑洞中心伤害。 | 否。 | 是，进入黑洞流程时附近玩家设 0。 | 黑洞结束、释放者死亡或换英雄时附近玩家设 0。 |
+| `reaper_anchor_active` | `reaper_anchor_active` | 死神收魂追猎规则 | 标记当前是否存在亡魂锚点。 | 否。 | 是，默认假。 | 锚点超时、追猎、死亡或换英雄时设假。 |
+| `reaper_anchor_pos` | `reaper_anchor_pos` | 死神收魂追猎规则 | 保存亡魂锚点位置，用于借魂传送。 | 否。 | 是，击杀后保存死者位置。 | 锚点清理、追猎、死亡或换英雄时设空。 |
+| `reaper_anchor_fx` | `reaper_anchor_fx` | 死神收魂追猎规则 | 保存亡魂锚点的黑雾光环和光柱效果句柄。 | 否。 | 是，击杀后设为空数组再写入句柄。 | 锚点超时、追猎、死亡或换英雄时销毁并清空。 |
+| `reaper_hunt_cd` | `reaper_hunt_cd` | `[reaper] soul hunt to anchor`、死神清理规则 | 借魂追猎冷却锁，防止连续追猎。 | 否。 | 是，默认假。 | 追猎冷却结束、死亡或换英雄时设假。 |
+| `reaper_anchor_timer` | `reaper_anchor_timer` | `[reaper] soul anchor timer`、死神清理规则 | 亡魂锚点剩余时间。当前击杀后设为 7 秒。 | 否。 | 是，击杀后设 7。 | 锚点超时、追猎、死亡或换英雄时设 0。 |
+| `reaper_anchor_timer_on` | `reaper_anchor_timer_on` | `[reaper] soul anchor timer`、死神清理规则 | 锚点倒计时线程锁，避免重复启动多个倒计时。 | 否。 | 是，默认假。 | 倒计时结束、死亡或换英雄时设假。 |
+| `reaper_hunt_active` | `reaper_hunt_active` | `[reaper] soul hunt to anchor`、死神清理规则 | 标记黑雾猎场和追猎短强化是否正在生效。 | 否。 | 是，默认假。 | 猎场结束、死亡或换英雄时设假并恢复速度。 |
+| `reaper_hunt_fx` | `reaper_hunt_fx` | `[reaper] soul hunt to anchor`、死神清理规则 | 保存借魂追猎后的黑雾猎场效果句柄。 | 否。 | 是，追猎时设为空数组再写入句柄。 | 猎场结束、死亡或换英雄时销毁并清空。 |
+| `disabled_secondary_fire` | `disabled_secondary_fire` | 死神/温斯顿右键关闭规则 | 标记当前玩家是否已经被关闭右键，避免每帧重复禁用。 | 否。 | 是，默认假。 | 换到非死神/非温斯顿英雄时恢复右键并设假。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |

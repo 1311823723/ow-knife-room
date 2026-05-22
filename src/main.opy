@@ -19,7 +19,7 @@ playervar baptiste_mirror_active 41
 playervar baptiste_mirror_roll 42
 playervar baptiste_mirror_target_active 43
 playervar baptiste_fake_drug_cooldown 44
-playervar baptiste_fake_drug_target_active 45
+playervar baptiste_drug_target_active 45
 playervar baptiste_fake_drug_roll 46
 playervar genji_ult_window_active 47
 playervar genji_ult_window_timer 48
@@ -56,12 +56,12 @@ playervar winston_grapple_carrier 78
 playervar winston_grapple_original_hero 79
 playervar brigitte_blink_cooldown 80
 playervar brigitte_blink_target 81
-playervar ramattra_overweight_stacks 82
-playervar ramattra_overweight_window_active 83
-playervar ramattra_overweight_hit_cooldown 84
-playervar ramattra_overweight_compress_cooldown 85
-playervar ramattra_overweight_active 86
-playervar ramattra_overweight_original_hero 87
+playervar ramattra_ow_stacks 82
+playervar ramattra_ow_window_active 83
+playervar ramattra_ow_hit_cooldown 84
+playervar ramattra_ow_compress_cooldown 85
+playervar ramattra_ow_active 86
+playervar ramattra_ow_original_hero 87
 playervar ramattra_pain 88
 playervar ramattra_pain_ready 89
 playervar ramattra_pain_hud_created 90
@@ -72,13 +72,22 @@ playervar ramattra_core_position 94
 playervar ramattra_core_effects 95
 playervar ramattra_core_cooldown 96
 playervar ramattra_core_destroy_target 97
-playervar ramattra_overweight_source 98
+playervar ramattra_ow_source 98
 playervar sigma_black_hole_active 99
 playervar sigma_black_hole_cooldown 100
 playervar sigma_black_hole_position 101
 playervar sigma_black_hole_effects 102
 playervar sigma_black_hole_tick 103
 playervar sigma_black_hole_damage_taken 104
+playervar reaper_anchor_active 105
+playervar reaper_anchor_pos 106
+playervar reaper_anchor_fx 107
+playervar reaper_hunt_cd 108
+playervar reaper_anchor_timer 109
+playervar reaper_anchor_timer_on 110
+playervar reaper_hunt_active 111
+playervar reaper_hunt_fx 112
+playervar disabled_secondary_fire 113
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -398,6 +407,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "雾子：法阵击倒\n使用技能 2 时生成短暂法阵特效\n范围内玩家会被击倒\n法阵结束后自动清理效果", HudPosition.ACTUALLY_LEFT, -998, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.TRACER:
         hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.REAPER:
+        hudSubtext(eventPlayer, "死神：收魂追猎\n击杀后留下短暂亡魂锚点\n按 E 借魂传送追猎，并展开黑雾猎场\n右键技能关闭", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BASTION:
         hudSubtext(eventPlayer, "堡垒：废铁非法改装\n造成有效伤害攒废铁，满 6 个自动随机改装\n死亡不掉废铁，换英雄清零\n改装结束后属性会恢复", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.RAMATTRA:
@@ -717,18 +728,18 @@ rule "[ramattra] apply overweight on damage":
     @Condition victim.isAlive() == true
     @Condition victim != eventPlayer
     @Condition eventDamage > 0
-    @Condition victim.ramattra_overweight_hit_cooldown == false
+    @Condition victim.ramattra_ow_hit_cooldown == false
 
-    victim.ramattra_overweight_hit_cooldown = true
-    victim.ramattra_overweight_source = eventPlayer
-    victim.ramattra_overweight_original_hero = victim.getHero()
-    victim.ramattra_overweight_stacks += 1
-    victim.ramattra_overweight_active = true
+    victim.ramattra_ow_hit_cooldown = true
+    victim.ramattra_ow_source = eventPlayer
+    victim.ramattra_ow_original_hero = victim.getHero()
+    victim.ramattra_ow_stacks += 1
+    victim.ramattra_ow_active = true
     victim.setMoveSpeed(85)
     victim.setGravity(150)
     victim.applyImpulse(Vector.DOWN, 10, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, victim, 1.5)
-    smallMessage(victim, "超重：{}/3".format(victim.ramattra_overweight_stacks))
+    smallMessage(victim, "超重：{}/3".format(victim.ramattra_ow_stacks))
     if eventPlayer.ramattra_pain < 100:
         eventPlayer.ramattra_pain += 6
     if eventPlayer.ramattra_pain >= 100:
@@ -737,51 +748,51 @@ rule "[ramattra] apply overweight on damage":
             eventPlayer.ramattra_pain_ready = true
             bigMessage(eventPlayer, "痛苦已满")
     wait(0.65)
-    victim.ramattra_overweight_hit_cooldown = false
+    victim.ramattra_ow_hit_cooldown = false
 
 
 rule "[ramattra] overweight temporary slow cleanup":
     @Event eachPlayer
-    @Condition eventPlayer.ramattra_overweight_active == true
+    @Condition eventPlayer.ramattra_ow_active == true
 
     wait(1.4)
-    if eventPlayer.ramattra_overweight_active == true:
+    if eventPlayer.ramattra_ow_active == true:
         eventPlayer.setMoveSpeed(100)
         eventPlayer.setGravity(100)
-        eventPlayer.ramattra_overweight_active = false
+        eventPlayer.ramattra_ow_active = false
 
 
 rule "[ramattra] overweight stack window expires":
     @Event eachPlayer
-    @Condition eventPlayer.ramattra_overweight_stacks > 0
-    @Condition eventPlayer.ramattra_overweight_window_active == false
+    @Condition eventPlayer.ramattra_ow_stacks > 0
+    @Condition eventPlayer.ramattra_ow_window_active == false
 
-    eventPlayer.ramattra_overweight_window_active = true
+    eventPlayer.ramattra_ow_window_active = true
     wait(5)
-    if eventPlayer.ramattra_overweight_stacks > 0:
-        eventPlayer.ramattra_overweight_stacks = 0
-        eventPlayer.ramattra_overweight_active = false
+    if eventPlayer.ramattra_ow_stacks > 0:
+        eventPlayer.ramattra_ow_stacks = 0
+        eventPlayer.ramattra_ow_active = false
         eventPlayer.setMoveSpeed(100)
         eventPlayer.setGravity(100)
-    eventPlayer.ramattra_overweight_window_active = false
+    eventPlayer.ramattra_ow_window_active = false
 
 
 rule "[ramattra] trigger gravity suppression at three stacks":
     @Event eachPlayer
-    @Condition eventPlayer.ramattra_overweight_stacks >= 3
-    @Condition eventPlayer.ramattra_overweight_compress_cooldown == false
+    @Condition eventPlayer.ramattra_ow_stacks >= 3
+    @Condition eventPlayer.ramattra_ow_compress_cooldown == false
 
-    eventPlayer.ramattra_overweight_compress_cooldown = true
-    eventPlayer.ramattra_overweight_stacks = 0
-    eventPlayer.ramattra_overweight_window_active = false
-    eventPlayer.ramattra_overweight_active = false
+    eventPlayer.ramattra_ow_compress_cooldown = true
+    eventPlayer.ramattra_ow_stacks = 0
+    eventPlayer.ramattra_ow_window_active = false
+    eventPlayer.ramattra_ow_active = false
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setGravity(100)
     playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer, 3)
-    eventPlayer.setStatusEffect(eventPlayer.ramattra_overweight_source, Status.KNOCKED_DOWN, 0.85)
+    eventPlayer.setStatusEffect(eventPlayer.ramattra_ow_source, Status.KNOCKED_DOWN, 0.85)
     smallMessage(eventPlayer, "重力压制")
     wait(1.2)
-    eventPlayer.ramattra_overweight_compress_cooldown = false
+    eventPlayer.ramattra_ow_compress_cooldown = false
 
 
 rule "[ramattra] pain punch on melee":
@@ -796,10 +807,10 @@ rule "[ramattra] pain punch on melee":
     eventPlayer.ramattra_pain_punch_cooldown = true
     eventPlayer.ramattra_pain = 0
     eventPlayer.ramattra_pain_ready = false
-    victim.ramattra_overweight_source = eventPlayer
-    victim.ramattra_overweight_original_hero = victim.getHero()
-    victim.ramattra_overweight_stacks += 2
-    victim.ramattra_overweight_active = true
+    victim.ramattra_ow_source = eventPlayer
+    victim.ramattra_ow_original_hero = victim.getHero()
+    victim.ramattra_ow_stacks += 2
+    victim.ramattra_ow_active = true
     victim.setMoveSpeed(85)
     victim.setGravity(150)
     victim.applyImpulse(Vector.DOWN, 14, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
@@ -924,16 +935,16 @@ rule "[ramattra] clear pain gravity after hero swap":
 
 rule "[ramattra] clear overweight after target death or hero swap":
     @Event eachPlayer
-    @Condition eventPlayer.ramattra_overweight_stacks > 0 or eventPlayer.ramattra_overweight_active == true or eventPlayer.ramattra_overweight_hit_cooldown == true or eventPlayer.ramattra_overweight_window_active == true or eventPlayer.ramattra_overweight_compress_cooldown == true
-    @Condition eventPlayer.isDead() == true or (eventPlayer.ramattra_overweight_original_hero != null and eventPlayer.getHero() != eventPlayer.ramattra_overweight_original_hero)
+    @Condition eventPlayer.ramattra_ow_stacks > 0 or eventPlayer.ramattra_ow_active == true or eventPlayer.ramattra_ow_hit_cooldown == true or eventPlayer.ramattra_ow_window_active == true or eventPlayer.ramattra_ow_compress_cooldown == true
+    @Condition eventPlayer.isDead() == true or (eventPlayer.ramattra_ow_original_hero != null and eventPlayer.getHero() != eventPlayer.ramattra_ow_original_hero)
 
-    eventPlayer.ramattra_overweight_stacks = 0
-    eventPlayer.ramattra_overweight_window_active = false
-    eventPlayer.ramattra_overweight_hit_cooldown = false
-    eventPlayer.ramattra_overweight_compress_cooldown = false
-    eventPlayer.ramattra_overweight_active = false
-    eventPlayer.ramattra_overweight_original_hero = null
-    eventPlayer.ramattra_overweight_source = null
+    eventPlayer.ramattra_ow_stacks = 0
+    eventPlayer.ramattra_ow_window_active = false
+    eventPlayer.ramattra_ow_hit_cooldown = false
+    eventPlayer.ramattra_ow_compress_cooldown = false
+    eventPlayer.ramattra_ow_active = false
+    eventPlayer.ramattra_ow_original_hero = null
+    eventPlayer.ramattra_ow_source = null
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setGravity(100)
 
@@ -1018,6 +1029,174 @@ rule "[sigma] clear small black hole after hero swap":
     eventPlayer.sigma_black_hole_position = null
     eventPlayer.sigma_black_hole_effects = []
     eventPlayer.sigma_black_hole_tick = 0
+
+
+rule "[reaper] disable secondary fire":
+    @Event eachPlayer
+    @Hero reaper
+    @Condition eventPlayer.disabled_secondary_fire == false
+
+    eventPlayer.disallowButton(Button.SECONDARY_FIRE)
+    eventPlayer.disabled_secondary_fire = true
+
+
+rule "[winston] disable secondary fire":
+    @Event eachPlayer
+    @Hero winston
+    @Condition eventPlayer.disabled_secondary_fire == false
+
+    eventPlayer.disallowButton(Button.SECONDARY_FIRE)
+    eventPlayer.disabled_secondary_fire = true
+
+
+rule "[reaper and winston] restore secondary fire after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.REAPER
+    @Condition eventPlayer.getHero() != Hero.WINSTON
+    @Condition eventPlayer.disabled_secondary_fire == true
+
+    eventPlayer.allowButton(Button.SECONDARY_FIRE)
+    eventPlayer.disabled_secondary_fire = false
+
+
+rule "[reaper] leave soul anchor on final blow":
+    @Event playerDealtFinalBlow
+    @Hero reaper
+    @Condition eventPlayer.isAlive() == true
+
+    if eventPlayer.reaper_anchor_active == true:
+        if len(eventPlayer.reaper_anchor_fx) > 0:
+            destroyEffect(eventPlayer.reaper_anchor_fx[0])
+        if len(eventPlayer.reaper_anchor_fx) > 1:
+            destroyEffect(eventPlayer.reaper_anchor_fx[1])
+    eventPlayer.reaper_anchor_active = true
+    eventPlayer.reaper_anchor_timer = 7
+    eventPlayer.reaper_anchor_pos = victim.getPosition()
+    eventPlayer.reaper_anchor_fx = []
+    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.BLACK, eventPlayer.reaper_anchor_pos, 3, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.reaper_anchor_fx.append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.PURPLE, eventPlayer.reaper_anchor_pos, 3, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.reaper_anchor_fx.append(getLastCreatedEntity())
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.BLACK, eventPlayer.reaper_anchor_pos, 2)
+    smallMessage(eventPlayer, "亡魂锚点已生成，按 E 借魂追猎")
+
+
+rule "[reaper] soul anchor timer":
+    @Event eachPlayer
+    @Hero reaper
+    @Condition eventPlayer.reaper_anchor_active == true
+    @Condition eventPlayer.reaper_anchor_timer > 0
+    @Condition eventPlayer.reaper_anchor_timer_on == false
+
+    eventPlayer.reaper_anchor_timer_on = true
+    while eventPlayer.reaper_anchor_active == true and eventPlayer.reaper_anchor_timer > 0 and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.REAPER:
+        wait(1)
+        eventPlayer.reaper_anchor_timer -= 1
+    if eventPlayer.reaper_anchor_active == true and eventPlayer.reaper_anchor_timer <= 0:
+        if len(eventPlayer.reaper_anchor_fx) > 0:
+            destroyEffect(eventPlayer.reaper_anchor_fx[0])
+        if len(eventPlayer.reaper_anchor_fx) > 1:
+            destroyEffect(eventPlayer.reaper_anchor_fx[1])
+        eventPlayer.reaper_anchor_active = false
+        eventPlayer.reaper_anchor_pos = null
+        eventPlayer.reaper_anchor_fx = []
+        smallMessage(eventPlayer, "亡魂锚点消散")
+    eventPlayer.reaper_anchor_timer = 0
+    eventPlayer.reaper_anchor_timer_on = false
+
+
+rule "[reaper] soul hunt to anchor":
+    @Event eachPlayer
+    @Hero reaper
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility2() == true
+    @Condition eventPlayer.reaper_anchor_active == true
+    @Condition eventPlayer.reaper_hunt_cd == false
+
+    eventPlayer.reaper_hunt_cd = true
+    eventPlayer.reaper_hunt_active = true
+    eventPlayer.reaper_hunt_fx = []
+    if len(eventPlayer.reaper_anchor_fx) > 0:
+        destroyEffect(eventPlayer.reaper_anchor_fx[0])
+    if len(eventPlayer.reaper_anchor_fx) > 1:
+        destroyEffect(eventPlayer.reaper_anchor_fx[1])
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.BLACK, eventPlayer, 2)
+    eventPlayer.teleport(eventPlayer.reaper_anchor_pos)
+    eventPlayer.reaper_anchor_active = false
+    eventPlayer.reaper_anchor_timer = 0
+    eventPlayer.reaper_anchor_timer_on = false
+    eventPlayer.reaper_anchor_pos = null
+    eventPlayer.reaper_anchor_fx = []
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer, 4)
+    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.BLACK, eventPlayer, 5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.reaper_hunt_fx.append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.PURPLE, eventPlayer, 5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.reaper_hunt_fx.append(getLastCreatedEntity())
+    getPlayersInRadius(eventPlayer.getPosition(), 5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true).setStatusEffect(eventPlayer, Status.HACKED, 1.25)
+    eventPlayer.setStatusEffect(null, Status.INVINCIBLE, 0.6)
+    eventPlayer.setMoveSpeed(115)
+    bigMessage(eventPlayer, "借魂追猎")
+    wait(2)
+    if len(eventPlayer.reaper_hunt_fx) > 0:
+        destroyEffect(eventPlayer.reaper_hunt_fx[0])
+    if len(eventPlayer.reaper_hunt_fx) > 1:
+        destroyEffect(eventPlayer.reaper_hunt_fx[1])
+    eventPlayer.reaper_hunt_fx = []
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.reaper_hunt_active = false
+    wait(4)
+    eventPlayer.reaper_hunt_cd = false
+
+
+rule "[reaper] clear soul hunt on death":
+    @Event playerDied
+    @Hero reaper
+
+    if eventPlayer.reaper_anchor_active == true:
+        if len(eventPlayer.reaper_anchor_fx) > 0:
+            destroyEffect(eventPlayer.reaper_anchor_fx[0])
+        if len(eventPlayer.reaper_anchor_fx) > 1:
+            destroyEffect(eventPlayer.reaper_anchor_fx[1])
+    if eventPlayer.reaper_hunt_active == true:
+        if len(eventPlayer.reaper_hunt_fx) > 0:
+            destroyEffect(eventPlayer.reaper_hunt_fx[0])
+        if len(eventPlayer.reaper_hunt_fx) > 1:
+            destroyEffect(eventPlayer.reaper_hunt_fx[1])
+    eventPlayer.reaper_anchor_active = false
+    eventPlayer.reaper_anchor_pos = null
+    eventPlayer.reaper_anchor_fx = []
+    eventPlayer.reaper_anchor_timer = 0
+    eventPlayer.reaper_anchor_timer_on = false
+    eventPlayer.reaper_hunt_cd = false
+    eventPlayer.reaper_hunt_active = false
+    eventPlayer.reaper_hunt_fx = []
+    eventPlayer.setMoveSpeed(100)
+
+
+rule "[reaper] clear soul hunt after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.REAPER
+    @Condition eventPlayer.reaper_anchor_active == true or eventPlayer.reaper_hunt_active == true or eventPlayer.reaper_hunt_cd == true or eventPlayer.reaper_anchor_timer_on == true
+
+    if eventPlayer.reaper_anchor_active == true:
+        if len(eventPlayer.reaper_anchor_fx) > 0:
+            destroyEffect(eventPlayer.reaper_anchor_fx[0])
+        if len(eventPlayer.reaper_anchor_fx) > 1:
+            destroyEffect(eventPlayer.reaper_anchor_fx[1])
+    if eventPlayer.reaper_hunt_active == true:
+        if len(eventPlayer.reaper_hunt_fx) > 0:
+            destroyEffect(eventPlayer.reaper_hunt_fx[0])
+        if len(eventPlayer.reaper_hunt_fx) > 1:
+            destroyEffect(eventPlayer.reaper_hunt_fx[1])
+    eventPlayer.reaper_anchor_active = false
+    eventPlayer.reaper_anchor_pos = null
+    eventPlayer.reaper_anchor_fx = []
+    eventPlayer.reaper_anchor_timer = 0
+    eventPlayer.reaper_anchor_timer_on = false
+    eventPlayer.reaper_hunt_cd = false
+    eventPlayer.reaper_hunt_active = false
+    eventPlayer.reaper_hunt_fx = []
+    eventPlayer.setMoveSpeed(100)
 
 
 rule "弗让你飞起来":
@@ -1192,11 +1371,11 @@ rule "[baptiste] fake drug injection":
     @Hero baptiste
     @Condition victim.isAlive() == true
     @Condition eventPlayer.baptiste_fake_drug_cooldown == false
-    @Condition victim.baptiste_fake_drug_target_active == false
+    @Condition victim.baptiste_drug_target_active == false
 
     if random.randint(1, 100) <= 18:
         eventPlayer.baptiste_fake_drug_cooldown = true
-        victim.baptiste_fake_drug_target_active = true
+        victim.baptiste_drug_target_active = true
         victim.baptiste_fake_drug_roll = random.randint(1, 4)
         playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.YELLOW, victim, 1.5)
         smallMessage(eventPlayer, "假药注射成功")
@@ -1226,7 +1405,7 @@ rule "[baptiste] fake drug injection":
         victim.setDamageDealt(100)
         victim.setDamageReceived(100)
         victim.setKnockbackReceived(100)
-        victim.baptiste_fake_drug_target_active = false
+        victim.baptiste_drug_target_active = false
         wait(1)
         eventPlayer.baptiste_fake_drug_cooldown = false
 
