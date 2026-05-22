@@ -49,6 +49,11 @@ playervar torb_mod_status_hud_created 71
 playervar torb_mod_status_hud_id 72
 playervar bastion_mod_status_hud_created 73
 playervar bastion_mod_status_hud_id 74
+playervar winston_grapple_active 75
+playervar winston_grapple_target 76
+playervar winston_grapple_lock 77
+playervar winston_grapple_carrier 78
+playervar winston_grapple_original_hero 79
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -370,6 +375,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BASTION:
         hudSubtext(eventPlayer, "堡垒：废铁非法改装\n造成有效伤害攒废铁，满 6 个自动随机改装\n死亡不掉废铁，换英雄清零\n改装结束后属性会恢复", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.WINSTON:
+        hudSubtext(eventPlayer, "温斯顿：跳跃撞人可抱摔\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     else:
         hudSubtext(eventPlayer, "通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     eventPlayer.ability_guide_hud_id = getLastCreatedText()
@@ -1235,6 +1242,98 @@ rule "[sojourn] power slide launches nearby players":
     smallMessage(eventPlayer, "滑铲创飞！")
     wait(0.8)
     eventPlayer.sojourn_slide_bump_cooldown = false
+
+
+rule "[winston] grapple slam on jump contact":
+    @Event eachPlayer
+    @Hero winston
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.winston_grapple_active == false
+    @Condition eventPlayer.winston_grapple_lock == false
+    @Condition len(getPlayersInRadius(eventPlayer.getPosition(), 2.8, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and eventPlayer.isInViewAngle(player.getPosition(), 70) == true and player.winston_grapple_carrier == null)) > 0
+
+    eventPlayer.winston_grapple_lock = true
+    eventPlayer.winston_grapple_active = true
+    eventPlayer.winston_grapple_target = sorted(getPlayersInRadius(eventPlayer.getPosition(), 2.8, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and eventPlayer.isInViewAngle(player.getPosition(), 70) == true and player.winston_grapple_carrier == null), key=lambda player: distance(eventPlayer, player))[0]
+    eventPlayer.winston_grapple_target.winston_grapple_carrier = eventPlayer
+    eventPlayer.winston_grapple_target.winston_grapple_original_hero = eventPlayer.winston_grapple_target.getHero()
+    eventPlayer.winston_grapple_target.attachTo(eventPlayer, vect(0, 1.15, 1.25))
+    eventPlayer.winston_grapple_target.setStatusEffect(eventPlayer, Status.STUNNED, 10)
+    eventPlayer.disallowButton(Button.PRIMARY_FIRE)
+    eventPlayer.disallowButton(Button.MELEE)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.WHITE, eventPlayer.winston_grapple_target, 1.5)
+    smallMessage(eventPlayer, "猩猩抱摔抓住目标")
+    waitUntil(eventPlayer.isOnGround() == true or eventPlayer.isAlive() == false or eventPlayer.getHero() != Hero.WINSTON or eventPlayer.winston_grapple_target.isAlive() == false or eventPlayer.winston_grapple_target.winston_grapple_carrier != eventPlayer or eventPlayer.winston_grapple_target.getHero() != eventPlayer.winston_grapple_target.winston_grapple_original_hero, 3.5)
+    if eventPlayer.winston_grapple_target != null and eventPlayer.winston_grapple_target.winston_grapple_carrier == eventPlayer:
+        eventPlayer.winston_grapple_target.detach()
+        eventPlayer.winston_grapple_target.clearStatusEffect(Status.STUNNED)
+        if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.WINSTON and eventPlayer.winston_grapple_target.isAlive() == true and eventPlayer.isOnGround() == true:
+            playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.WHITE, eventPlayer.getPosition(), 3)
+            eventPlayer.winston_grapple_target.setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 1.15)
+            smallMessage(eventPlayer.winston_grapple_target, "被猩猩抱摔击倒")
+        eventPlayer.winston_grapple_target.winston_grapple_carrier = null
+        eventPlayer.winston_grapple_target.winston_grapple_original_hero = null
+    eventPlayer.winston_grapple_active = false
+    eventPlayer.winston_grapple_target = null
+    eventPlayer.allowButton(Button.PRIMARY_FIRE)
+    eventPlayer.allowButton(Button.MELEE)
+    waitUntil(eventPlayer.isUsingAbility1() == false, 2)
+    wait(0.35)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.WINSTON:
+        eventPlayer.winston_grapple_lock = false
+
+
+rule "[winston] clear grapple on death":
+    @Event playerDied
+    @Hero winston
+
+    if eventPlayer.winston_grapple_target != null and eventPlayer.winston_grapple_target.winston_grapple_carrier == eventPlayer:
+        eventPlayer.winston_grapple_target.detach()
+        eventPlayer.winston_grapple_target.clearStatusEffect(Status.STUNNED)
+        eventPlayer.winston_grapple_target.clearStatusEffect(Status.KNOCKED_DOWN)
+        eventPlayer.winston_grapple_target.winston_grapple_carrier = null
+        eventPlayer.winston_grapple_target.winston_grapple_original_hero = null
+    eventPlayer.winston_grapple_active = false
+    eventPlayer.winston_grapple_target = null
+    eventPlayer.winston_grapple_lock = false
+    eventPlayer.allowButton(Button.PRIMARY_FIRE)
+    eventPlayer.allowButton(Button.MELEE)
+
+
+rule "[winston] clear grapple after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.WINSTON
+    @Condition eventPlayer.winston_grapple_active == true or eventPlayer.winston_grapple_target != null or eventPlayer.winston_grapple_lock == true
+
+    if eventPlayer.winston_grapple_target != null and eventPlayer.winston_grapple_target.winston_grapple_carrier == eventPlayer:
+        eventPlayer.winston_grapple_target.detach()
+        eventPlayer.winston_grapple_target.clearStatusEffect(Status.STUNNED)
+        eventPlayer.winston_grapple_target.clearStatusEffect(Status.KNOCKED_DOWN)
+        eventPlayer.winston_grapple_target.winston_grapple_carrier = null
+        eventPlayer.winston_grapple_target.winston_grapple_original_hero = null
+    eventPlayer.winston_grapple_active = false
+    eventPlayer.winston_grapple_target = null
+    eventPlayer.winston_grapple_lock = false
+    eventPlayer.allowButton(Button.PRIMARY_FIRE)
+    eventPlayer.allowButton(Button.MELEE)
+
+
+rule "[winston] clear grappled target on death or hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.winston_grapple_carrier != null
+    @Condition eventPlayer.isDead() == true or eventPlayer.getHero() != eventPlayer.winston_grapple_original_hero or eventPlayer.winston_grapple_carrier.isAlive() == false or eventPlayer.winston_grapple_carrier.getHero() != Hero.WINSTON
+
+    eventPlayer.detach()
+    eventPlayer.clearStatusEffect(Status.STUNNED)
+    eventPlayer.clearStatusEffect(Status.KNOCKED_DOWN)
+    eventPlayer.winston_grapple_carrier.winston_grapple_active = false
+    eventPlayer.winston_grapple_carrier.winston_grapple_target = null
+    eventPlayer.winston_grapple_carrier.winston_grapple_lock = false
+    eventPlayer.winston_grapple_carrier.allowButton(Button.PRIMARY_FIRE)
+    eventPlayer.winston_grapple_carrier.allowButton(Button.MELEE)
+    eventPlayer.winston_grapple_carrier = null
+    eventPlayer.winston_grapple_original_hero = null
 
 
 rule "[illari] apply sunburn on damage":
