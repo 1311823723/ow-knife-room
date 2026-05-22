@@ -510,8 +510,6 @@ rule "[bastion] gain scrap on damage":
     @Event playerDealtDamage
     @Hero bastion
     @Condition eventPlayer.isAlive() == true
-    @Condition victim.isAlive() == true
-    @Condition victim.getTeam() != eventPlayer.getTeam()
     @Condition eventDamage > 0
     @Condition eventPlayer.bastion_scrap < 6
     @Condition eventPlayer.bastion_scrap_gain_cooldown == false

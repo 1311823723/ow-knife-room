@@ -51,7 +51,7 @@
 | `ability_guide_toggle_locked` | `ability_guide_toggle_locked` | `[hud] open current hero ability guide on interact`、`[hud] close current hero ability guide on interact`、`[hud] unlock ability guide toggle` | 技能说明按键边沿锁，避免按住互动键时 HUD 反复开关。 | 否。 | 是，默认假。 | 松开互动键或死亡时设假。 |
 | `tracer_auto_recall_state` | `tracer_auto_recall_state` | `[tracer] grant auto recall on spawn`、`[tracer] auto recall on lethal damage`、猎空清理规则 | 猎空自动赖账回溯状态。`0` 未初始化/已清理，`1` 本条命可用，`2` 本条命已消耗。 | 否。 | 是，猎空存活且为 0 时设为 1。 | 死亡、换英雄、离开猎空时设为 0。 |
 | `tracer_debt_active` | `tracer_debt_active` | `[tracer] auto recall on lethal damage`、猎空清理规则 | 猎空还债状态是否正在生效，用于恢复体型、速度和承伤并避免状态残留。 | 否。 | 是，默认假。 | 还债结束、死亡、换英雄、离开猎空时设假并恢复属性。 |
-| `bastion_scrap` | `bastion_scrap` | `[bastion] create scrap hud`、`[bastion] gain scrap on damage`、`[bastion] activate scrap modification`、堡垒清理规则 | 堡垒当前废铁数量，0 到 6。造成有效敌方伤害后按节流获得 1 个，满 6 自动触发随机改装并清零。 | 否。 | 是，默认 0。 | 死亡不清零；换英雄/离开堡垒时清零。 |
+| `bastion_scrap` | `bastion_scrap` | `[bastion] create scrap hud`、`[bastion] gain scrap on damage`、`[bastion] activate scrap modification`、堡垒清理规则 | 堡垒当前废铁数量，0 到 6。造成正数伤害后按节流获得 1 个，满 6 自动触发随机改装并清零。 | 否。 | 是，默认 0。 | 死亡不清零；换英雄/离开堡垒时清零。 |
 | `bastion_scrap_gain_cooldown` | `bastion_scrap_gain_cooldown` | `[bastion] gain scrap on damage`、堡垒清理规则 | 废铁获取短冷却，当前约 0.45 秒，避免高频伤害瞬间刷满。 | 否。 | 是，默认假。 | 死亡或换英雄时设假。 |
 | `bastion_mod_active` | `bastion_mod_active` | `[bastion] gain scrap on damage`、`[bastion] activate scrap modification`、堡垒清理规则 | 标记堡垒非法改装是否正在运行。改装期间不继续获取废铁。 | 否。 | 是，默认假。 | 改装结束、死亡、换英雄时设假并恢复属性。 |
 | `bastion_mod_roll` | `bastion_mod_roll` | `[bastion] activate scrap modification`、堡垒清理规则 | 本次堡垒非法改装随机结果，1 破甲机枪、2 铁皮乌龟、3 迷你履带、4 废铁爆仓。 | 否。 | 是，触发时设为 1-4。 | 死亡、换英雄、离开堡垒时设 0。 |
