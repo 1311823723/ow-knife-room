@@ -68,6 +68,23 @@
 | `winston_grapple_original_hero` | `winston_grapple_original_hero` | 温斯顿抱摔规则 | 记录目标被抓时的英雄，用于检测目标换英雄并清理绑定。 | 否。 | 是，默认空。 | 释放或任一清理路径后清空。 |
 | `brigitte_blink_cooldown` | `brigitte_blink_cooldown` | `[brigitte] shield bash blink stun`、布丽吉塔清理规则 | 布丽吉塔盾击瞬移成功后的冷却锁。失败触发不会设置该变量。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄后设假。 |
 | `brigitte_blink_target` | `brigitte_blink_target` | `[brigitte] shield bash blink stun`、布丽吉塔清理规则 | 保存本次准星附近的有效目标，用于计算传送点和施加短暂眩晕。 | 否。 | 是，默认空。 | 成功或失败后清空；死亡或换英雄后清空。 |
+| `ramattra_overweight_stacks` | `ramattra_overweight_stacks` | 拉玛刹痛苦重力规则、目标清理规则 | 目标当前超重层数。5 秒窗口内叠到 3 层会触发重力压制并清零。 | 否。 | 是，默认 0。 | 层数过期、压制触发、死亡或换英雄时设 0。 |
+| `ramattra_overweight_window_active` | `ramattra_overweight_window_active` | `[ramattra] overweight stack window expires`、拉玛刹目标清理规则 | 标记目标 5 秒超重叠层窗口是否正在计时。 | 否。 | 是，默认假。 | 过期、压制触发、死亡或换英雄时设假。 |
+| `ramattra_overweight_hit_cooldown` | `ramattra_overweight_hit_cooldown` | `[ramattra] apply overweight on damage`、拉玛刹目标清理规则 | 目标被拉玛刹施加超重的短冷却，约 0.65 秒，避免高频伤害瞬间叠满。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
+| `ramattra_overweight_compress_cooldown` | `ramattra_overweight_compress_cooldown` | `[ramattra] trigger gravity suppression at three stacks`、拉玛刹目标清理规则 | 重力压制触发后的短内置冷却，避免同一目标连续被压制。 | 否。 | 是，默认假。 | 压制冷却结束、死亡或换英雄时设假。 |
+| `ramattra_overweight_active` | `ramattra_overweight_active` | `[ramattra] apply overweight on damage`、`[ramattra] overweight temporary slow cleanup`、目标清理规则 | 标记目标当前处于超重临时减速/加重效果中。 | 否。 | 是，默认假。 | 效果结束、压制触发、死亡或换英雄时恢复速度/引力并设假。 |
+| `ramattra_overweight_original_hero` | `ramattra_overweight_original_hero` | `[ramattra] apply overweight on damage`、拉玛刹目标清理规则 | 记录目标被施加超重时的英雄，用于换英雄后清理异常速度/引力。 | 否。 | 是，默认空。 | 目标死亡或换英雄后清空。 |
+| `ramattra_pain` | `ramattra_pain` | 拉玛刹痛苦 HUD、超重伤害、核心充能、痛苦拳规则 | 拉玛刹痛苦值，0 到 100。造成伤害和靠近痛苦核心会增加，满值后可触发痛苦拳。 | 否。 | 是，默认 0。 | 痛苦拳消耗、死亡或换英雄时设 0。 |
+| `ramattra_pain_ready` | `ramattra_pain_ready` | 拉玛刹痛苦充能规则、痛苦拳规则 | 标记痛苦值是否已经满，用于避免“痛苦已满”大字反复刷屏。 | 否。 | 是，默认假。 | 痛苦拳消耗、死亡或换英雄时设假。 |
+| `ramattra_pain_hud_created` | `ramattra_pain_hud_created` | `[ramattra] create pain hud`、拉玛刹清理规则 | 标记拉玛刹痛苦值 HUD 是否已创建。 | 否。 | 是，默认假。 | 死亡或换英雄时销毁 HUD 后设假。 |
+| `ramattra_pain_hud_id` | `ramattra_pain_hud_id` | `[ramattra] create pain hud`、拉玛刹清理规则 | 保存拉玛刹痛苦值 HUD 文本 ID。 | 否。 | 是，创建 HUD 后保存 `getLastCreatedText()`。 | 死亡或换英雄时 `destroyHudText` 并清空。 |
+| `ramattra_pain_punch_cooldown` | `ramattra_pain_punch_cooldown` | `[ramattra] pain punch on melee`、拉玛刹清理规则 | 痛苦拳触发后的短冷却锁，防止同一次近战重复消耗/触发。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
+| `ramattra_core_active` | `ramattra_core_active` | 痛苦核心生成、充能、摧毁和清理规则 | 标记拉玛刹是否已有痛苦核心存在。一次只能存在一个核心。 | 否。 | 是，默认假。 | 核心自然消失、被摧毁、死亡或换英雄时设假。 |
+| `ramattra_core_position` | `ramattra_core_position` | 痛苦核心生成、充能、摧毁和清理规则 | 保存痛苦核心位置。当前第一版放在拉玛刹脚下。 | 否。 | 是，生成核心时保存位置。 | 核心消失、被摧毁、死亡或换英雄时设空。 |
+| `ramattra_core_effects` | `ramattra_core_effects` | 痛苦核心生成、摧毁和清理规则 | 保存痛苦核心光环和光柱效果实体，用于清理。 | 否。 | 是，生成核心前设为空数组。 | 核心消失、被摧毁、死亡或换英雄时销毁并清空。 |
+| `ramattra_core_cooldown` | `ramattra_core_cooldown` | `[ramattra] place pain core`、拉玛刹清理规则 | 痛苦核心冷却锁，防止连续生成多个核心。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
+| `ramattra_core_destroy_target` | `ramattra_core_destroy_target` | `[ramattra] destroy pain core by melee` | 保存本次被近战摧毁的痛苦核心所属拉玛刹，用于销毁效果和清状态。 | 否。 | 是，摧毁时临时赋值。 | 摧毁流程结束后设空。 |
+| `ramattra_overweight_source` | `ramattra_overweight_source` | 超重施加、重力压制和目标清理规则 | 保存最近一次给目标施加超重的拉玛刹，用于击倒状态来源。 | 否。 | 是，施加超重时保存。 | 目标死亡或换英雄时清空。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |

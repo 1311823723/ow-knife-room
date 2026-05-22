@@ -56,6 +56,23 @@ playervar winston_grapple_carrier 78
 playervar winston_grapple_original_hero 79
 playervar brigitte_blink_cooldown 80
 playervar brigitte_blink_target 81
+playervar ramattra_overweight_stacks 82
+playervar ramattra_overweight_window_active 83
+playervar ramattra_overweight_hit_cooldown 84
+playervar ramattra_overweight_compress_cooldown 85
+playervar ramattra_overweight_active 86
+playervar ramattra_overweight_original_hero 87
+playervar ramattra_pain 88
+playervar ramattra_pain_ready 89
+playervar ramattra_pain_hud_created 90
+playervar ramattra_pain_hud_id 91
+playervar ramattra_pain_punch_cooldown 92
+playervar ramattra_core_active 93
+playervar ramattra_core_position 94
+playervar ramattra_core_effects 95
+playervar ramattra_core_cooldown 96
+playervar ramattra_core_destroy_target 97
+playervar ramattra_overweight_source 98
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -377,6 +394,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BASTION:
         hudSubtext(eventPlayer, "堡垒：废铁非法改装\n造成有效伤害攒废铁，满 6 个自动随机改装\n死亡不掉废铁，换英雄清零\n改装结束后属性会恢复", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.RAMATTRA:
+        hudSubtext(eventPlayer, "拉玛刹：痛苦重力\n攻击施加超重，短时间叠满 3 层会重力压制\n技能 2 放置痛苦核心充能，敌人可近战摧毁\n痛苦满后下一次近战变为痛苦拳", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.WINSTON:
         hudSubtext(eventPlayer, "温斯顿：跳跃撞人可抱摔\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BRIGITTE:
@@ -671,6 +690,244 @@ rule "[bastion] clear scrap after hero swap":
     eventPlayer.setDamageDealt(100)
     eventPlayer.setDamageReceived(100)
     eventPlayer.setKnockbackReceived(100)
+
+
+rule "[ramattra] create pain hud":
+    @Event eachPlayer
+    @Hero ramattra
+    @Condition eventPlayer.ramattra_pain_hud_created == false
+
+    eventPlayer.ramattra_pain_hud_created = true
+    hudHeader(eventPlayer, "痛苦：{}/100".format(eventPlayer.ramattra_pain), HudPosition.RIGHT, -750, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.ramattra_pain_hud_id = getLastCreatedText()
+
+
+rule "[ramattra] apply overweight on damage":
+    @Event playerDealtDamage
+    @Hero ramattra
+    @Condition eventPlayer.isAlive() == true
+    @Condition victim.isAlive() == true
+    @Condition victim != eventPlayer
+    @Condition eventDamage > 0
+    @Condition victim.ramattra_overweight_hit_cooldown == false
+
+    victim.ramattra_overweight_hit_cooldown = true
+    victim.ramattra_overweight_source = eventPlayer
+    victim.ramattra_overweight_original_hero = victim.getHero()
+    victim.ramattra_overweight_stacks += 1
+    victim.ramattra_overweight_active = true
+    victim.setMoveSpeed(85)
+    victim.setGravity(150)
+    victim.applyImpulse(Vector.DOWN, 10, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, victim, 1.5)
+    smallMessage(victim, "超重：{}/3".format(victim.ramattra_overweight_stacks))
+    if eventPlayer.ramattra_pain < 100:
+        eventPlayer.ramattra_pain += 6
+    if eventPlayer.ramattra_pain >= 100:
+        eventPlayer.ramattra_pain = 100
+        if eventPlayer.ramattra_pain_ready == false:
+            eventPlayer.ramattra_pain_ready = true
+            bigMessage(eventPlayer, "痛苦已满")
+    wait(0.65)
+    victim.ramattra_overweight_hit_cooldown = false
+
+
+rule "[ramattra] overweight temporary slow cleanup":
+    @Event eachPlayer
+    @Condition eventPlayer.ramattra_overweight_active == true
+
+    wait(1.4)
+    if eventPlayer.ramattra_overweight_active == true:
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.setGravity(100)
+        eventPlayer.ramattra_overweight_active = false
+
+
+rule "[ramattra] overweight stack window expires":
+    @Event eachPlayer
+    @Condition eventPlayer.ramattra_overweight_stacks > 0
+    @Condition eventPlayer.ramattra_overweight_window_active == false
+
+    eventPlayer.ramattra_overweight_window_active = true
+    wait(5)
+    if eventPlayer.ramattra_overweight_stacks > 0:
+        eventPlayer.ramattra_overweight_stacks = 0
+        eventPlayer.ramattra_overweight_active = false
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.setGravity(100)
+    eventPlayer.ramattra_overweight_window_active = false
+
+
+rule "[ramattra] trigger gravity suppression at three stacks":
+    @Event eachPlayer
+    @Condition eventPlayer.ramattra_overweight_stacks >= 3
+    @Condition eventPlayer.ramattra_overweight_compress_cooldown == false
+
+    eventPlayer.ramattra_overweight_compress_cooldown = true
+    eventPlayer.ramattra_overweight_stacks = 0
+    eventPlayer.ramattra_overweight_window_active = false
+    eventPlayer.ramattra_overweight_active = false
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setGravity(100)
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer, 3)
+    eventPlayer.setStatusEffect(eventPlayer.ramattra_overweight_source, Status.KNOCKED_DOWN, 0.85)
+    smallMessage(eventPlayer, "重力压制")
+    wait(1.2)
+    eventPlayer.ramattra_overweight_compress_cooldown = false
+
+
+rule "[ramattra] pain punch on melee":
+    @Event playerDealtDamage
+    @Hero ramattra
+    @Condition eventPlayer.isAlive() == true
+    @Condition victim.isAlive() == true
+    @Condition eventPlayer.isMeleeing() == true
+    @Condition eventPlayer.ramattra_pain >= 100
+    @Condition eventPlayer.ramattra_pain_punch_cooldown == false
+
+    eventPlayer.ramattra_pain_punch_cooldown = true
+    eventPlayer.ramattra_pain = 0
+    eventPlayer.ramattra_pain_ready = false
+    victim.ramattra_overweight_source = eventPlayer
+    victim.ramattra_overweight_original_hero = victim.getHero()
+    victim.ramattra_overweight_stacks += 2
+    victim.ramattra_overweight_active = true
+    victim.setMoveSpeed(85)
+    victim.setGravity(150)
+    victim.applyImpulse(Vector.DOWN, 14, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, victim, 3.5)
+    bigMessage(eventPlayer, "痛苦拳")
+    smallMessage(victim, "痛苦拳：超重")
+    wait(1)
+    eventPlayer.ramattra_pain_punch_cooldown = false
+
+
+rule "[ramattra] place pain core":
+    @Event eachPlayer
+    @Hero ramattra
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility2() == true
+    @Condition eventPlayer.ramattra_core_active == false
+    @Condition eventPlayer.ramattra_core_cooldown == false
+
+    eventPlayer.ramattra_core_active = true
+    eventPlayer.ramattra_core_cooldown = true
+    eventPlayer.ramattra_core_position = eventPlayer.getPosition()
+    eventPlayer.ramattra_core_effects = []
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.PURPLE, eventPlayer.ramattra_core_position, 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.ramattra_core_effects.append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.PURPLE, eventPlayer.ramattra_core_position, 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.ramattra_core_effects.append(getLastCreatedEntity())
+    bigMessage(eventPlayer, "痛苦核心")
+    wait(10)
+    if eventPlayer.ramattra_core_active == true:
+        if len(eventPlayer.ramattra_core_effects) > 0:
+            destroyEffect(eventPlayer.ramattra_core_effects[0])
+        if len(eventPlayer.ramattra_core_effects) > 1:
+            destroyEffect(eventPlayer.ramattra_core_effects[1])
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.PURPLE, eventPlayer.ramattra_core_position, 3)
+        eventPlayer.ramattra_core_active = false
+        eventPlayer.ramattra_core_position = null
+        eventPlayer.ramattra_core_effects = []
+    wait(5)
+    eventPlayer.ramattra_core_cooldown = false
+
+
+rule "[ramattra] gain pain near core":
+    @Event eachPlayer
+    @Hero ramattra
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.ramattra_core_active == true
+    @Condition eventPlayer.ramattra_pain < 100
+    @Condition distance(eventPlayer, eventPlayer.ramattra_core_position) <= 5
+
+    eventPlayer.ramattra_pain += 8
+    if eventPlayer.ramattra_pain >= 100:
+        eventPlayer.ramattra_pain = 100
+        if eventPlayer.ramattra_pain_ready == false:
+            eventPlayer.ramattra_pain_ready = true
+            bigMessage(eventPlayer, "痛苦已满")
+    wait(1)
+
+
+rule "[ramattra] destroy pain core by melee":
+    @Event eachPlayer
+    @Condition eventPlayer.isMeleeing() == true
+    @Condition len(getPlayersOnHero(Hero.RAMATTRA, Team.ALL).filter(lambda player: player.ramattra_core_active == true and player != eventPlayer and distance(eventPlayer, player.ramattra_core_position) <= 3.2 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0
+
+    eventPlayer.ramattra_core_destroy_target = sorted(getPlayersOnHero(Hero.RAMATTRA, Team.ALL).filter(lambda player: player.ramattra_core_active == true and player != eventPlayer and distance(eventPlayer, player.ramattra_core_position) <= 3.2 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), key=lambda player: distance(eventPlayer, player.ramattra_core_position))[0]
+    if len(eventPlayer.ramattra_core_destroy_target.ramattra_core_effects) > 0:
+        destroyEffect(eventPlayer.ramattra_core_destroy_target.ramattra_core_effects[0])
+    if len(eventPlayer.ramattra_core_destroy_target.ramattra_core_effects) > 1:
+        destroyEffect(eventPlayer.ramattra_core_destroy_target.ramattra_core_effects[1])
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer.ramattra_core_destroy_target.ramattra_core_position, 3)
+    smallMessage(eventPlayer, "摧毁痛苦核心")
+    smallMessage(eventPlayer.ramattra_core_destroy_target, "痛苦核心被摧毁")
+    eventPlayer.ramattra_core_destroy_target.ramattra_core_active = false
+    eventPlayer.ramattra_core_destroy_target.ramattra_core_position = null
+    eventPlayer.ramattra_core_destroy_target.ramattra_core_effects = []
+    eventPlayer.ramattra_core_destroy_target = null
+
+
+rule "[ramattra] clear pain gravity on death":
+    @Event playerDied
+    @Hero ramattra
+
+    if eventPlayer.ramattra_pain_hud_created == true:
+        destroyHudText(eventPlayer.ramattra_pain_hud_id)
+    if eventPlayer.ramattra_core_active == true:
+        if len(eventPlayer.ramattra_core_effects) > 0:
+            destroyEffect(eventPlayer.ramattra_core_effects[0])
+        if len(eventPlayer.ramattra_core_effects) > 1:
+            destroyEffect(eventPlayer.ramattra_core_effects[1])
+    eventPlayer.ramattra_pain = 0
+    eventPlayer.ramattra_pain_ready = false
+    eventPlayer.ramattra_pain_hud_created = false
+    eventPlayer.ramattra_pain_hud_id = null
+    eventPlayer.ramattra_pain_punch_cooldown = false
+    eventPlayer.ramattra_core_active = false
+    eventPlayer.ramattra_core_position = null
+    eventPlayer.ramattra_core_effects = []
+    eventPlayer.ramattra_core_cooldown = false
+
+
+rule "[ramattra] clear pain gravity after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.RAMATTRA
+    @Condition eventPlayer.ramattra_pain > 0 or eventPlayer.ramattra_pain_ready == true or eventPlayer.ramattra_pain_hud_created == true or eventPlayer.ramattra_pain_punch_cooldown == true or eventPlayer.ramattra_core_active == true or eventPlayer.ramattra_core_cooldown == true
+
+    if eventPlayer.ramattra_pain_hud_created == true:
+        destroyHudText(eventPlayer.ramattra_pain_hud_id)
+    if eventPlayer.ramattra_core_active == true:
+        if len(eventPlayer.ramattra_core_effects) > 0:
+            destroyEffect(eventPlayer.ramattra_core_effects[0])
+        if len(eventPlayer.ramattra_core_effects) > 1:
+            destroyEffect(eventPlayer.ramattra_core_effects[1])
+    eventPlayer.ramattra_pain = 0
+    eventPlayer.ramattra_pain_ready = false
+    eventPlayer.ramattra_pain_hud_created = false
+    eventPlayer.ramattra_pain_hud_id = null
+    eventPlayer.ramattra_pain_punch_cooldown = false
+    eventPlayer.ramattra_core_active = false
+    eventPlayer.ramattra_core_position = null
+    eventPlayer.ramattra_core_effects = []
+    eventPlayer.ramattra_core_cooldown = false
+
+
+rule "[ramattra] clear overweight after target death or hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.ramattra_overweight_stacks > 0 or eventPlayer.ramattra_overweight_active == true or eventPlayer.ramattra_overweight_hit_cooldown == true or eventPlayer.ramattra_overweight_window_active == true or eventPlayer.ramattra_overweight_compress_cooldown == true
+    @Condition eventPlayer.isDead() == true or (eventPlayer.ramattra_overweight_original_hero != null and eventPlayer.getHero() != eventPlayer.ramattra_overweight_original_hero)
+
+    eventPlayer.ramattra_overweight_stacks = 0
+    eventPlayer.ramattra_overweight_window_active = false
+    eventPlayer.ramattra_overweight_hit_cooldown = false
+    eventPlayer.ramattra_overweight_compress_cooldown = false
+    eventPlayer.ramattra_overweight_active = false
+    eventPlayer.ramattra_overweight_original_hero = null
+    eventPlayer.ramattra_overweight_source = null
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setGravity(100)
 
 
 rule "弗让你飞起来":
