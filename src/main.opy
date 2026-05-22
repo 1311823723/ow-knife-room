@@ -54,6 +54,8 @@ playervar winston_grapple_target 76
 playervar winston_grapple_lock 77
 playervar winston_grapple_carrier 78
 playervar winston_grapple_original_hero 79
+playervar brigitte_blink_cooldown 80
+playervar brigitte_blink_target 81
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -377,6 +379,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "堡垒：废铁非法改装\n造成有效伤害攒废铁，满 6 个自动随机改装\n死亡不掉废铁，换英雄清零\n改装结束后属性会恢复", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.WINSTON:
         hudSubtext(eventPlayer, "温斯顿：跳跃撞人可抱摔\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.BRIGITTE:
+        hudSubtext(eventPlayer, "布丽吉塔：举盾攻击远处目标可盾击瞬移\n传送到目标附近，只短暂眩晕\n不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     else:
         hudSubtext(eventPlayer, "通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     eventPlayer.ability_guide_hud_id = getLastCreatedText()
@@ -1242,6 +1246,46 @@ rule "[sojourn] power slide launches nearby players":
     smallMessage(eventPlayer, "滑铲创飞！")
     wait(0.8)
     eventPlayer.sojourn_slide_bump_cooldown = false
+
+
+rule "[brigitte] shield bash blink stun":
+    @Event eachPlayer
+    @Hero brigitte
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.brigitte_blink_cooldown == false
+    @Condition eventPlayer.isFiringSecondaryFire() == true
+    @Condition eventPlayer.isFiringPrimaryFire() == true
+    @Condition len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and eventPlayer.isInViewAngle(player.getPosition(), 60) == true and distance(eventPlayer, player) > 12 and distance(eventPlayer, player) <= 25 and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true)) > 0
+
+    eventPlayer.brigitte_blink_target = sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and eventPlayer.isInViewAngle(player.getPosition(), 60) == true and distance(eventPlayer, player) > 12 and distance(eventPlayer, player) <= 25 and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true), key=lambda player: angleBetweenVectors(eventPlayer.getFacingDirection(), player.getPosition() - eventPlayer.getEyePosition()))[0]
+    if distance(nearestWalkablePosition(eventPlayer.brigitte_blink_target.getPosition() + directionTowards(eventPlayer.brigitte_blink_target.getPosition(), eventPlayer.getPosition()) * 2.2), eventPlayer.brigitte_blink_target) <= 4:
+        eventPlayer.brigitte_blink_cooldown = true
+        eventPlayer.cancelPrimaryAction()
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.getEyePosition(), 1.5)
+        eventPlayer.teleport(nearestWalkablePosition(eventPlayer.brigitte_blink_target.getPosition() + directionTowards(eventPlayer.brigitte_blink_target.getPosition(), eventPlayer.getPosition()) * 2.2))
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 2)
+        eventPlayer.brigitte_blink_target.setStatusEffect(eventPlayer, Status.STUNNED, 0.5)
+        smallMessage(eventPlayer, "盾击瞬移")
+        wait(4)
+        eventPlayer.brigitte_blink_cooldown = false
+    eventPlayer.brigitte_blink_target = null
+
+
+rule "[brigitte] clear shield bash blink on death":
+    @Event playerDied
+    @Hero brigitte
+
+    eventPlayer.brigitte_blink_cooldown = false
+    eventPlayer.brigitte_blink_target = null
+
+
+rule "[brigitte] clear shield bash blink after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.BRIGITTE
+    @Condition eventPlayer.brigitte_blink_cooldown == true or eventPlayer.brigitte_blink_target != null
+
+    eventPlayer.brigitte_blink_cooldown = false
+    eventPlayer.brigitte_blink_target = null
 
 
 rule "[winston] grapple slam on jump contact":

@@ -66,6 +66,8 @@
 | `winston_grapple_lock` | `winston_grapple_lock` | 温斯顿抱摔规则 | 每次技能 1 跳跃期间的触发锁和短内置冷却，避免一次跳跃多次抓人。 | 否。 | 是，默认假。 | 技能 1 结束并短暂等待后解除；死亡、换英雄、目标异常时强制解除。 |
 | `winston_grapple_carrier` | `winston_grapple_carrier` | 温斯顿抱摔规则 | 保存在目标身上的抓取者引用，便于目标死亡/换英雄时反向清理温斯顿状态。 | 否。 | 是，默认空。 | 释放、目标死亡、目标换英雄、温斯顿死亡或换英雄后清空。 |
 | `winston_grapple_original_hero` | `winston_grapple_original_hero` | 温斯顿抱摔规则 | 记录目标被抓时的英雄，用于检测目标换英雄并清理绑定。 | 否。 | 是，默认空。 | 释放或任一清理路径后清空。 |
+| `brigitte_blink_cooldown` | `brigitte_blink_cooldown` | `[brigitte] shield bash blink stun`、布丽吉塔清理规则 | 布丽吉塔盾击瞬移成功后的冷却锁。失败触发不会设置该变量。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄后设假。 |
+| `brigitte_blink_target` | `brigitte_blink_target` | `[brigitte] shield bash blink stun`、布丽吉塔清理规则 | 保存本次准星附近的有效目标，用于计算传送点和施加短暂眩晕。 | 否。 | 是，默认空。 | 成功或失败后清空；死亡或换英雄后清空。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |
