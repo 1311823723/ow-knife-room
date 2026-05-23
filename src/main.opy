@@ -2911,10 +2911,11 @@ rule "[lifeweaver] create garden bowling ball":
     eventPlayer.player_state[83] = []
     createDummy(Hero.LIFEWEAVER, eventPlayer.getTeam(), -1, eventPlayer.player_state[82], eventPlayer.player_state[85])
     eventPlayer.player_state[93] = getLastCreatedEntity()
-    eventPlayer.player_state[93].setInvisibility(Invis.ALL)
+    eventPlayer.player_state[93].startScalingSize(0.01)
     eventPlayer.player_state[93].setMaxHealth(1000)
     eventPlayer.player_state[93].setMoveSpeed(50)
-    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[93].getEyePosition(), eventPlayer.player_state[93].getFacingDirection(), 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+    eventPlayer.player_state[93].setDamageDealt(0)
+    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[93].getPosition() + Vector.UP * 0.8, eventPlayer.player_state[93].getFacingDirection(), 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
     eventPlayer.player_state[83].append(getLastCreatedEntity())
     createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.GREEN, eventPlayer.player_state[82], 1.6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.player_state[83].append(getLastCreatedEntity())
