@@ -2907,7 +2907,7 @@ rule "[lifeweaver] create garden bowling ball":
     eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
     eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
     eventPlayer.player_state[83] = []
-    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, eventPlayer, eventPlayer.player_state[82], eventPlayer.player_state[85], 0.85, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85], 0.85, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
     eventPlayer.player_state[83].append(getLastCreatedEntity())
     createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.GREEN, eventPlayer.player_state[82], 1.6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.player_state[83].append(getLastCreatedEntity())
