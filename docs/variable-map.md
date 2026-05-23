@@ -9,7 +9,7 @@
 - 当前实际使用玩家变量槽约 78 个。
 - 第一轮前显式 `playervar` 为 109 个；两轮迁移后为 72 个。
 - 已迁入 `player_state` 的旧独立变量共 38 个；新增数组变量 1 个，净减少 37 个显式玩家变量。
-- `player_state` 当前定义 `0..65`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引。
+- `player_state` 当前定义 `0..80`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引，`66..80` 为伊拉锐召唤太阳状态索引。
 - 当前未发现 `disabled rule` / 禁用规则块；没有变量属于“只在禁用规则中使用”。
 
 ## 当前玩家变量列表
@@ -28,8 +28,8 @@
 | 24 | `Y` | resource/state | 士兵 76 蚁人体型档位。 | [state] initialize player state array<br>[soldier] initialize antman state<br>[soldier] grow one antman step<br>[soldier] shrink one antman step<br>[soldier] clear antman state on death<br>[soldier] clear antman state after hero swap<br>76长时间变大 | 暂不迁移。 |
 | 25 | `Z` | resource/state | 士兵 76 派生属性百分比。 | [state] initialize player state array<br>[soldier] initialize antman state<br>[soldier] clear antman state on death<br>[soldier] clear antman state after hero swap | 暂不迁移。 |
 | 26 | `Kiriko_Skill` | resource/state | 雾子法阵运行标记，目前只设真/假，不作为条件使用，疑似可进一步清理。 | 雾子法阵击倒 | 疑似旧逻辑残留，未删除。 |
-| 27 | `player_state` | state array | 统一玩家状态数组，承载短状态、临时目标、HUD id、短冷却、资源状态，以及半藏箭雨令/多段跳状态。 | [state] initialize player state array<br>被睡冷却<br>[hud] open current hero ability guide on interact<br>[hud] close current hero ability guide on interact<br>[hud] unlock ability guide toggle<br>[hud] clear current hero ability guide on death<br>[bastion] create scrap hud<br>[bastion] gain scrap on damage<br>[bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap<br>[ramattra] destroy pain core by melee<br>[reaper] disable secondary fire<br>[winston] disable secondary fire<br>[reaper and winston] restore secondary fire after hero swap<br>[zenyatta] elemental primary hit<br>[zenyatta] clear elemental state on death<br>[zenyatta] clear elemental state after hero swap<br>[baptiste] fake drug injection<br>[torbjorn] create parts hud<br>[torbjorn] gain parts on elimination<br>[torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap<br>[roadhog] hook weakens target<br>[roadhog] consume boosted melee knockback<br>[lucio] remember airborne state<br>[lucio] landing bounce<br>[lucio] clear landing bounce cooldown<br>[sojourn] power slide launches nearby players<br>[brigitte] shield bash blink stun<br>[brigitte] shield counter melee attackers<br>[brigitte] clear shield bash blink on death<br>[brigitte] clear shield bash blink after hero swap<br>[brigitte] clear shield counter attacker state<br>[hanzo] arrow rain command<br>[hanzo] extra air jump<br>[hanzo] unlock extra air jump button<br>[hanzo] clear arrow rain and jumps<br>[illari] apply sunburn on damage<br>[illari] pop sunburned target on damage<br>[illari] outburst knocks nearby players<br>[freya] launch circle | 新统一状态数组。 |
-| 32 | `illari_sunburn_active` | active/flag | 伊拉锐晒黑目标状态，影响二次命中弹飞和恢复属性。 | [illari] apply sunburn on damage<br>[illari] pop sunburned target on damage | 后续可评估迁入数组。 |
+| 27 | `player_state` | state array | 统一玩家状态数组，承载短状态、临时目标、HUD id、短冷却、资源状态，以及半藏箭雨令/多段跳状态。 | [state] initialize player state array<br>被睡冷却<br>[hud] open current hero ability guide on interact<br>[hud] close current hero ability guide on interact<br>[hud] unlock ability guide toggle<br>[hud] clear current hero ability guide on death<br>[bastion] create scrap hud<br>[bastion] gain scrap on damage<br>[bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap<br>[ramattra] destroy pain core by melee<br>[reaper] disable secondary fire<br>[winston] disable secondary fire<br>[reaper and winston] restore secondary fire after hero swap<br>[zenyatta] elemental primary hit<br>[zenyatta] clear elemental state on death<br>[zenyatta] clear elemental state after hero swap<br>[baptiste] fake drug injection<br>[torbjorn] create parts hud<br>[torbjorn] gain parts on elimination<br>[torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap<br>[roadhog] hook weakens target<br>[roadhog] consume boosted melee knockback<br>[lucio] remember airborne state<br>[lucio] landing bounce<br>[lucio] clear landing bounce cooldown<br>[sojourn] power slide launches nearby players<br>[brigitte] shield bash blink stun<br>[brigitte] shield counter melee attackers<br>[brigitte] clear shield bash blink on death<br>[brigitte] clear shield bash blink after hero swap<br>[brigitte] clear shield counter attacker state<br>[hanzo] arrow rain command<br>[hanzo] extra air jump<br>[hanzo] unlock extra air jump button<br>[hanzo] clear arrow rain and jumps<br>[illari] create/gain/summon/clear mini sun<br>[freya] launch circle | 新统一状态数组。 |
+| 32 | `illari_sunburn_active` | active/flag | 旧版伊拉锐晒黑目标状态；召唤太阳重做后源码不再写入。 | 无运行时引用 | 疑似旧逻辑残留，未删除。 |
 | 38 | `freya_launch_circle_effects` | effect/HUD handle | 芙蕾娅飞天法阵持续特效句柄数组。 | [freya] launch circle | 暂不迁移。 |
 | 39 | `genji_dash_reset_cooldown` | cooldown | 旧源氏过热机制遗留，只在源氏清理规则中兜底设假，疑似可清理。 | [genji] clear blade window on death<br>[genji] clear blade window after hero swap | 疑似旧逻辑残留，未删除。 |
 | 40 | `genji_overheat_active` | active/flag | 旧源氏过热机制遗留，只在源氏清理规则中兜底设假，疑似可清理。 | [genji] clear blade window on death<br>[genji] clear blade window after hero swap | 疑似旧逻辑残留，未删除。 |
@@ -103,12 +103,12 @@
 | 28 | `lucio_was_airborne` | `player_state[11]` | 卢西奥落地边沿状态 |
 | 29 | `lucio_landing_bounce_cooldown` | `player_state[12]` | 卢西奥落地冲击冷却/防连锁 |
 | 30 | `sojourn_slide_bump_cooldown` | `player_state[13]` | 索杰恩滑铲创飞冷却 |
-| 31 | `illari_sunburn_cooldown` | `player_state[14]` | 伊拉锐晒黑触发冷却 |
-| 33 | `illari_burst_cooldown` | `player_state[15]` | 伊拉锐爆发弹开冷却 |
+| 31 | `illari_sunburn_cooldown` | `player_state[14]` | 旧版伊拉锐晒黑触发冷却，当前废弃 |
+| 33 | `illari_burst_cooldown` | `player_state[15]` | 旧版伊拉锐爆发弹开冷却，当前废弃 |
 | 34 | `freya_launch_circle_cooldown` | `player_state[16]` | 芙蕾娅飞天法阵冷却 |
 | 35 | `ana_sleep_fx_active` | `player_state[17]` | 安娜睡眠标记已创建标记 |
 | 36 | `ana_sleep_fx_handle` | `player_state[18]` | 安娜睡眠标记效果句柄 |
-| 37 | `illari_sunburn_pop_cooldown` | `player_state[19]` | 伊拉锐晒黑二次弹飞短冷却 |
+| 37 | `illari_sunburn_pop_cooldown` | `player_state[19]` | 旧版伊拉锐晒黑二次弹飞短冷却，当前废弃 |
 | 44 | `baptiste_fake_drug_cooldown` | `player_state[20]` | 巴蒂假药注射触发冷却 |
 | 59 | `ability_guide_hud_created` | `player_state[0]` | 技能说明 HUD 创建标记 |
 | 60 | `ability_guide_hud_id` | `player_state[1]` | 技能说明 HUD id |
@@ -170,6 +170,21 @@
 | `player_state[63]` | `mei_iceburst_fx` | 小美冰爆预警特效句柄数组 |
 | `player_state[64]` | `mei_frost_slow_snapshot` | 减速恢复线程记录的 slow token 快照 |
 | `player_state[65]` | `mei_frost_source` | 最近给目标叠加寒气的小美玩家引用，用于来源死亡/换英雄清理 |
+| `player_state[66]` | `illari_solar_power` | 伊拉锐太阳之力层数，0 到 3 |
+| `player_state[67]` | `illari_solar_hud_created` | 伊拉锐太阳之力 HUD 创建标记 |
+| `player_state[68]` | `illari_solar_hud_id` | 伊拉锐太阳之力 HUD id |
+| `player_state[69]` | `illari_last_melee_target` | 伊拉锐最近一次近战命中的目标 |
+| `player_state[70]` | `illari_sun_active` | 伊拉锐小太阳存在状态 |
+| `player_state[71]` | `illari_sun_pos` | 伊拉锐小太阳空中位置 |
+| `player_state[72]` | `illari_sun_fx` | 伊拉锐太阳本体、光环、光柱和蓄力特效句柄数组 |
+| `player_state[73]` | `illari_sun_target` | 伊拉锐小太阳当前点名目标 |
+| `player_state[74]` | `illari_sun_mark_fx` | 点名目标光柱、光环和光束句柄数组 |
+| `player_state[75]` | `illari_sun_tick` | 小太阳 0.5 秒灼烧 tick 计数 |
+| `player_state[76]` | `illari_sun_casting` | 右键召唤蓄力锁 |
+| `player_state[77]` | `illari_sun_target_hero` | 点名目标当时英雄，用于换英雄清理 |
+| `player_state[78]` | `illari_marked_by_sun` | 目标被哪名伊拉锐的小太阳点名 |
+| `player_state[79]` | `illari_reserved` | 预留占位，当前未使用 |
+| `player_state[80]` | `illari_melee_gain_cd` | 近战获得太阳之力短节流 |
 
 ## 疑似旧逻辑残留但未删除
 

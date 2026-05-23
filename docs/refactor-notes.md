@@ -23,8 +23,8 @@
 
 - HUD/通用 UI：`ability_guide_hud_created`、`ability_guide_hud_id`、`ability_guide_toggle_locked`
 - 布丽吉塔：`brigitte_blink_cooldown`、`brigitte_blink_target`、`brigitte_counter_cd`、`brigitte_counter_target`
-- 短 cooldown：`sojourn_slide_bump_cooldown`、`illari_sunburn_cooldown`、`illari_burst_cooldown`、`freya_launch_circle_cooldown`、`baptiste_fake_drug_cooldown`
-- 临时/短状态：`roadhog_hook_melee_boost_ready`、`lucio_was_airborne`、`lucio_landing_bounce_cooldown`、`illari_sunburn_pop_cooldown`
+- 短 cooldown：`sojourn_slide_bump_cooldown`、`freya_launch_circle_cooldown`、`baptiste_fake_drug_cooldown`、`illari_melee_gain_cd`
+- 临时/短状态：`roadhog_hook_melee_boost_ready`、`lucio_was_airborne`、`lucio_landing_bounce_cooldown`、`illari_sun_casting`
 - 临时引用：`zen_chain_target`、`ramattra_core_destroy_target`
 - 通用按钮状态：`disabled_secondary_fire`
 - 睡眠特效：`ana_sleep_fx_active`、`ana_sleep_fx_handle`

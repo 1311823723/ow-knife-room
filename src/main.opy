@@ -80,9 +80,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 66
+    @Condition len(eventPlayer.player_state) < 81
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false]
 
 
 def applySoldierAntmanState():
@@ -393,7 +393,7 @@ rule "[hud] open current hero ability guide on interact":
     elif eventPlayer.getHero() == Hero.SOJOURN:
         hudSubtext(eventPlayer, "索杰恩：滑铲创飞\n滑铲靠近玩家时造成 20 伤害、击倒并铲飞\n索杰恩自己不受影响\n有短冷却，避免滑铲期间连续触发", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.ILLARI:
-        hudSubtext(eventPlayer, "伊拉锐：晒黑与爆发\n造成伤害有概率晒黑目标，使其变大、变慢、更容易被击飞\n再次命中晒黑目标会小弹飞\n技能 2 会弹开附近玩家", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "伊拉锐：召唤太阳\n近战命中积攒太阳之力，最多 3 层\n满 3 层后右键蓄力召唤小太阳\n太阳会点名敌人，视野内持续灼烧，躲掩体可规避", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.FREJA:
         hudSubtext(eventPlayer, "芙蕾娅：飞天法阵\n按 E 生成法阵\n短暂前摇后，范围内玩家一起高高飞起\n带冷却并会清理特效", HudPosition.ACTUALLY_LEFT, -998, Color.AQUA, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.ANA:
@@ -2710,59 +2710,178 @@ rule "[winston] clear grappled target on death or hero swap":
     eventPlayer.winston_grapple_original_hero = null
 
 
-rule "[illari] apply sunburn on damage":
-    @Event playerDealtDamage
-    @Hero illari
-    @Condition victim.isAlive() == true
-    @Condition eventPlayer.player_state[14] == false
-
-    if random.randint(1, 100) <= 20:
-        eventPlayer.player_state[14] = true
-        victim.illari_sunburn_active = true
-        victim.player_state[19] = false
-        victim.startScalingSize(1.4)
-        victim.setMoveSpeed(85)
-        victim.setKnockbackReceived(140)
-        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, victim, 2)
-        smallMessage(eventPlayer, "太阳晒黑触发")
-        wait(4)
-        victim.stopScalingSize()
-        victim.setMoveSpeed(100)
-        victim.setKnockbackReceived(100)
-        victim.illari_sunburn_active = false
-        wait(2)
-        eventPlayer.player_state[14] = false
-
-
-rule "[illari] pop sunburned target on damage":
-    @Event playerDealtDamage
-    @Hero illari
-    @Condition victim.illari_sunburn_active == true
-    @Condition victim.player_state[19] == false
-
-    victim.player_state[19] = true
-    victim.applyImpulse(Vector.UP, 8, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
-    wait(0.4)
-    victim.player_state[19] = false
-
-
-rule "[illari] outburst knocks nearby players":
+rule "[illari] create solar power hud":
     @Event eachPlayer
     @Hero illari
-    @Condition eventPlayer.isUsingAbility2() == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.player_state[15] == false
+    @Condition eventPlayer.player_state[67] == false
 
-    eventPlayer.player_state[15] = true
-    getPlayersInRadius(eventPlayer.getPosition(), 4, Team.ALL).filter(lambda player: player != eventPlayer).applyImpulse(directionTowards(eventPlayer.getPosition(), getPlayersInRadius(eventPlayer.getPosition(), 4, Team.ALL).filter(lambda player: player != eventPlayer).getPosition()), 16, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
-    getPlayersInRadius(eventPlayer.getPosition(), 4, Team.ALL).filter(lambda player: player != eventPlayer and player.isInAir() == true).applyImpulse(Vector.UP, 8, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
-    eventPlayer.setMoveSpeed(140)
-    wait(1)
-    eventPlayer.setMoveSpeed(80)
-    wait(1)
-    eventPlayer.setMoveSpeed(100)
-    wait(3)
-    eventPlayer.player_state[15] = false
+    eventPlayer.player_state[67] = true
+    hudHeader(eventPlayer, "太阳之力：{}/3".format(eventPlayer.player_state[66]), HudPosition.RIGHT, -810, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.player_state[68] = getLastCreatedText()
+
+
+rule "[illari] suppress ranged weapon damage":
+    @Event playerDealtDamage
+    @Hero illari
+    @Condition eventAbility == Button.PRIMARY_FIRE or eventAbility == Button.SECONDARY_FIRE
+    @Condition eventDamage > 0
+
+    heal(victim, null, eventDamage)
+
+
+rule "[illari] gain solar power on melee":
+    @Event playerDealtDamage
+    @Hero illari
+    @Condition eventPlayer.isAlive() == true
+    @Condition victim.isAlive() == true
+    @Condition victim != eventPlayer
+    @Condition eventAbility == Button.MELEE
+    @Condition eventDamage > 0
+    @Condition getCurrentGamemode() == Gamemode.FFA or victim.getTeam() != eventPlayer.getTeam()
+    @Condition eventPlayer.player_state[80] == false
+
+    eventPlayer.player_state[80] = true
+    eventPlayer.player_state[69] = victim
+    if eventPlayer.player_state[66] < 3:
+        eventPlayer.player_state[66] += 1
+    if eventPlayer.player_state[66] >= 3:
+        eventPlayer.player_state[66] = 3
+        bigMessage(eventPlayer, "太阳之力已满，按右键召唤小太阳")
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 2.5)
+    else:
+        smallMessage(eventPlayer, "太阳之力：{}/3".format(eventPlayer.player_state[66]))
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 1.5)
+    wait(0.35)
+    eventPlayer.player_state[80] = false
+
+
+rule "[illari] summon mini sun":
+    @Event eachPlayer
+    @Hero illari
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true
+    @Condition eventPlayer.player_state[66] >= 3
+    @Condition eventPlayer.player_state[70] == false
+    @Condition eventPlayer.player_state[76] == false
+
+    eventPlayer.player_state[76] = true
+    eventPlayer.player_state[71] = eventPlayer.getPosition() + Vector.UP * 4.5
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.ORANGE, eventPlayer, 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[72].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer, 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[72].append(getLastCreatedEntity())
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 3)
+    smallMessage(eventPlayer, "召唤太阳蓄力")
+    wait(0.7)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.ILLARI:
+        eventPlayer.player_state[66] = 0
+        eventPlayer.player_state[70] = true
+        eventPlayer.player_state[75] = 0
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer.player_state[71], 4)
+        createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.ORANGE, eventPlayer.player_state[71], 2.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.player_state[72].append(getLastCreatedEntity())
+        createEffect(getAllPlayers(), Effect.BAD_AURA, Color.ORANGE, eventPlayer.player_state[71], 4.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.player_state[72].append(getLastCreatedEntity())
+        createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.player_state[71], 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.player_state[72].append(getLastCreatedEntity())
+        if eventPlayer.player_state[69] != null and eventPlayer.player_state[69].isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or eventPlayer.player_state[69].getTeam() != eventPlayer.getTeam()) and distance(eventPlayer.player_state[69], eventPlayer) <= 35:
+            eventPlayer.player_state[73] = eventPlayer.player_state[69]
+        elif len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and distance(player, eventPlayer) <= 35)) > 0:
+            eventPlayer.player_state[73] = sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and distance(player, eventPlayer) <= 35), key=lambda player: distance(player, eventPlayer))[0]
+        if eventPlayer.player_state[73] != null:
+            eventPlayer.player_state[77] = eventPlayer.player_state[73].getHero()
+            eventPlayer.player_state[73].player_state[78] = eventPlayer
+            smallMessage(eventPlayer.player_state[73], "你被太阳点名了，快找掩体！")
+            smallMessage(eventPlayer, "小太阳已锁定目标")
+            createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.player_state[73], 2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+            eventPlayer.player_state[74].append(getLastCreatedEntity())
+            createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.ORANGE, eventPlayer.player_state[73], 1.6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+            eventPlayer.player_state[74].append(getLastCreatedEntity())
+            createBeam(getAllPlayers(), Beam.GOOD, eventPlayer.player_state[71], eventPlayer.player_state[73], Color.YELLOW, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+            eventPlayer.player_state[74].append(getLastCreatedEntity())
+        else:
+            smallMessage(eventPlayer, "小太阳未找到目标")
+        while eventPlayer.player_state[70] == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.ILLARI and eventPlayer.player_state[75] < 10:
+            if eventPlayer.player_state[73] != null and eventPlayer.player_state[73].isAlive() == true and eventPlayer.player_state[73].getHero() == eventPlayer.player_state[77] and distance(eventPlayer.player_state[73], eventPlayer.player_state[71]) <= 35 and isInLoS(eventPlayer.player_state[71], eventPlayer.player_state[73], BarrierLos.PASS_THROUGH_BARRIERS) == true:
+                damage(eventPlayer.player_state[73], eventPlayer, 6)
+                playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer.player_state[73], 0.8)
+            eventPlayer.player_state[75] += 1
+            wait(0.5)
+    if eventPlayer.player_state[73] != null and eventPlayer.player_state[73].player_state[78] == eventPlayer:
+        eventPlayer.player_state[73].player_state[78] = null
+    if len(eventPlayer.player_state[72]) > 0:
+        destroyEffect(eventPlayer.player_state[72][0])
+    if len(eventPlayer.player_state[72]) > 1:
+        destroyEffect(eventPlayer.player_state[72][1])
+    if len(eventPlayer.player_state[72]) > 2:
+        destroyEffect(eventPlayer.player_state[72][2])
+    if len(eventPlayer.player_state[72]) > 3:
+        destroyEffect(eventPlayer.player_state[72][3])
+    if len(eventPlayer.player_state[72]) > 4:
+        destroyEffect(eventPlayer.player_state[72][4])
+    if len(eventPlayer.player_state[74]) > 0:
+        destroyEffect(eventPlayer.player_state[74][0])
+    if len(eventPlayer.player_state[74]) > 1:
+        destroyEffect(eventPlayer.player_state[74][1])
+    if len(eventPlayer.player_state[74]) > 2:
+        destroyEffect(eventPlayer.player_state[74][2])
+    eventPlayer.player_state[70] = false
+    eventPlayer.player_state[71] = null
+    eventPlayer.player_state[72] = []
+    eventPlayer.player_state[73] = null
+    eventPlayer.player_state[74] = []
+    eventPlayer.player_state[75] = 0
+    eventPlayer.player_state[76] = false
+    eventPlayer.player_state[77] = null
+
+
+rule "[illari] clear solar mark target":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[78] != null
+    @Condition eventPlayer.isDead() == true or eventPlayer.getHero() != eventPlayer.player_state[78].player_state[77] or eventPlayer.player_state[78].isAlive() == false or eventPlayer.player_state[78].getHero() != Hero.ILLARI or eventPlayer.player_state[78].player_state[70] == false
+
+    eventPlayer.player_state[78] = null
+
+
+rule "[illari] clear mini sun on death or hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.ILLARI or eventPlayer.isDead() == true
+    @Condition eventPlayer.player_state[66] > 0 or eventPlayer.player_state[67] == true or eventPlayer.player_state[70] == true or eventPlayer.player_state[76] == true or len(eventPlayer.player_state[72]) > 0 or len(eventPlayer.player_state[74]) > 0 or eventPlayer.player_state[69] != null
+
+    if eventPlayer.player_state[67] == true:
+        destroyHudText(eventPlayer.player_state[68])
+    if eventPlayer.player_state[73] != null and eventPlayer.player_state[73].player_state[78] == eventPlayer:
+        eventPlayer.player_state[73].player_state[78] = null
+    if len(eventPlayer.player_state[72]) > 0:
+        destroyEffect(eventPlayer.player_state[72][0])
+    if len(eventPlayer.player_state[72]) > 1:
+        destroyEffect(eventPlayer.player_state[72][1])
+    if len(eventPlayer.player_state[72]) > 2:
+        destroyEffect(eventPlayer.player_state[72][2])
+    if len(eventPlayer.player_state[72]) > 3:
+        destroyEffect(eventPlayer.player_state[72][3])
+    if len(eventPlayer.player_state[72]) > 4:
+        destroyEffect(eventPlayer.player_state[72][4])
+    if len(eventPlayer.player_state[74]) > 0:
+        destroyEffect(eventPlayer.player_state[74][0])
+    if len(eventPlayer.player_state[74]) > 1:
+        destroyEffect(eventPlayer.player_state[74][1])
+    if len(eventPlayer.player_state[74]) > 2:
+        destroyEffect(eventPlayer.player_state[74][2])
+    eventPlayer.player_state[66] = 0
+    eventPlayer.player_state[67] = false
+    eventPlayer.player_state[68] = null
+    eventPlayer.player_state[69] = null
+    eventPlayer.player_state[70] = false
+    eventPlayer.player_state[71] = null
+    eventPlayer.player_state[72] = []
+    eventPlayer.player_state[73] = null
+    eventPlayer.player_state[74] = []
+    eventPlayer.player_state[75] = 0
+    eventPlayer.player_state[76] = false
+    eventPlayer.player_state[77] = null
+    eventPlayer.player_state[80] = false
 
 
 rule "[freya] launch circle":

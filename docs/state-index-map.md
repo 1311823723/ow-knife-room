@@ -20,12 +20,12 @@
 | 11 | `lucio_was_airborne` | 卢西奥 | 记录卢西奥曾经离地，用于落地边沿 | `false` | 空中且非冷却设 true；落地冲击触发设 false | 英雄槽，可复用 | [lucio] remember airborne state/landing bounce |
 | 12 | `lucio_landing_bounce_cooldown` | 卢西奥/受影响玩家 | 落地冲击冷却和防连锁标记 | `false` | 落地冲击触发者及范围内玩家设 true；1 秒后设 false | 短 cooldown 槽，注意可被其他卢西奥写入 | [lucio] landing bounce/clear landing bounce cooldown |
 | 13 | `sojourn_slide_bump_cooldown` | 索杰恩 | 滑铲创飞短冷却 | `false` | 滑铲触发设 true；0.8 秒后设 false | 英雄短 cooldown 槽，可复用 | [sojourn] power slide launches nearby players |
-| 14 | `illari_sunburn_cooldown` | 伊拉锐 | 晒黑触发冷却 | `false` | 晒黑成功设 true；晒黑 4 秒加 2 秒后设 false | 英雄 cooldown 槽，可复用 | [illari] apply sunburn on damage |
-| 15 | `illari_burst_cooldown` | 伊拉锐 | 爆发弹开冷却 | `false` | 技能 2 触发设 true；速度流程结束后设 false | 英雄 cooldown 槽，可复用 | [illari] outburst knocks nearby players |
+| 14 | `legacy_illari_sunburn_cooldown` | 伊拉锐旧逻辑 | 旧版晒黑触发冷却，召唤太阳重做后不再使用 | `false` | 无运行时写入 | 可复用，需先确认旧逻辑不会恢复 | 已废弃 |
+| 15 | `legacy_illari_burst_cooldown` | 伊拉锐旧逻辑 | 旧版爆发弹开冷却，召唤太阳重做后不再使用 | `false` | 无运行时写入 | 可复用，需先确认旧逻辑不会恢复 | 已废弃 |
 | 16 | `freya_launch_circle_cooldown` | 芙蕾娅 | 飞天法阵冷却 | `false` | 技能 2 触发设 true；法阵和冷却结束后设 false | 英雄 cooldown 槽，可复用 | [freya] launch circle |
 | 17 | `ana_sleep_fx_active` | 安娜/被睡目标 | 睡眠标记效果是否已创建 | `false` | 沉睡时设 true；醒来后设 false | 状态槽，可复用但要保留醒来清理 | 被睡冷却 |
 | 18 | `ana_sleep_fx_handle` | 安娜/被睡目标 | 睡眠标记效果句柄 | `null` | 创建效果后写入；醒来后 destroyEffect 并清空 | 效果句柄槽，可复用前必须销毁 | 被睡冷却 |
-| 19 | `illari_sunburn_pop_cooldown` | 伊拉锐/晒黑目标 | 晒黑二次命中弹飞短冷却 | `false` | 弹飞触发设 true；0.4 秒后设 false；新晒黑时设 false | 目标短 cooldown 槽，可复用 | [illari] apply/pop sunburned target on damage |
+| 19 | `legacy_illari_sunburn_pop_cooldown` | 伊拉锐旧逻辑 | 旧版晒黑二次弹飞短冷却，召唤太阳重做后不再使用 | `false` | 无运行时写入 | 可复用，需先确认旧逻辑不会恢复 | 已废弃 |
 | 20 | `baptiste_fake_drug_cooldown` | 巴蒂斯特 | 假药注射触发冷却 | `false` | 成功触发假药设 true；目标恢复后再等 1 秒设 false | 英雄 cooldown 槽，可复用 | [baptiste] fake drug injection |
 | 21 | `torb_parts` | 托比昂 | 零件数量，0 到 3 | `0` | 击杀增加；触发改装、死亡或换英雄设 0 | 英雄资源槽，可复用前必须确认死亡清零语义 | [torbjorn] create/gain/activate/clear illegal modification |
 | 22 | `torb_mod_ready` | 托比昂 | 非法改装就绪标记 | `false` | 零件满设 true；触发、死亡或换英雄设 false | 英雄状态槽，可复用 | [torbjorn] gain/activate/clear illegal modification |
@@ -72,6 +72,21 @@
 | 63 | `mei_iceburst_fx` | 小美 | 冰爆预警特效句柄数组 | `[]` | 预警创建；爆炸后、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [mei] iceburst trap/clear |
 | 64 | `mei_frost_slow_snapshot` | 小美/目标 | 减速恢复线程记录的 slow token 快照 | `0` | 恢复规则开始写入；清理后置 0 | 临时数值槽，可复用 | [mei] restore frost slow/clear |
 | 65 | `mei_frost_source` | 小美/目标 | 最近给目标叠加寒气的小美玩家引用，用于来源死亡/换英雄清理 | `null` | 获得寒气时写入；目标清理或来源离开小美时置空 | 玩家引用槽，可复用 | [mei] melee/iceburst/aura/clear source |
+| 66 | `illari_solar_power` | 伊拉锐 | 太阳之力层数，0 到 3 | `0` | 近战命中增加；召唤小太阳或死亡/换英雄清零 | 英雄资源槽，可复用前确认死亡清零语义 | [illari] create/gain/summon/clear mini sun |
+| 67 | `illari_solar_hud_created` | 伊拉锐 | 太阳之力 HUD 是否已创建 | `false` | 进入伊拉锐创建；死亡/换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [illari] create solar power hud/clear |
+| 68 | `illari_solar_hud_id` | 伊拉锐 | 太阳之力 HUD 文本 ID | `null` | 创建后写入；死亡/换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 | [illari] create solar power hud/clear |
+| 69 | `illari_last_melee_target` | 伊拉锐 | 最近一次近战命中的目标，用于小太阳优先点名 | `null` | 近战命中写入；死亡/换英雄清空 | 玩家引用槽，可复用 | [illari] gain/summon/clear mini sun |
+| 70 | `illari_sun_active` | 伊拉锐 | 小太阳是否存在 | `false` | 召唤成功设 true；5 秒结束、死亡或换英雄设 false | 英雄状态槽，可复用 | [illari] summon/clear mini sun |
+| 71 | `illari_sun_pos` | 伊拉锐 | 小太阳空中位置 | `null` | 召唤时写入；结束或清理置空 | 位置槽，可复用 | [illari] summon/clear mini sun |
+| 72 | `illari_sun_fx` | 伊拉锐 | 太阳本体、光环、光柱和蓄力特效句柄数组 | `[]` | 创建后写入；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [illari] summon/clear mini sun |
+| 73 | `illari_sun_target` | 伊拉锐 | 小太阳当前点名目标 | `null` | 召唤时筛选写入；结束或清理置空 | 玩家引用槽，可复用 | [illari] summon/clear mini sun |
+| 74 | `illari_sun_mark_fx` | 伊拉锐 | 点名目标光柱、光环和光束句柄数组 | `[]` | 点名后写入；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [illari] summon/clear mini sun |
+| 75 | `illari_sun_tick` | 伊拉锐 | 小太阳 0.5 秒灼烧 tick 计数，10 次约 5 秒 | `0` | 召唤时置 0；每 tick +1；结束或清理置 0 | 临时计数槽，可复用 | [illari] summon mini sun |
+| 76 | `illari_sun_casting` | 伊拉锐 | 右键召唤蓄力锁 | `false` | 右键开始设 true；召唤结束或清理设 false | 短状态槽，可复用 | [illari] summon/clear mini sun |
+| 77 | `illari_sun_target_hero` | 伊拉锐 | 点名目标当时英雄，用于目标换英雄清理 | `null` | 点名时写入；结束或清理置空 | 英雄引用槽，可复用 | [illari] summon/clear mini sun |
+| 78 | `illari_marked_by_sun` | 伊拉锐/目标 | 目标被哪名伊拉锐的小太阳点名 | `null` | 被点名时写入；太阳结束、目标死亡/换英雄或来源失效时清空 | 玩家引用槽，可复用 | [illari] summon/clear solar mark target |
+| 79 | `illari_reserved` | 伊拉锐 | 预留占位，当前未使用 | `null` | 默认空 | 可复用 | 暂无 |
+| 80 | `illari_melee_gain_cd` | 伊拉锐 | 近战获得太阳之力短节流，防同一次近战重复加层 | `false` | 近战叠层设 true；0.35 秒后、死亡或换英雄设 false | 短 cooldown 槽，可复用 | [illari] gain/clear mini sun |
 
 ## 扩展约定
 
