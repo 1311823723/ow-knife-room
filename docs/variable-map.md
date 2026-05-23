@@ -66,6 +66,13 @@
 | `winston_grapple_lock` | `winston_grapple_lock` | 温斯顿抱摔规则 | 每次技能 1 跳跃期间的触发锁和短内置冷却，避免一次跳跃多次抓人。 | 否。 | 是，默认假。 | 技能 1 结束并短暂等待后解除；死亡、换英雄、目标异常时强制解除。 |
 | `winston_grapple_carrier` | `winston_grapple_carrier` | 温斯顿抱摔规则 | 保存在目标身上的抓取者引用，便于目标死亡/换英雄时反向清理温斯顿状态。 | 否。 | 是，默认空。 | 释放、目标死亡、目标换英雄、温斯顿死亡或换英雄后清空。 |
 | `winston_grapple_original_hero` | `winston_grapple_original_hero` | 温斯顿抱摔规则 | 记录目标被抓时的英雄，用于检测目标换英雄并清理绑定。 | 否。 | 是，默认空。 | 释放或任一清理路径后清空。 |
+| `winston_barrier_active` | `winston_barrier_active` | `[winston] electric barrier field`、温斯顿屏障清理规则 | 标记温斯顿电蚊香屏障区域是否激活。玩家变量已达到 127 上限，因此使用确认空闲的 4 号槽位。 | 否。 | 是，默认假。 | 屏障结束、死亡或换英雄时设假。 |
+| `winston_barrier_pos` | `winston_barrier_pos` | `[winston] electric barrier field`、`[winston] electric barrier zaps nearby players`、温斯顿屏障清理规则 | 保存电蚊香屏障中心位置，用于范围检测和电弧光束起点。使用确认空闲的 5 号槽位。 | 否。 | 是，放屏障时保存。 | 屏障结束、死亡或换英雄时设空。 |
+| `winston_barrier_fx` | `winston_barrier_fx` | `[winston] electric barrier field`、温斯顿屏障清理规则 | 保存屏障带电区域的光环和光柱效果句柄数组。使用确认空闲的 6 号槽位。 | 否。 | 是，放屏障时设为空数组。 | 屏障结束、死亡或换英雄时销毁并清空。 |
+| `winston_zap_cd` | `winston_zap_cd` | `[winston] electric barrier zaps nearby players`、温斯顿屏障清理规则 | 目标被电蚊香屏障触发后的每人 1 秒冷却，防止同一玩家被每帧反复触电。使用确认空闲的 7 号槽位。 | 否。 | 是，默认假。 | 1 秒后、死亡或换英雄清理时设假。 |
+| `winston_zap_fx` | `winston_zap_fx` | `[winston] electric barrier zaps nearby players`、温斯顿屏障清理规则 | 保存目标身上的短暂电弧光束句柄，用于 0.25 秒后销毁。使用确认空闲的 8 号槽位。 | 否。 | 是，触电时保存。 | 触电结束或换英雄清理时销毁并清空。 |
+| `brigitte_counter_cd` | `brigitte_counter_cd` | `[brigitte] shield counter melee attackers`、`[brigitte] clear shield counter attacker state` | 攻击者被盾反后的短冷却，避免同一攻击者每帧重复触发盾反。玩家变量已达到 127 上限，因此使用确认空闲的 9 号槽位。 | 否。 | 是，默认假。 | 约 1 秒后或攻击者死亡时设假。 |
+| `brigitte_counter_target` | `brigitte_counter_target` | `[brigitte] shield counter melee attackers`、`[brigitte] clear shield counter attacker state` | 临时保存本次触发盾反的布丽吉塔，用于施加眩晕和提示。使用确认空闲的 10 号槽位。 | 否。 | 否，仅触发时临时赋值。 | 触发后立即清空；攻击者死亡时清空。 |
 | `brigitte_blink_cooldown` | `brigitte_blink_cooldown` | `[brigitte] shield bash blink stun`、布丽吉塔清理规则 | 布丽吉塔盾击瞬移成功后的冷却锁。失败触发不会设置该变量。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄后设假。 |
 | `brigitte_blink_target` | `brigitte_blink_target` | `[brigitte] shield bash blink stun`、布丽吉塔清理规则 | 保存本次准星附近的有效目标，用于计算传送点和施加短暂眩晕。 | 否。 | 是，默认空。 | 成功或失败后清空；死亡或换英雄后清空。 |
 | `ramattra_ow_stacks` | `ramattra_ow_stacks` | 拉玛刹痛苦重力规则、目标清理规则 | 目标当前超重层数。5 秒窗口内叠到 3 层会触发重力压制并清零。 | 否。 | 是，默认 0。 | 层数过期、压制触发、死亡或换英雄时设 0。 |
@@ -88,7 +95,7 @@
 | `sigma_black_hole_active` | `sigma_black_hole_active` | `[sigma] release small black hole`、西格玛清理规则 | 标记西格玛小黑洞是否正在运行，防止连续生成多个黑洞。 | 否。 | 是，默认假。 | 黑洞结束、死亡或换英雄时设假。 |
 | `sigma_black_hole_cooldown` | `sigma_black_hole_cooldown` | `[sigma] release small black hole`、西格玛清理规则 | 小黑洞内置冷却锁。当前黑洞持续约 3 秒，结束后再等待约 5 秒解除冷却。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
 | `sigma_black_hole_position` | `sigma_black_hole_position` | `[sigma] release small black hole`、西格玛清理规则 | 保存本次小黑洞中心位置。当前第一版放在西格玛眼睛位置前方固定距离。 | 否。 | 是，释放时保存位置。 | 黑洞结束、死亡或换英雄时设空。 |
-| `sigma_black_hole_effects` | `sigma_black_hole_effects` | `[sigma] release small black hole`、西格玛清理规则 | 保存小黑洞光环和光柱效果实体，用于结束或异常中断时销毁。 | 否。 | 是，生成黑洞前设为空数组。 | 黑洞结束、死亡或换英雄时销毁并清空。 |
+| `sigma_black_hole_effects` | `sigma_black_hole_effects` | `[sigma] release small black hole`、西格玛清理规则 | 保存小黑洞黑色光环、紫色光环和蓝色光柱效果实体，用于结束或异常中断时销毁。 | 否。 | 是，生成黑洞前设为空数组。 | 黑洞结束、死亡或换英雄时销毁并清空。 |
 | `sigma_black_hole_tick` | `sigma_black_hole_tick` | `[sigma] release small black hole`、西格玛清理规则 | 小黑洞 0.5 秒循环计数。当前运行 6 次，约 3 秒。 | 否。 | 是，释放时设 0。 | 黑洞结束、死亡或换英雄时设 0。 |
 | `sigma_black_hole_damage_taken` | `sigma_black_hole_damage_taken` | `[sigma] release small black hole`、西格玛清理规则 | 记录玩家在当前小黑洞中心持续伤害中已受到的伤害，用于限制单次黑洞中心伤害。 | 否。 | 是，进入黑洞流程时附近玩家设 0。 | 黑洞结束、释放者死亡或换英雄时附近玩家设 0。 |
 | `sigma_grasp_was_active` | `sigma_grasp_was_active` | `[sigma] remember kinetic grasp active`、`[sigma] kinetic grasp release gravity burst` | 记录西格玛刚刚使用过动能俘获/技能 1，用于在技能结束边沿触发一次重力震爆。 | 否。 | 是，默认假。 | 震爆触发、死亡或换英雄时设假。 |

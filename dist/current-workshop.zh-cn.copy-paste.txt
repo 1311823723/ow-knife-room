@@ -4,6 +4,13 @@
         1: B
         2: C
         3: D
+        4: winston_barrier_active
+        5: winston_barrier_pos
+        6: winston_barrier_fx
+        7: winston_zap_cd
+        8: winston_zap_fx
+        9: brigitte_counter_cd
+        10: brigitte_counter_target
         24: Y
         25: Z
         26: Kiriko_Skill
@@ -564,9 +571,9 @@
         Else If(比较(所用英雄(事件玩家), ==, 英雄(西格玛)));
             创建HUD文本(事件玩家, 空, 空, 自定义字符串("西格玛：小黑洞与重力震爆\n技能 1 在准星前方释放小黑洞，轻微吸引附近玩家\n动能俘获结束时，面前发生重力震爆\n近距离目标会被小幅推开、减速并受到少量伤害                                                 {0}", 自定义字符串("                                                                                                                         ")), 左边, -998, 空, 空, 颜色(蓝色), 可见和字符串, 默认可见度);
         Else If(比较(所用英雄(事件玩家), ==, 英雄(温斯顿)));
-            创建HUD文本(事件玩家, 空, 空, 自定义字符串("温斯顿：跳跃撞人可抱摔\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害                                                                                  {0}", 自定义字符串("                                                                                        ")), 左边, -998, 空, 空, 颜色(白色), 可见和字符串, 默认可见度);
+            创建HUD文本(事件玩家, 空, 空, 自定义字符串("温斯顿：抱摔与电蚊香屏障\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害\n放屏障后形成带电区域，其他玩家进入会短暂麻痹并被电弧标记                                                    {0}", 自定义字符串("                                                                                                                      ")), 左边, -998, 空, 空, 颜色(白色), 可见和字符串, 默认可见度);
         Else If(比较(所用英雄(事件玩家), ==, 英雄(布丽吉塔)));
-            创建HUD文本(事件玩家, 空, 空, 自定义字符串("布丽吉塔：举盾攻击远处目标可盾击瞬移\n传送到目标附近，只短暂眩晕\n不造成伤害                                                                                       {0}", 自定义字符串("                                                                                   ")), 左边, -998, 空, 空, 颜色(黄色), 可见和字符串, 默认可见度);
+            创建HUD文本(事件玩家, 空, 空, 自定义字符串("布丽吉塔：盾击瞬移与盾反\n举盾攻击远处目标可传送到目标附近并短暂眩晕\n举盾被近战命中时触发盾反，短暂眩晕攻击者\n两个效果都不造成伤害                                                           {0}", 自定义字符串("                                                                                                               ")), 左边, -998, 空, 空, 颜色(黄色), 可见和字符串, 默认可见度);
         Else;
             创建HUD文本(事件玩家, 空, 空, 自定义字符串("通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记                                                                            {0}", 自定义字符串("                                                                                              ")), 左边, -998, 空, 空, 颜色(白色), 可见和字符串, 默认可见度);
         End;
@@ -1315,16 +1322,19 @@
         If(比较((事件玩家).sigma_black_hole_position, !=, 空));
             设置玩家变量(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), sigma_black_hole_damage_taken, 0);
         End;
-        创建效果(所有玩家(所有队伍), 有益光环, 颜色(亮紫色), (事件玩家).sigma_black_hole_position, 6, 可见，位置和半径);
+        创建效果(所有玩家(所有队伍), 有害光环, 颜色(黑色), (事件玩家).sigma_black_hole_position, 8, 可见，位置和半径);
         修改玩家变量(事件玩家, sigma_black_hole_effects, 添加至数组, 最后创建的实体);
-        创建效果(所有玩家(所有队伍), 光柱, 颜色(蓝色), (事件玩家).sigma_black_hole_position, 6, 可见，位置和半径);
+        创建效果(所有玩家(所有队伍), 有益光环, 颜色(亮紫色), (事件玩家).sigma_black_hole_position, 6.5, 可见，位置和半径);
         修改玩家变量(事件玩家, sigma_black_hole_effects, 添加至数组, 最后创建的实体);
+        创建效果(所有玩家(所有队伍), 光柱, 颜色(蓝色), (事件玩家).sigma_black_hole_position, 7, 可见，位置和半径);
+        修改玩家变量(事件玩家, sigma_black_hole_effects, 添加至数组, 最后创建的实体);
+        播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), (事件玩家).sigma_black_hole_position, 2.5);
         大字体信息(事件玩家, 自定义字符串("小黑洞展开"));
         While(与(与(与(比较((事件玩家).sigma_black_hole_active, ==, 真), 存活(事件玩家)), 比较(所用英雄(事件玩家), ==, 英雄(西格玛))), 比较((事件玩家).sigma_black_hole_tick, <, 6)));
-            施加推力(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 6, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))), 方向(所选位置(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 6, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)))), (事件玩家).sigma_black_hole_position), 4, 至地图, 取消相反运动);
-            If(比较(数量(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 2, 所有队伍, 关闭), 与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 比较((当前数组元素).sigma_black_hole_damage_taken, <, 40)))), >, 0));
-                伤害(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 2, 所有队伍, 关闭), 与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 比较((当前数组元素).sigma_black_hole_damage_taken, <, 40))), 事件玩家, 5);
-                修改玩家变量(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 2, 所有队伍, 关闭), 与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 比较((当前数组元素).sigma_black_hole_damage_taken, <, 40))), sigma_black_hole_damage_taken, 加, 5);
+            施加推力(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))), 方向(所选位置(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)))), (事件玩家).sigma_black_hole_position), 7, 至地图, 取消相反运动);
+            If(比较(数量(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 2.2, 所有队伍, 关闭), 与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 比较((当前数组元素).sigma_black_hole_damage_taken, <, 40)))), >, 0));
+                伤害(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 2.2, 所有队伍, 关闭), 与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 比较((当前数组元素).sigma_black_hole_damage_taken, <, 40))), 事件玩家, 5);
+                修改玩家变量(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 2.2, 所有队伍, 关闭), 与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 比较((当前数组元素).sigma_black_hole_damage_taken, <, 40))), sigma_black_hole_damage_taken, 加, 5);
             End;
             等待(0.5, 无视条件);
             修改玩家变量(事件玩家, sigma_black_hole_tick, 加, 1);
@@ -1336,9 +1346,13 @@
             If(比较(数量((事件玩家).sigma_black_hole_effects), >, 1));
                 消除效果(数组中的值((事件玩家).sigma_black_hole_effects, 1));
             End;
-            播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), (事件玩家).sigma_black_hole_position, 4);
-            施加推力(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 6, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))), 方向((事件玩家).sigma_black_hole_position, 所选位置(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 6, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))))), 14, 至地图, 取消相反运动);
-            伤害(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 6, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))), 事件玩家, 10);
+            If(比较(数量((事件玩家).sigma_black_hole_effects), >, 2));
+                消除效果(数组中的值((事件玩家).sigma_black_hole_effects, 2));
+            End;
+            播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), (事件玩家).sigma_black_hole_position, 6);
+            播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(蓝色), (事件玩家).sigma_black_hole_position, 4);
+            施加推力(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))), 方向((事件玩家).sigma_black_hole_position, 所选位置(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))))), 16, 至地图, 取消相反运动);
+            伤害(已过滤的数组(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素))), 事件玩家, 10);
         End;
         If(比较((事件玩家).sigma_black_hole_position, !=, 空));
             设置玩家变量(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), sigma_black_hole_damage_taken, 0);
@@ -1365,6 +1379,9 @@
             End;
             If(比较(数量((事件玩家).sigma_black_hole_effects), >, 1));
                 消除效果(数组中的值((事件玩家).sigma_black_hole_effects, 1));
+            End;
+            If(比较(数量((事件玩家).sigma_black_hole_effects), >, 2));
+                消除效果(数组中的值((事件玩家).sigma_black_hole_effects, 2));
             End;
             If(比较((事件玩家).sigma_black_hole_position, !=, 空));
                 设置玩家变量(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), sigma_black_hole_damage_taken, 0);
@@ -1398,6 +1415,9 @@
             End;
             If(比较(数量((事件玩家).sigma_black_hole_effects), >, 1));
                 消除效果(数组中的值((事件玩家).sigma_black_hole_effects, 1));
+            End;
+            If(比较(数量((事件玩家).sigma_black_hole_effects), >, 2));
+                消除效果(数组中的值((事件玩家).sigma_black_hole_effects, 2));
             End;
             If(比较((事件玩家).sigma_black_hole_position, !=, 空));
                 设置玩家变量(范围内玩家((事件玩家).sigma_black_hole_position, 8, 所有队伍, 关闭), sigma_black_hole_damage_taken, 0);
@@ -2797,6 +2817,31 @@
     }
 }
 
+规则 ("[brigitte] shield counter melee attackers") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        存活(事件玩家) == 真;
+        正在近战攻击(事件玩家) == 真;
+        (事件玩家).brigitte_counter_cd == 假;
+        数量(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(布丽吉塔))), 存活(当前数组元素)), 正在使用辅助武器(当前数组元素)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))), 比较(相距距离(事件玩家, 当前数组元素), <=, 3.2)), 在视野内(事件玩家, 所选位置(当前数组元素), 70)), 在视野内(当前数组元素, 所选位置(事件玩家), 100)), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线)))) > 0;
+    }
+    动作 {
+        设置玩家变量(事件玩家, brigitte_counter_cd, 真);
+        设置玩家变量(事件玩家, brigitte_counter_target, 首个(已排序的数组(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(布丽吉塔))), 存活(当前数组元素)), 正在使用辅助武器(当前数组元素)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))), 比较(相距距离(事件玩家, 当前数组元素), <=, 3.2)), 在视野内(事件玩家, 所选位置(当前数组元素), 70)), 在视野内(当前数组元素, 所选位置(事件玩家), 100)), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线))), 相距距离(事件玩家, 当前数组元素))));
+        设置状态(事件玩家, (事件玩家).brigitte_counter_target, 击晕, 0.35);
+        播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(黄色), 眼睛位置((事件玩家).brigitte_counter_target), 1.6);
+        小字体信息((事件玩家).brigitte_counter_target, 自定义字符串("盾反成功"));
+        小字体信息(事件玩家, 自定义字符串("被盾反"));
+        设置玩家变量(事件玩家, brigitte_counter_target, 空);
+        等待(1, 无视条件);
+        设置玩家变量(事件玩家, brigitte_counter_cd, 假);
+    }
+}
+
 规则 ("[brigitte] clear shield bash blink on death") {
     事件 {
         玩家阵亡;
@@ -2822,6 +2867,133 @@
     动作 {
         设置玩家变量(事件玩家, brigitte_blink_cooldown, 假);
         设置玩家变量(事件玩家, brigitte_blink_target, 空);
+    }
+}
+
+规则 ("[brigitte] clear shield counter attacker state") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        或(比较((事件玩家).brigitte_counter_cd, ==, 真), 比较((事件玩家).brigitte_counter_target, !=, 空)) == 真;
+        死亡(事件玩家) == 真;
+    }
+    动作 {
+        设置玩家变量(事件玩家, brigitte_counter_cd, 假);
+        设置玩家变量(事件玩家, brigitte_counter_target, 空);
+    }
+}
+
+规则 ("[winston] electric barrier field") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        温斯顿;
+    }
+    条件 {
+        存活(事件玩家) == 真;
+        正在使用技能 2(事件玩家) == 真;
+        (事件玩家).winston_barrier_active == 假;
+    }
+    动作 {
+        设置玩家变量(事件玩家, winston_barrier_active, 真);
+        设置玩家变量(事件玩家, winston_barrier_pos, 所选位置(事件玩家));
+        设置玩家变量(事件玩家, winston_barrier_fx, 空数组);
+        创建效果(所有玩家(所有队伍), 有益光环, 颜色(蓝色), (事件玩家).winston_barrier_pos, 5.5, 可见，位置和半径);
+        修改玩家变量(事件玩家, winston_barrier_fx, 添加至数组, 最后创建的实体);
+        创建效果(所有玩家(所有队伍), 光柱, 颜色(水绿色), (事件玩家).winston_barrier_pos, 5, 可见，位置和半径);
+        修改玩家变量(事件玩家, winston_barrier_fx, 添加至数组, 最后创建的实体);
+        小字体信息(事件玩家, 自定义字符串("电蚊香屏障展开"));
+        等待(7.5, 无视条件);
+        If(比较(数量((事件玩家).winston_barrier_fx), >, 0));
+            消除效果(首个((事件玩家).winston_barrier_fx));
+        End;
+        If(比较(数量((事件玩家).winston_barrier_fx), >, 1));
+            消除效果(数组中的值((事件玩家).winston_barrier_fx, 1));
+        End;
+        设置玩家变量(事件玩家, winston_barrier_active, 假);
+        设置玩家变量(事件玩家, winston_barrier_pos, 空);
+        设置玩家变量(事件玩家, winston_barrier_fx, 空数组);
+    }
+}
+
+规则 ("[winston] electric barrier zaps nearby players") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        存活(事件玩家) == 真;
+        (事件玩家).winston_zap_cd == 假;
+        数量(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(温斯顿))), 存活(当前数组元素)), 比较((当前数组元素).winston_barrier_active, ==, 真)), 比较((当前数组元素).winston_barrier_pos, !=, 空)), 比较(相距距离(所选位置(事件玩家), (当前数组元素).winston_barrier_pos), <=, 5.5)))) > 0;
+    }
+    动作 {
+        设置玩家变量(事件玩家, winston_zap_cd, 真);
+        设置玩家变量(事件玩家, winston_zap_fx, 空);
+        创建光束效果(所有玩家(所有队伍), 有益光束, (首个(已排序的数组(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(温斯顿))), 存活(当前数组元素)), 比较((当前数组元素).winston_barrier_active, ==, 真)), 比较((当前数组元素).winston_barrier_pos, !=, 空)), 比较(相距距离(所选位置(事件玩家), (当前数组元素).winston_barrier_pos), <=, 5.5))), 相距距离(所选位置(事件玩家), (当前数组元素).winston_barrier_pos)))).winston_barrier_pos, 事件玩家, 颜色(水绿色), 可见，位置和半径);
+        设置玩家变量(事件玩家, winston_zap_fx, 最后创建的实体);
+        设置状态(事件玩家, 首个(已排序的数组(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(温斯顿))), 存活(当前数组元素)), 比较((当前数组元素).winston_barrier_active, ==, 真)), 比较((当前数组元素).winston_barrier_pos, !=, 空)), 比较(相距距离(所选位置(事件玩家), (当前数组元素).winston_barrier_pos), <=, 5.5))), 相距距离(所选位置(事件玩家), (当前数组元素).winston_barrier_pos))), 击晕, 0.25);
+        设置移动速度(事件玩家, 70);
+        伤害(事件玩家, 首个(已排序的数组(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(温斯顿))), 存活(当前数组元素)), 比较((当前数组元素).winston_barrier_active, ==, 真)), 比较((当前数组元素).winston_barrier_pos, !=, 空)), 比较(相距距离(所选位置(事件玩家), (当前数组元素).winston_barrier_pos), <=, 5.5))), 相距距离(所选位置(事件玩家), (当前数组元素).winston_barrier_pos))), 5);
+        播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(水绿色), 事件玩家, 1.2);
+        等待(0.25, 无视条件);
+        If(比较((事件玩家).winston_zap_fx, !=, 空));
+            消除效果((事件玩家).winston_zap_fx);
+        End;
+        设置玩家变量(事件玩家, winston_zap_fx, 空);
+        等待(0.75, 无视条件);
+        清除状态(事件玩家, 击晕);
+        设置移动速度(事件玩家, 100);
+        设置玩家变量(事件玩家, winston_zap_cd, 假);
+    }
+}
+
+规则 ("[winston] clear electric barrier on death") {
+    事件 {
+        玩家阵亡;
+        双方;
+        温斯顿;
+    }
+    动作 {
+        If(比较((事件玩家).winston_barrier_active, ==, 真));
+            If(比较(数量((事件玩家).winston_barrier_fx), >, 0));
+                消除效果(首个((事件玩家).winston_barrier_fx));
+            End;
+            If(比较(数量((事件玩家).winston_barrier_fx), >, 1));
+                消除效果(数组中的值((事件玩家).winston_barrier_fx, 1));
+            End;
+        End;
+        设置玩家变量(事件玩家, winston_barrier_active, 假);
+        设置玩家变量(事件玩家, winston_barrier_pos, 空);
+        设置玩家变量(事件玩家, winston_barrier_fx, 空数组);
+    }
+}
+
+规则 ("[winston] clear electric barrier after hero swap") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        所用英雄(事件玩家) != 英雄(温斯顿);
+        或(比较((事件玩家).winston_barrier_active, ==, 真), 比较((事件玩家).winston_barrier_pos, !=, 空)) == 真;
+    }
+    动作 {
+        If(比较((事件玩家).winston_barrier_active, ==, 真));
+            If(比较(数量((事件玩家).winston_barrier_fx), >, 0));
+                消除效果(首个((事件玩家).winston_barrier_fx));
+            End;
+            If(比较(数量((事件玩家).winston_barrier_fx), >, 1));
+                消除效果(数组中的值((事件玩家).winston_barrier_fx, 1));
+            End;
+        End;
+        设置玩家变量(事件玩家, winston_barrier_active, 假);
+        设置玩家变量(事件玩家, winston_barrier_pos, 空);
+        设置玩家变量(事件玩家, winston_barrier_fx, 空数组);
     }
 }
 

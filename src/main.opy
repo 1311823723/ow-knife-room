@@ -102,6 +102,13 @@ playervar zen_slow_active 124
 playervar zen_slow_timer 125
 playervar zen_slow_hero 126
 playervar zen_chain_target 127
+playervar winston_barrier_active 4
+playervar winston_barrier_pos 5
+playervar winston_barrier_fx 6
+playervar winston_zap_cd 7
+playervar winston_zap_fx 8
+playervar brigitte_counter_cd 9
+playervar brigitte_counter_target 10
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -432,9 +439,9 @@ rule "[hud] open current hero ability guide on interact":
     elif eventPlayer.getHero() == Hero.SIGMA:
         hudSubtext(eventPlayer, "西格玛：小黑洞与重力震爆\n技能 1 在准星前方释放小黑洞，轻微吸引附近玩家\n动能俘获结束时，面前发生重力震爆\n近距离目标会被小幅推开、减速并受到少量伤害", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.WINSTON:
-        hudSubtext(eventPlayer, "温斯顿：跳跃撞人可抱摔\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "温斯顿：抱摔与电蚊香屏障\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害\n放屏障后形成带电区域，其他玩家进入会短暂麻痹并被电弧标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BRIGITTE:
-        hudSubtext(eventPlayer, "布丽吉塔：举盾攻击远处目标可盾击瞬移\n传送到目标附近，只短暂眩晕\n不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "布丽吉塔：盾击瞬移与盾反\n举盾攻击远处目标可传送到目标附近并短暂眩晕\n举盾被近战命中时触发盾反，短暂眩晕攻击者\n两个效果都不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     else:
         hudSubtext(eventPlayer, "通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     eventPlayer.ability_guide_hud_id = getLastCreatedText()
@@ -980,16 +987,19 @@ rule "[sigma] release small black hole":
     eventPlayer.sigma_black_hole_position = eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 8
     if eventPlayer.sigma_black_hole_position != null:
         getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).sigma_black_hole_damage_taken = 0
-    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.PURPLE, eventPlayer.sigma_black_hole_position, 6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.BLACK, eventPlayer.sigma_black_hole_position, 8, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.sigma_black_hole_effects.append(getLastCreatedEntity())
-    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.BLUE, eventPlayer.sigma_black_hole_position, 6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.PURPLE, eventPlayer.sigma_black_hole_position, 6.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.sigma_black_hole_effects.append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.BLUE, eventPlayer.sigma_black_hole_position, 7, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.sigma_black_hole_effects.append(getLastCreatedEntity())
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer.sigma_black_hole_position, 2.5)
     bigMessage(eventPlayer, "小黑洞展开")
     while eventPlayer.sigma_black_hole_active == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.SIGMA and eventPlayer.sigma_black_hole_tick < 6:
-        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition(), eventPlayer.sigma_black_hole_position), 4, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
-        if len(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40)) > 0:
-            damage(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40), eventPlayer, 5)
-            getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40).sigma_black_hole_damage_taken += 5
+        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition(), eventPlayer.sigma_black_hole_position), 7, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+        if len(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40)) > 0:
+            damage(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40), eventPlayer, 5)
+            getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40).sigma_black_hole_damage_taken += 5
         wait(0.5)
         eventPlayer.sigma_black_hole_tick += 1
     if eventPlayer.sigma_black_hole_active == true:
@@ -997,9 +1007,12 @@ rule "[sigma] release small black hole":
             destroyEffect(eventPlayer.sigma_black_hole_effects[0])
         if len(eventPlayer.sigma_black_hole_effects) > 1:
             destroyEffect(eventPlayer.sigma_black_hole_effects[1])
-        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer.sigma_black_hole_position, 4)
-        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(eventPlayer.sigma_black_hole_position, getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition()), 14, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
-        damage(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 10)
+        if len(eventPlayer.sigma_black_hole_effects) > 2:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[2])
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer.sigma_black_hole_position, 6)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer.sigma_black_hole_position, 4)
+        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(eventPlayer.sigma_black_hole_position, getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition()), 16, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+        damage(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 10)
     if eventPlayer.sigma_black_hole_position != null:
         getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).sigma_black_hole_damage_taken = 0
     eventPlayer.sigma_black_hole_active = false
@@ -1019,6 +1032,8 @@ rule "[sigma] clear small black hole on death":
             destroyEffect(eventPlayer.sigma_black_hole_effects[0])
         if len(eventPlayer.sigma_black_hole_effects) > 1:
             destroyEffect(eventPlayer.sigma_black_hole_effects[1])
+        if len(eventPlayer.sigma_black_hole_effects) > 2:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[2])
         if eventPlayer.sigma_black_hole_position != null:
             getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).sigma_black_hole_damage_taken = 0
     eventPlayer.sigma_black_hole_active = false
@@ -1041,6 +1056,8 @@ rule "[sigma] clear small black hole after hero swap":
             destroyEffect(eventPlayer.sigma_black_hole_effects[0])
         if len(eventPlayer.sigma_black_hole_effects) > 1:
             destroyEffect(eventPlayer.sigma_black_hole_effects[1])
+        if len(eventPlayer.sigma_black_hole_effects) > 2:
+            destroyEffect(eventPlayer.sigma_black_hole_effects[2])
         if eventPlayer.sigma_black_hole_position != null:
             getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).sigma_black_hole_damage_taken = 0
     eventPlayer.sigma_black_hole_active = false
@@ -2078,6 +2095,24 @@ rule "[brigitte] shield bash blink stun":
     eventPlayer.brigitte_blink_target = null
 
 
+rule "[brigitte] shield counter melee attackers":
+    @Event eachPlayer
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isMeleeing() == true
+    @Condition eventPlayer.brigitte_counter_cd == false
+    @Condition len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.BRIGITTE and player.isAlive() == true and player.isFiringSecondaryFire() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and distance(eventPlayer, player) <= 3.2 and eventPlayer.isInViewAngle(player.getPosition(), 70) == true and player.isInViewAngle(eventPlayer.getPosition(), 100) == true and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true)) > 0
+
+    eventPlayer.brigitte_counter_cd = true
+    eventPlayer.brigitte_counter_target = sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.BRIGITTE and player.isAlive() == true and player.isFiringSecondaryFire() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and distance(eventPlayer, player) <= 3.2 and eventPlayer.isInViewAngle(player.getPosition(), 70) == true and player.isInViewAngle(eventPlayer.getPosition(), 100) == true and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true), key=lambda player: distance(eventPlayer, player))[0]
+    eventPlayer.setStatusEffect(eventPlayer.brigitte_counter_target, Status.STUNNED, 0.35)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.brigitte_counter_target.getEyePosition(), 1.6)
+    smallMessage(eventPlayer.brigitte_counter_target, "盾反成功")
+    smallMessage(eventPlayer, "被盾反")
+    eventPlayer.brigitte_counter_target = null
+    wait(1)
+    eventPlayer.brigitte_counter_cd = false
+
+
 rule "[brigitte] clear shield bash blink on death":
     @Event playerDied
     @Hero brigitte
@@ -2093,6 +2128,93 @@ rule "[brigitte] clear shield bash blink after hero swap":
 
     eventPlayer.brigitte_blink_cooldown = false
     eventPlayer.brigitte_blink_target = null
+
+
+rule "[brigitte] clear shield counter attacker state":
+    @Event eachPlayer
+    @Condition eventPlayer.brigitte_counter_cd == true or eventPlayer.brigitte_counter_target != null
+    @Condition eventPlayer.isDead() == true
+
+    eventPlayer.brigitte_counter_cd = false
+    eventPlayer.brigitte_counter_target = null
+
+
+rule "[winston] electric barrier field":
+    @Event eachPlayer
+    @Hero winston
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility2() == true
+    @Condition eventPlayer.winston_barrier_active == false
+
+    eventPlayer.winston_barrier_active = true
+    eventPlayer.winston_barrier_pos = eventPlayer.getPosition()
+    eventPlayer.winston_barrier_fx = []
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.BLUE, eventPlayer.winston_barrier_pos, 5.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.winston_barrier_fx.append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.AQUA, eventPlayer.winston_barrier_pos, 5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.winston_barrier_fx.append(getLastCreatedEntity())
+    smallMessage(eventPlayer, "电蚊香屏障展开")
+    wait(7.5)
+    if len(eventPlayer.winston_barrier_fx) > 0:
+        destroyEffect(eventPlayer.winston_barrier_fx[0])
+    if len(eventPlayer.winston_barrier_fx) > 1:
+        destroyEffect(eventPlayer.winston_barrier_fx[1])
+    eventPlayer.winston_barrier_active = false
+    eventPlayer.winston_barrier_pos = null
+    eventPlayer.winston_barrier_fx = []
+
+
+rule "[winston] electric barrier zaps nearby players":
+    @Event eachPlayer
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.winston_zap_cd == false
+    @Condition len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.WINSTON and player.isAlive() == true and player.winston_barrier_active == true and player.winston_barrier_pos != null and distance(eventPlayer.getPosition(), player.winston_barrier_pos) <= 5.5)) > 0
+
+    eventPlayer.winston_zap_cd = true
+    eventPlayer.winston_zap_fx = null
+    createBeam(getAllPlayers(), Beam.GOOD, sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.WINSTON and player.isAlive() == true and player.winston_barrier_active == true and player.winston_barrier_pos != null and distance(eventPlayer.getPosition(), player.winston_barrier_pos) <= 5.5), key=lambda player: distance(eventPlayer.getPosition(), player.winston_barrier_pos))[0].winston_barrier_pos, eventPlayer, Color.AQUA, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.winston_zap_fx = getLastCreatedEntity()
+    eventPlayer.setStatusEffect(sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.WINSTON and player.isAlive() == true and player.winston_barrier_active == true and player.winston_barrier_pos != null and distance(eventPlayer.getPosition(), player.winston_barrier_pos) <= 5.5), key=lambda player: distance(eventPlayer.getPosition(), player.winston_barrier_pos))[0], Status.STUNNED, 0.25)
+    eventPlayer.setMoveSpeed(70)
+    damage(eventPlayer, sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.WINSTON and player.isAlive() == true and player.winston_barrier_active == true and player.winston_barrier_pos != null and distance(eventPlayer.getPosition(), player.winston_barrier_pos) <= 5.5), key=lambda player: distance(eventPlayer.getPosition(), player.winston_barrier_pos))[0], 5)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer, 1.2)
+    wait(0.25)
+    if eventPlayer.winston_zap_fx != null:
+        destroyEffect(eventPlayer.winston_zap_fx)
+    eventPlayer.winston_zap_fx = null
+    wait(0.75)
+    eventPlayer.clearStatusEffect(Status.STUNNED)
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.winston_zap_cd = false
+
+
+rule "[winston] clear electric barrier on death":
+    @Event playerDied
+    @Hero winston
+
+    if eventPlayer.winston_barrier_active == true:
+        if len(eventPlayer.winston_barrier_fx) > 0:
+            destroyEffect(eventPlayer.winston_barrier_fx[0])
+        if len(eventPlayer.winston_barrier_fx) > 1:
+            destroyEffect(eventPlayer.winston_barrier_fx[1])
+    eventPlayer.winston_barrier_active = false
+    eventPlayer.winston_barrier_pos = null
+    eventPlayer.winston_barrier_fx = []
+
+
+rule "[winston] clear electric barrier after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.WINSTON
+    @Condition eventPlayer.winston_barrier_active == true or eventPlayer.winston_barrier_pos != null
+
+    if eventPlayer.winston_barrier_active == true:
+        if len(eventPlayer.winston_barrier_fx) > 0:
+            destroyEffect(eventPlayer.winston_barrier_fx[0])
+        if len(eventPlayer.winston_barrier_fx) > 1:
+            destroyEffect(eventPlayer.winston_barrier_fx[1])
+    eventPlayer.winston_barrier_active = false
+    eventPlayer.winston_barrier_pos = null
+    eventPlayer.winston_barrier_fx = []
 
 
 rule "[winston] grapple slam on jump contact":
