@@ -80,9 +80,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 81
+    @Condition len(eventPlayer.player_state) < 96
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false]
 
 
 def applySoldierAntmanState():
@@ -416,6 +416,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "温斯顿：抱摔与电蚊香屏障\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害\n放屏障后形成带电区域，其他玩家进入会短暂麻痹并被电弧标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BRIGITTE:
         hudSubtext(eventPlayer, "布丽吉塔：盾击瞬移与盾反\n举盾攻击远处目标可传送到目标附近并短暂眩晕\n举盾被近战命中时触发盾反，短暂眩晕攻击者\n两个效果都不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.LIFEWEAVER:
+        hudSubtext(eventPlayer, "生命之梭：园艺保龄球\n拥有跟随自己的园艺球\n近战打出园艺球撞人，技能 2 拉回\n大招预警后召唤天降花盆", HudPosition.ACTUALLY_LEFT, -998, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
     else:
         hudSubtext(eventPlayer, "通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     eventPlayer.player_state[1] = getLastCreatedText()
@@ -1440,7 +1442,6 @@ rule "[orisa] gain judgment energy on hit":
     @Event playerDealtDamage
     @Hero orisa
     @Condition eventPlayer.isAlive() == true
-    @Condition victim.isAlive() == true
     @Condition victim != eventPlayer
     @Condition eventDamage > 0
     @Condition eventAbility != Button.PRIMARY_FIRE
@@ -1458,8 +1459,20 @@ rule "[orisa] gain judgment energy on hit":
         else:
             smallMessage(eventPlayer, "裁决能量：{}/7".format(eventPlayer.player_state[45]))
             playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 1.4)
+        eventPlayer.setMoveSpeed(100 + eventPlayer.player_state[45] * 2)
     wait(0.7)
     eventPlayer.player_state[46] = false
+
+
+rule "[orisa] apply judgment energy move speed":
+    @Event eachPlayer
+    @Hero orisa
+    @Condition eventPlayer.isAlive() == true
+
+    eventPlayer.setMoveSpeed(100 + eventPlayer.player_state[45] * 2)
+    wait(0.25)
+    if ruleCondition:
+        loop()
 
 
 rule "[orisa] javelin damage cap":
@@ -1475,12 +1488,12 @@ rule "[orisa] javelin releases judgment energy":
     @Event playerDealtDamage
     @Hero orisa
     @Condition eventPlayer.isAlive() == true
-    @Condition victim.isAlive() == true
     @Condition eventAbility == Button.SECONDARY_FIRE
     @Condition eventPlayer.player_state[45] > 0
 
     eventPlayer.player_state[49] = eventPlayer.player_state[45]
     eventPlayer.player_state[45] = 0
+    eventPlayer.setMoveSpeed(100)
     smallMessage(eventPlayer, "释放裁决：{}层".format(eventPlayer.player_state[49]))
     smallMessage(victim, "你被裁决")
     if eventPlayer.player_state[49] >= 7:
@@ -1556,6 +1569,7 @@ rule "[orisa] clear judgment energy after hero swap":
     eventPlayer.player_state[47] = false
     eventPlayer.player_state[48] = null
     eventPlayer.player_state[49] = 0
+    eventPlayer.setMoveSpeed(100)
 
 
 rule "[reaper] leave soul anchor on final blow":
@@ -2734,7 +2748,6 @@ rule "[illari] gain solar power on melee":
     @Event playerDealtDamage
     @Hero illari
     @Condition eventPlayer.isAlive() == true
-    @Condition victim.isAlive() == true
     @Condition victim != eventPlayer
     @Condition eventAbility == Button.MELEE
     @Condition eventDamage > 0
@@ -2882,6 +2895,193 @@ rule "[illari] clear mini sun on death or hero swap":
     eventPlayer.player_state[76] = false
     eventPlayer.player_state[77] = null
     eventPlayer.player_state[80] = false
+
+
+rule "[lifeweaver] create garden bowling ball":
+    @Event eachPlayer
+    @Hero lifeweaver
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[81] == false
+
+    eventPlayer.player_state[81] = true
+    eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
+    eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
+    eventPlayer.player_state[83] = []
+    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, eventPlayer, eventPlayer.player_state[82], eventPlayer.player_state[85], 0.85, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+    eventPlayer.player_state[83].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.GREEN, eventPlayer.player_state[82], 1.6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[83].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.player_state[82], 1.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[83].append(getLastCreatedEntity())
+    smallMessage(eventPlayer, "园艺球已就位")
+
+
+rule "[lifeweaver] garden ball follows owner":
+    @Event eachPlayer
+    @Hero lifeweaver
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[81] == true
+    @Condition eventPlayer.player_state[84] == 0
+
+    eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
+    eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
+    wait(0.1)
+    if ruleCondition:
+        loop()
+
+
+rule "[lifeweaver] recover lost garden ball":
+    @Event eachPlayer
+    @Hero lifeweaver
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[81] == true
+    @Condition distance(eventPlayer.player_state[82], eventPlayer) > 28
+
+    eventPlayer.player_state[84] = 0
+    eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
+    eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer.player_state[82], 2)
+    smallMessage(eventPlayer, "园艺球回收")
+
+
+rule "[lifeweaver] melee launches garden ball":
+    @Event eachPlayer
+    @Hero lifeweaver
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isMeleeing() == true
+    @Condition eventPlayer.player_state[81] == true
+    @Condition eventPlayer.player_state[87] == false
+    @Condition distance(eventPlayer, eventPlayer.player_state[82]) <= 5.5
+
+    eventPlayer.player_state[87] = true
+    eventPlayer.player_state[84] = 1
+    eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
+    eventPlayer.player_state[86] = 0
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer.player_state[82], 2)
+    smallMessage(eventPlayer, "园艺保龄球！")
+    while eventPlayer.player_state[84] == 1 and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.LIFEWEAVER and eventPlayer.player_state[86] < 18:
+        eventPlayer.player_state[82] += eventPlayer.player_state[85] * 1.5
+        eventPlayer.player_state[82] = nearestWalkablePosition(eventPlayer.player_state[82]) + Vector.UP * 0.7
+        if len(getPlayersInRadius(eventPlayer.player_state[82], 2.7, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0:
+            damage(getPlayersInRadius(eventPlayer.player_state[82], 2.7, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 30)
+            getPlayersInRadius(eventPlayer.player_state[82], 2.7, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.65)
+            getPlayersInRadius(eventPlayer.player_state[82], 2.7, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[95] = true
+            smallMessage(getPlayersInRadius(eventPlayer.player_state[82], 2.7, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "园艺保龄球命中")
+            playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.GREEN, eventPlayer.player_state[82], 2)
+        eventPlayer.player_state[86] += 1
+        wait(0.1)
+    eventPlayer.player_state[84] = 0
+    eventPlayer.player_state[86] = 0
+    wait(0.35)
+    eventPlayer.player_state[87] = false
+
+
+rule "[lifeweaver] clear garden ball hit cooldown":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[95] == true
+
+    wait(1.1)
+    eventPlayer.player_state[95] = false
+
+
+rule "[lifeweaver] pull garden ball back":
+    @Event eachPlayer
+    @Hero lifeweaver
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility2() == true
+    @Condition eventPlayer.player_state[81] == true
+    @Condition eventPlayer.player_state[88] == false
+
+    eventPlayer.player_state[88] = true
+    eventPlayer.player_state[84] = 2
+    smallMessage(eventPlayer, "拉回园艺球")
+    createBeam(getAllPlayers(), Beam.GOOD, eventPlayer, eventPlayer.player_state[82], Color.GREEN, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[92] = getLastCreatedEntity()
+    while eventPlayer.player_state[84] == 2 and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.LIFEWEAVER and distance(eventPlayer.player_state[82], eventPlayer) > 2.4:
+        eventPlayer.player_state[85] = directionTowards(eventPlayer.player_state[82], eventPlayer.getPosition() + Vector.UP * 0.6)
+        eventPlayer.player_state[82] += eventPlayer.player_state[85] * 1.8
+        getPlayersInRadius(eventPlayer.player_state[82], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).applyImpulse(directionTowards(getPlayersInRadius(eventPlayer.player_state[82], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).getPosition(), eventPlayer.player_state[82]), 2.5, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+        wait(0.1)
+    eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
+    eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
+    eventPlayer.player_state[84] = 0
+    if eventPlayer.player_state[92] != null:
+        destroyEffect(eventPlayer.player_state[92])
+    eventPlayer.player_state[92] = null
+    wait(0.6)
+    wait(2.4)
+    eventPlayer.player_state[88] = false
+
+
+rule "[lifeweaver] garden pot ultimate":
+    @Event eachPlayer
+    @Hero lifeweaver
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.getUltCharge() == 100
+    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
+    @Condition eventPlayer.player_state[89] == false
+    @Condition eventPlayer.player_state[81] == true
+
+    eventPlayer.player_state[89] = true
+    eventPlayer.player_state[84] = 3
+    eventPlayer.player_state[90] = nearestWalkablePosition(eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 12)
+    eventPlayer.setUltCharge(0)
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.GREEN, eventPlayer.player_state[90], 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[91].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.player_state[90], 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[91].append(getLastCreatedEntity())
+    smallMessage(eventPlayer, "天降花盆预警")
+    wait(1)
+    eventPlayer.player_state[82] = eventPlayer.player_state[90] + Vector.UP * 9
+    eventPlayer.player_state[85] = Vector.DOWN
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer.player_state[90], 4)
+    wait(0.25)
+    eventPlayer.player_state[82] = eventPlayer.player_state[90]
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.GREEN, eventPlayer.player_state[90], 4)
+    damage(getPlayersInRadius(eventPlayer.player_state[90], 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 60)
+    getPlayersInRadius(eventPlayer.player_state[90], 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.9)
+    if len(eventPlayer.player_state[91]) > 0:
+        destroyEffect(eventPlayer.player_state[91][0])
+    if len(eventPlayer.player_state[91]) > 1:
+        destroyEffect(eventPlayer.player_state[91][1])
+    eventPlayer.player_state[91] = []
+    eventPlayer.player_state[90] = null
+    eventPlayer.player_state[84] = 0
+    wait(2)
+    eventPlayer.player_state[89] = false
+
+
+rule "[lifeweaver] clear garden bowling ball after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.LIFEWEAVER
+    @Condition eventPlayer.player_state[81] == true or len(eventPlayer.player_state[83]) > 0 or len(eventPlayer.player_state[91]) > 0
+
+    if len(eventPlayer.player_state[83]) > 0:
+        destroyEffect(eventPlayer.player_state[83][0])
+    if len(eventPlayer.player_state[83]) > 1:
+        destroyEffect(eventPlayer.player_state[83][1])
+    if len(eventPlayer.player_state[83]) > 2:
+        destroyEffect(eventPlayer.player_state[83][2])
+    if len(eventPlayer.player_state[83]) > 3:
+        destroyEffect(eventPlayer.player_state[83][3])
+    if len(eventPlayer.player_state[91]) > 0:
+        destroyEffect(eventPlayer.player_state[91][0])
+    if len(eventPlayer.player_state[91]) > 1:
+        destroyEffect(eventPlayer.player_state[91][1])
+    if eventPlayer.player_state[92] != null:
+        destroyEffect(eventPlayer.player_state[92])
+    eventPlayer.player_state[81] = false
+    eventPlayer.player_state[82] = null
+    eventPlayer.player_state[83] = []
+    eventPlayer.player_state[84] = 0
+    eventPlayer.player_state[85] = null
+    eventPlayer.player_state[86] = 0
+    eventPlayer.player_state[87] = false
+    eventPlayer.player_state[88] = false
+    eventPlayer.player_state[89] = false
+    eventPlayer.player_state[90] = null
+    eventPlayer.player_state[91] = []
+    eventPlayer.player_state[92] = null
 
 
 rule "[freya] launch circle":

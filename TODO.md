@@ -132,6 +132,12 @@
   - 风险等级：中。
   - 进游戏测试方法：芙蕾娅按 E 技能触发法阵，确认范围内玩家高飞、效果会消失、冷却期间不重复触发。
 
+- [x] 添加生命之梭园艺保龄球
+  - 目标：生命之梭拥有 Boss 房风格废铁球园艺球，近战击球撞人，技能 2 拉回，大招预警后天降花盆。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：选择生命之梭后确认园艺球生成并跟随；近战击球能撞人，技能 2 可拉回，大招有 1 秒预警后砸地。
+
 - [x] 添加安娜睡眠醒目标记
   - 目标：沉睡状态只创建一次醒目标记效果，并在醒来后清理。
   - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。

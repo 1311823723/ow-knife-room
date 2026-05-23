@@ -9,7 +9,7 @@
 - 当前实际使用玩家变量槽约 78 个。
 - 第一轮前显式 `playervar` 为 109 个；两轮迁移后为 72 个。
 - 已迁入 `player_state` 的旧独立变量共 38 个；新增数组变量 1 个，净减少 37 个显式玩家变量。
-- `player_state` 当前定义 `0..80`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引，`66..80` 为伊拉锐召唤太阳状态索引。
+- `player_state` 当前定义 `0..95`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引，`66..80` 为伊拉锐召唤太阳状态索引，`81..95` 为生命之梭园艺保龄球状态索引。
 - 当前未发现 `disabled rule` / 禁用规则块；没有变量属于“只在禁用规则中使用”。
 
 ## 当前玩家变量列表
@@ -149,7 +149,7 @@
 | `player_state[42]` | `hanzo_extra_jump_count` | 半藏额外踏空跳计数 |
 | `player_state[43]` | `hanzo_extra_jump_lock` | 半藏额外踏空跳按键边沿锁 |
 | `player_state[44]` | `hanzo_arrow_rain_tick` | 半藏箭雨令 tick 计数 |
-| `player_state[45]` | `orisa_judgment_energy` | 奥丽莎自身裁决能量层数，0 到 7 |
+| `player_state[45]` | `orisa_judgment_energy` | 奥丽莎自身裁决能量层数，0 到 7；每层 +2% 移速，最高 +14% |
 | `player_state[46]` | `orisa_judgment_gain_cd` | 奥丽莎裁决能量获取节流 |
 | `player_state[47]` | `orisa_judgment_hud_created` | 奥丽莎裁决能量 HUD 创建标记 |
 | `player_state[48]` | `orisa_judgment_hud_id` | 奥丽莎裁决能量 HUD id |
@@ -185,6 +185,21 @@
 | `player_state[78]` | `illari_marked_by_sun` | 目标被哪名伊拉锐的小太阳点名 |
 | `player_state[79]` | `illari_reserved` | 预留占位，当前未使用 |
 | `player_state[80]` | `illari_melee_gain_cd` | 近战获得太阳之力短节流 |
+| `player_state[81]` | `lifeweaver_ball_created` | 生命之梭园艺球是否已创建 |
+| `player_state[82]` | `lifeweaver_ball_pos` | 园艺球当前位置 |
+| `player_state[83]` | `lifeweaver_ball_fx` | 园艺球废铁球弹道效果、光环、光柱效果句柄数组 |
+| `player_state[84]` | `lifeweaver_ball_state` | 园艺球状态：0 跟随，1 击出，2 拉回，3 大招 |
+| `player_state[85]` | `lifeweaver_ball_dir` | 园艺球移动方向或临时拉回方向 |
+| `player_state[86]` | `lifeweaver_ball_tick` | 园艺球击出移动 tick 计数 |
+| `player_state[87]` | `lifeweaver_hit_lock` | 近战击球流程锁 |
+| `player_state[88]` | `lifeweaver_pull_lock` | 技能 2 拉回流程锁 |
+| `player_state[89]` | `lifeweaver_ult_lock` | 大招天降花盆流程锁 |
+| `player_state[90]` | `lifeweaver_ult_pos` | 天降花盆预警/砸地位置 |
+| `player_state[91]` | `lifeweaver_ult_fx` | 天降花盆预警效果句柄数组 |
+| `player_state[92]` | `lifeweaver_pull_beam` | 拉回园艺球光束句柄 |
+| `player_state[93]` | `lifeweaver_reserved_a` | 预留占位，当前未使用 |
+| `player_state[94]` | `lifeweaver_reserved_b` | 预留占位，当前未使用 |
+| `player_state[95]` | `lifeweaver_ball_hit_cd` | 被园艺球命中的目标短防重复判定 |
 
 ## 疑似旧逻辑残留但未删除
 
