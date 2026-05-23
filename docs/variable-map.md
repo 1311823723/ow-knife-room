@@ -187,7 +187,7 @@
 | `player_state[80]` | `illari_melee_gain_cd` | 近战获得太阳之力短节流 |
 | `player_state[81]` | `lifeweaver_ball_created` | 生命之梭园艺球是否已创建 |
 | `player_state[82]` | `lifeweaver_ball_pos` | 园艺球当前位置 |
-| `player_state[83]` | `lifeweaver_ball_fx` | 园艺球废铁球弹道效果、光环、光柱效果句柄数组 |
+| `player_state[83]` | `lifeweaver_ball_fx` | 园艺球废铁球弹道效果、光环、弱化光柱效果句柄数组 |
 | `player_state[84]` | `lifeweaver_ball_state` | 园艺球状态：0 跟随，1 击出，2 拉回，3 大招 |
 | `player_state[85]` | `lifeweaver_ball_dir` | 园艺球移动方向或临时拉回方向 |
 | `player_state[86]` | `lifeweaver_ball_tick` | 园艺球击出移动 tick 计数 |
@@ -197,7 +197,7 @@
 | `player_state[90]` | `lifeweaver_ult_pos` | 天降花盆预警/砸地位置 |
 | `player_state[91]` | `lifeweaver_ult_fx` | 天降花盆预警效果句柄数组 |
 | `player_state[92]` | `lifeweaver_pull_beam` | 拉回园艺球光束句柄 |
-| `player_state[93]` | `lifeweaver_reserved_a` | 预留占位，当前未使用 |
+| `player_state[93]` | `lifeweaver_ball_dummy` | 承载园艺球实体物理的隐藏生命之梭 dummy |
 | `player_state[94]` | `lifeweaver_reserved_b` | 预留占位，当前未使用 |
 | `player_state[95]` | `lifeweaver_ball_hit_cd` | 被园艺球命中的目标短防重复判定 |
 

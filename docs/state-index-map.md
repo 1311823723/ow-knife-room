@@ -89,7 +89,7 @@
 | 80 | `illari_melee_gain_cd` | 伊拉锐 | 近战获得太阳之力短节流，防同一次近战重复加层 | `false` | 近战叠层设 true；0.35 秒后、死亡或换英雄设 false | 短 cooldown 槽，可复用 | [illari] gain/clear mini sun |
 | 81 | `lifeweaver_ball_created` | 生命之梭 | 园艺球是否已创建 | `false` | 进入生命之梭且存活时创建；换英雄清理设 false | 英雄状态槽，可复用 | [lifeweaver] create/clear garden bowling ball |
 | 82 | `lifeweaver_ball_pos` | 生命之梭 | 园艺球当前位置 | `null` | 创建、跟随、击出、拉回、大招时更新；换英雄置空 | 位置槽，可复用 | [lifeweaver] create/follow/launch/pull/ult/clear |
-| 83 | `lifeweaver_ball_fx` | 生命之梭 | 园艺球废铁球弹道效果、光环、光柱效果句柄数组 | `[]` | 创建后写入；换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [lifeweaver] create/clear garden bowling ball |
+| 83 | `lifeweaver_ball_fx` | 生命之梭 | 园艺球废铁球弹道效果、光环、弱化光柱效果句柄数组 | `[]` | 创建后写入；换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [lifeweaver] create/clear garden bowling ball |
 | 84 | `lifeweaver_ball_state` | 生命之梭 | 园艺球状态：0 跟随，1 击出，2 拉回，3 大招 | `0` | 各流程开始设置；流程结束或清理归 0 | 状态槽，可复用 | [lifeweaver] follow/launch/pull/ult/clear |
 | 85 | `lifeweaver_ball_dir` | 生命之梭 | 园艺球移动方向或临时拉回方向 | `null` | 击球/拉回时写入；清理置空 | 方向槽，可复用 | [lifeweaver] launch/pull/clear |
 | 86 | `lifeweaver_ball_tick` | 生命之梭 | 园艺球击出移动 tick 计数 | `0` | 击球开始置 0；每 tick 增加；结束清 0 | 临时计数槽，可复用 | [lifeweaver] melee launches garden ball |
@@ -99,7 +99,7 @@
 | 90 | `lifeweaver_ult_pos` | 生命之梭 | 天降花盆预警/砸地位置 | `null` | 大招开始写入；结束或清理置空 | 位置槽，可复用 | [lifeweaver] garden pot ultimate/clear |
 | 91 | `lifeweaver_ult_fx` | 生命之梭 | 天降花盆预警效果句柄数组 | `[]` | 大招预警创建；砸地、换英雄时 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [lifeweaver] garden pot ultimate/clear |
 | 92 | `lifeweaver_pull_beam` | 生命之梭 | 拉回园艺球光束句柄 | `null` | 拉回开始写入；结束或清理 destroyEffect 后置空 | 效果句柄槽，可复用前必须销毁 | [lifeweaver] pull/clear |
-| 93 | `lifeweaver_reserved_a` | 生命之梭 | 预留占位，当前未使用 | `null` | 默认空 | 可复用 | 暂无 |
+| 93 | `lifeweaver_ball_dummy` | 生命之梭 | 承载园艺球实体物理的隐藏生命之梭 dummy | `null` | 创建园艺球时生成并写入；换英雄 destroyDummy 后清空 | 玩家引用槽，可复用前必须销毁 dummy | [lifeweaver] create/follow/launch/pull/ult/clear |
 | 94 | `lifeweaver_reserved_b` | 生命之梭 | 预留占位，当前未使用 | `null` | 默认空 | 可复用 | 暂无 |
 | 95 | `lifeweaver_ball_hit_cd` | 生命之梭/目标 | 被园艺球命中的目标短防重复判定 | `false` | 命中设 true；约 1.1 秒后清 false | 目标短 cooldown 槽，可复用 | [lifeweaver] melee launches/clear garden ball hit cooldown |
 
