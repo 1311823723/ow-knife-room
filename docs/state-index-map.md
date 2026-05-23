@@ -2,7 +2,7 @@
 
 源文件：`src/main.opy`。`player_state` 是新增的统一玩家状态数组，当前占用玩家变量槽 27。以后新增英雄技能优先评估写入这里或新建专用数组，不再随意追加独立 `playervar`。
 
-初始化规则：`[state] initialize player state array` 会在 `len(eventPlayer.player_state) < 38` 时写入默认数组。
+初始化规则：`[state] initialize player state array` 会在 `len(eventPlayer.player_state) < 50` 时写入默认数组。
 
 | Index | 名称 | 所属 | 含义 | 默认值 | 清理时机 | 是否可复用 | 相关规则/文件 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -44,6 +44,18 @@
 | 35 | `bastion_scrap_hud_id` | 堡垒 | 废铁 HUD 文本 ID | `null` | 创建后写入；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [bastion] create scrap hud/clear scrap after hero swap |
 | 36 | `bastion_mod_status_hud_created` | 堡垒 | 改装状态 HUD 是否已创建 | `false` | 触发改装设 true；改装结束、死亡或换英雄销毁后设 false | HUD 状态槽，可复用 | [bastion] activate/clear modification |
 | 37 | `bastion_mod_status_hud_id` | 堡垒 | 改装状态 HUD 文本 ID | `null` | 创建后写入；改装结束、死亡或换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [bastion] activate/clear modification |
+| 38 | `hanzo_arrow_rain_active` | 半藏 | 箭雨令运行/冷却锁 | `false` | 技能 1 触发设 true；箭雨结束、死亡或换英雄设 false | 英雄状态槽，可复用前必须确认箭雨结束 | [hanzo] arrow rain command/clear arrow rain and jumps |
+| 39 | `hanzo_arrow_rain_pos` | 半藏 | 箭雨令中心位置 | `null` | 技能 1 触发时保存最近可行走位置；结束或清理时设空 | 位置槽，可复用 | [hanzo] arrow rain command/clear arrow rain and jumps |
+| 40 | `hanzo_arrow_rain_fx` | 半藏 | 箭雨预警法阵/光柱效果句柄数组 | `[]` | 创建效果后写入；结束、死亡或换英雄 destroyEffect 后清空 | 效果句柄数组槽，可复用前必须销毁 | [hanzo] arrow rain command/clear arrow rain and jumps |
+| 41 | `hanzo_arrow_rain_targets` | 半藏 | 本次箭雨 tick 被减速/伤害的目标数组 | `[]` | 每次 tick 写入；0.25 秒后恢复速度并清空；清理规则兜底恢复 | 临时目标数组槽，可复用 | [hanzo] arrow rain command/clear arrow rain and jumps |
+| 42 | `hanzo_extra_jump_count` | 半藏 | 半藏额外踏空跳次数 | `0` | 每次额外踏空跳 +1；落地、死亡或换英雄清零 | 英雄计数槽，可复用 | [hanzo] extra air jump/clear arrow rain and jumps/clear extra air jumps on landing |
+| 43 | `hanzo_extra_jump_lock` | 半藏 | 半藏额外踏空跳按键边沿锁 | `false` | 额外跳触发设 true；松开跳跃、落地、死亡或换英雄设 false | 按键锁槽，可复用 | [hanzo] extra air jump/unlock/clear extra air jumps on landing |
+| 44 | `hanzo_arrow_rain_tick` | 半藏 | 箭雨令循环 tick 计数，5 次约 2.5 秒 | `0` | 箭雨开始设 0；每 tick +1；结束或清理时设 0 | 临时计数槽，可复用 | [hanzo] arrow rain command/clear arrow rain and jumps |
+| 45 | `orisa_judgment_energy` | 奥丽莎 | 奥丽莎自身裁决能量层数，0 到 7，不挂在敌人身上 | `0` | 命中获得；右键标枪触发裁决后清 0；换英雄清 0；死亡保留 | 英雄资源槽，死亡保留语义不可随意复用 | [orisa] create/gain/release/clear judgment energy |
+| 46 | `orisa_judgment_gain_cd` | 奥丽莎 | 裁决能量获取节流，避免高频命中瞬间刷满；主武器命中不参与获取 | `false` | 命中判定开始设 true；0.7 秒后或死亡/换英雄设 false | 短 cooldown 槽，可复用 | [orisa] gain judgment energy on hit/clear judgment temp state |
+| 47 | `orisa_judgment_hud_created` | 奥丽莎 | 裁决能量 HUD 是否已创建 | `false` | 进入奥丽莎创建；换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [orisa] create judgment energy hud/clear judgment energy after hero swap |
+| 48 | `orisa_judgment_hud_id` | 奥丽莎 | 裁决能量 HUD 文本 ID | `null` | 创建后写入；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [orisa] create judgment energy hud/clear judgment energy after hero swap |
+| 49 | `orisa_judgment_spent` | 奥丽莎 | 本次标枪释放裁决消耗的层数缓存 | `0` | 标枪命中时写入；裁决效果结束、死亡或换英雄设 0 | 临时数值槽，可复用 | [orisa] javelin releases judgment energy/clear judgment temp state |
 
 ## 扩展约定
 

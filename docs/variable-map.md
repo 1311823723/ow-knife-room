@@ -9,6 +9,7 @@
 - 当前实际使用玩家变量槽约 78 个。
 - 第一轮前显式 `playervar` 为 109 个；两轮迁移后为 72 个。
 - 已迁入 `player_state` 的旧独立变量共 38 个；新增数组变量 1 个，净减少 37 个显式玩家变量。
+- `player_state` 当前定义 `0..49`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引。
 - 当前未发现 `disabled rule` / 禁用规则块；没有变量属于“只在禁用规则中使用”。
 
 ## 当前玩家变量列表
@@ -27,7 +28,7 @@
 | 24 | `Y` | resource/state | 士兵 76 蚁人体型档位。 | [state] initialize player state array<br>[soldier] initialize antman state<br>[soldier] grow one antman step<br>[soldier] shrink one antman step<br>[soldier] clear antman state on death<br>[soldier] clear antman state after hero swap<br>76长时间变大 | 暂不迁移。 |
 | 25 | `Z` | resource/state | 士兵 76 派生属性百分比。 | [state] initialize player state array<br>[soldier] initialize antman state<br>[soldier] clear antman state on death<br>[soldier] clear antman state after hero swap | 暂不迁移。 |
 | 26 | `Kiriko_Skill` | resource/state | 雾子法阵运行标记，目前只设真/假，不作为条件使用，疑似可进一步清理。 | 雾子法阵击倒 | 疑似旧逻辑残留，未删除。 |
-| 27 | `player_state` | state array | 统一玩家状态数组，承载短状态、临时目标、HUD id、短冷却，以及本轮迁入的托比昂/堡垒资源和 HUD 状态。 | [state] initialize player state array<br>被睡冷却<br>[hud] open current hero ability guide on interact<br>[hud] close current hero ability guide on interact<br>[hud] unlock ability guide toggle<br>[hud] clear current hero ability guide on death<br>[bastion] create scrap hud<br>[bastion] gain scrap on damage<br>[bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap<br>[ramattra] destroy pain core by melee<br>[reaper] disable secondary fire<br>[winston] disable secondary fire<br>[reaper and winston] restore secondary fire after hero swap<br>[zenyatta] elemental primary hit<br>[zenyatta] clear elemental state on death<br>[zenyatta] clear elemental state after hero swap<br>[baptiste] fake drug injection<br>[torbjorn] create parts hud<br>[torbjorn] gain parts on elimination<br>[torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap<br>[roadhog] hook weakens target<br>[roadhog] consume boosted melee knockback<br>[lucio] remember airborne state<br>[lucio] landing bounce<br>[lucio] clear landing bounce cooldown<br>[sojourn] power slide launches nearby players<br>[brigitte] shield bash blink stun<br>[brigitte] shield counter melee attackers<br>[brigitte] clear shield bash blink on death<br>[brigitte] clear shield bash blink after hero swap<br>[brigitte] clear shield counter attacker state<br>[illari] apply sunburn on damage<br>[illari] pop sunburned target on damage<br>[illari] outburst knocks nearby players<br>[freya] launch circle | 新统一状态数组。 |
+| 27 | `player_state` | state array | 统一玩家状态数组，承载短状态、临时目标、HUD id、短冷却、资源状态，以及半藏箭雨令/多段跳状态。 | [state] initialize player state array<br>被睡冷却<br>[hud] open current hero ability guide on interact<br>[hud] close current hero ability guide on interact<br>[hud] unlock ability guide toggle<br>[hud] clear current hero ability guide on death<br>[bastion] create scrap hud<br>[bastion] gain scrap on damage<br>[bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap<br>[ramattra] destroy pain core by melee<br>[reaper] disable secondary fire<br>[winston] disable secondary fire<br>[reaper and winston] restore secondary fire after hero swap<br>[zenyatta] elemental primary hit<br>[zenyatta] clear elemental state on death<br>[zenyatta] clear elemental state after hero swap<br>[baptiste] fake drug injection<br>[torbjorn] create parts hud<br>[torbjorn] gain parts on elimination<br>[torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap<br>[roadhog] hook weakens target<br>[roadhog] consume boosted melee knockback<br>[lucio] remember airborne state<br>[lucio] landing bounce<br>[lucio] clear landing bounce cooldown<br>[sojourn] power slide launches nearby players<br>[brigitte] shield bash blink stun<br>[brigitte] shield counter melee attackers<br>[brigitte] clear shield bash blink on death<br>[brigitte] clear shield bash blink after hero swap<br>[brigitte] clear shield counter attacker state<br>[hanzo] arrow rain command<br>[hanzo] extra air jump<br>[hanzo] unlock extra air jump button<br>[hanzo] clear arrow rain and jumps<br>[illari] apply sunburn on damage<br>[illari] pop sunburned target on damage<br>[illari] outburst knocks nearby players<br>[freya] launch circle | 新统一状态数组。 |
 | 32 | `illari_sunburn_active` | active/flag | 伊拉锐晒黑目标状态，影响二次命中弹飞和恢复属性。 | [illari] apply sunburn on damage<br>[illari] pop sunburned target on damage | 后续可评估迁入数组。 |
 | 38 | `freya_launch_circle_effects` | effect/HUD handle | 芙蕾娅飞天法阵持续特效句柄数组。 | [freya] launch circle | 暂不迁移。 |
 | 39 | `genji_dash_reset_cooldown` | cooldown | 旧源氏过热机制遗留，只在源氏清理规则中兜底设假，疑似可清理。 | [genji] clear blade window on death<br>[genji] clear blade window after hero swap | 疑似旧逻辑残留，未删除。 |
@@ -136,6 +137,23 @@
 | 70 | `bastion_scrap_hud_id` | `player_state[35]` | 堡垒废铁 HUD id |
 | 73 | `bastion_mod_status_hud_created` | `player_state[36]` | 堡垒改装状态 HUD 创建标记 |
 | 74 | `bastion_mod_status_hud_id` | `player_state[37]` | 堡垒改装状态 HUD id |
+
+## 直接新增在 `player_state` 的变量
+
+| 新索引 | 名称 | 用途 |
+| --- | --- | --- |
+| `player_state[38]` | `hanzo_arrow_rain_active` | 半藏箭雨令运行/冷却锁 |
+| `player_state[39]` | `hanzo_arrow_rain_pos` | 半藏箭雨令中心位置 |
+| `player_state[40]` | `hanzo_arrow_rain_fx` | 半藏箭雨令预警法阵和光柱效果句柄数组 |
+| `player_state[41]` | `hanzo_arrow_rain_targets` | 半藏箭雨每次 tick 的临时目标数组 |
+| `player_state[42]` | `hanzo_extra_jump_count` | 半藏额外踏空跳计数 |
+| `player_state[43]` | `hanzo_extra_jump_lock` | 半藏额外踏空跳按键边沿锁 |
+| `player_state[44]` | `hanzo_arrow_rain_tick` | 半藏箭雨令 tick 计数 |
+| `player_state[45]` | `orisa_judgment_energy` | 奥丽莎自身裁决能量层数，0 到 7 |
+| `player_state[46]` | `orisa_judgment_gain_cd` | 奥丽莎裁决能量获取节流 |
+| `player_state[47]` | `orisa_judgment_hud_created` | 奥丽莎裁决能量 HUD 创建标记 |
+| `player_state[48]` | `orisa_judgment_hud_id` | 奥丽莎裁决能量 HUD id |
+| `player_state[49]` | `orisa_judgment_spent` | 奥丽莎本次标枪释放裁决消耗层数缓存 |
 
 ## 疑似旧逻辑残留但未删除
 

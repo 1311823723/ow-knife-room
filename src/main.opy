@@ -80,9 +80,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 38
+    @Condition len(eventPlayer.player_state) < 50
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0]
 
 
 def applySoldierAntmanState():
@@ -378,6 +378,10 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "巴蒂：哈哈镜与假药\n大招触发哈哈镜，附近玩家随机极大、极小、变脆或变硬\n造成伤害有概率让目标获得短暂假药副作用", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.GENJI:
         hudSubtext(eventPlayer, "源氏：疯狗龙刃窗口\n平时 Shift 被锁\n击杀开启 8 秒疯狗时间，自动开大并解锁 Shift\n续杀刷新时间，结束后沉睡 5 秒", HudPosition.ACTUALLY_LEFT, -998, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.HANZO:
+        hudSubtext(eventPlayer, "半藏：箭雨令\n按技能 1 在准星前方地面生成预警法阵\n0.7 秒后落箭，持续 2.5 秒\n范围内其他玩家受到小额持续伤害和减速\n空中可额外踏空多段跳", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.ORISA:
+        hudSubtext(eventPlayer, "奥丽莎：强固裁决\n命中敌人积累裁决能量，最多 7 层\n技能 1 期间命中稳定获得，平时命中有概率获得\n右键低伤害标枪会消耗全部能量打出裁决\n层数越高，减速、冷却惩罚和回血越强", HudPosition.ACTUALLY_LEFT, -998, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.TORBJORN:
         hudSubtext(eventPlayer, "托比昂：非法改装\n参与击杀获得零件，3 个零件后按 E 触发随机改装\n可能变巨型、迷你、防爆，也可能改装失败\n死亡或换英雄清空零件和改装", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.MEI:
@@ -1325,6 +1329,233 @@ rule "[zenyatta] clear slow on target death or hero swap":
     eventPlayer.zen_slow_active = false
     eventPlayer.zen_slow_timer = false
     eventPlayer.zen_slow_hero = null
+
+
+rule "[hanzo] arrow rain command":
+    @Event eachPlayer
+    @Hero hanzo
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.player_state[38] == false
+
+    eventPlayer.player_state[38] = true
+    eventPlayer.player_state[39] = nearestWalkablePosition(eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 12)
+    eventPlayer.player_state[40] = []
+    eventPlayer.player_state[41] = []
+    eventPlayer.player_state[44] = 0
+    eventPlayer.setAbilityCooldown(Button.ABILITY_1, 8)
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.YELLOW, eventPlayer.player_state[39], 5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[40].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.WHITE, eventPlayer.player_state[39], 5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[40].append(getLastCreatedEntity())
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.player_state[39], 5)
+    smallMessage(eventPlayer, "箭雨令")
+    wait(0.7)
+    while eventPlayer.player_state[38] == true and eventPlayer.getHero() == Hero.HANZO and eventPlayer.player_state[44] < 5:
+        eventPlayer.player_state[41] = getPlayersInRadius(eventPlayer.player_state[39], 5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true)
+        eventPlayer.player_state[41].setMoveSpeed(85)
+        damage(eventPlayer.player_state[41], eventPlayer, 5)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.WHITE, eventPlayer.player_state[39], 3)
+        wait(0.25)
+        eventPlayer.player_state[41].setMoveSpeed(100)
+        eventPlayer.player_state[41] = []
+        wait(0.25)
+        eventPlayer.player_state[44] += 1
+    if len(eventPlayer.player_state[40]) > 0:
+        destroyEffect(eventPlayer.player_state[40][0])
+    if len(eventPlayer.player_state[40]) > 1:
+        destroyEffect(eventPlayer.player_state[40][1])
+    eventPlayer.player_state[38] = false
+    eventPlayer.player_state[39] = null
+    eventPlayer.player_state[40] = []
+    eventPlayer.player_state[41] = []
+    eventPlayer.player_state[44] = 0
+
+
+rule "[hanzo] extra air jump":
+    @Event eachPlayer
+    @Hero hanzo
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isInAir() == true
+    @Condition eventPlayer.A == 0
+    @Condition eventPlayer.isHoldingButton(Button.JUMP) == true
+    @Condition eventPlayer.player_state[43] == false
+    @Condition eventPlayer.player_state[42] < 4
+
+    eventPlayer.player_state[43] = true
+    eventPlayer.player_state[42] += 1
+    eventPlayer.applyImpulse(Vector.UP, 10, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.WHITE, eventPlayer, 2)
+
+
+rule "[hanzo] unlock extra air jump button":
+    @Event eachPlayer
+    @Hero hanzo
+    @Condition eventPlayer.player_state[43] == true
+    @Condition eventPlayer.isHoldingButton(Button.JUMP) == false
+
+    eventPlayer.player_state[43] = false
+
+
+rule "[hanzo] clear arrow rain and jumps":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.HANZO or eventPlayer.isDead() == true
+    @Condition eventPlayer.player_state[38] == true or eventPlayer.player_state[39] != null or len(eventPlayer.player_state[40]) > 0 or len(eventPlayer.player_state[41]) > 0 or eventPlayer.player_state[42] > 0 or eventPlayer.player_state[43] == true or eventPlayer.player_state[44] > 0
+
+    if len(eventPlayer.player_state[40]) > 0:
+        destroyEffect(eventPlayer.player_state[40][0])
+    if len(eventPlayer.player_state[40]) > 1:
+        destroyEffect(eventPlayer.player_state[40][1])
+    eventPlayer.player_state[41].setMoveSpeed(100)
+    eventPlayer.player_state[38] = false
+    eventPlayer.player_state[39] = null
+    eventPlayer.player_state[40] = []
+    eventPlayer.player_state[41] = []
+    eventPlayer.player_state[42] = 0
+    eventPlayer.player_state[43] = false
+    eventPlayer.player_state[44] = 0
+
+
+rule "[hanzo] clear extra air jumps on landing":
+    @Event eachPlayer
+    @Hero hanzo
+    @Condition eventPlayer.isOnGround() == true
+    @Condition eventPlayer.player_state[42] > 0 or eventPlayer.player_state[43] == true
+
+    eventPlayer.player_state[42] = 0
+    eventPlayer.player_state[43] = false
+
+
+rule "[orisa] create judgment energy hud":
+    @Event eachPlayer
+    @Hero orisa
+    @Condition eventPlayer.player_state[47] == false
+
+    eventPlayer.player_state[47] = true
+    hudHeader(eventPlayer, "裁决能量：{}/7".format(eventPlayer.player_state[45]), HudPosition.RIGHT, -820, Color.GREEN, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.player_state[48] = getLastCreatedText()
+
+
+rule "[orisa] gain judgment energy on hit":
+    @Event playerDealtDamage
+    @Hero orisa
+    @Condition eventPlayer.isAlive() == true
+    @Condition victim.isAlive() == true
+    @Condition victim != eventPlayer
+    @Condition eventDamage > 0
+    @Condition eventAbility != Button.PRIMARY_FIRE
+    @Condition eventAbility != Button.SECONDARY_FIRE
+    @Condition eventPlayer.player_state[45] < 7
+    @Condition eventPlayer.player_state[46] == false
+
+    eventPlayer.player_state[46] = true
+    if eventPlayer.isUsingAbility1() == true or random.randint(1, 100) <= 30:
+        eventPlayer.player_state[45] += 1
+        if eventPlayer.player_state[45] >= 7:
+            eventPlayer.player_state[45] = 7
+            bigMessage(eventPlayer, "裁决已满")
+            playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer, 2.5)
+        else:
+            smallMessage(eventPlayer, "裁决能量：{}/7".format(eventPlayer.player_state[45]))
+            playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 1.4)
+    wait(0.7)
+    eventPlayer.player_state[46] = false
+
+
+rule "[orisa] javelin damage cap":
+    @Event playerDealtDamage
+    @Hero orisa
+    @Condition eventAbility == Button.SECONDARY_FIRE
+    @Condition eventDamage > 25
+
+    heal(victim, null, eventDamage - 25)
+
+
+rule "[orisa] javelin releases judgment energy":
+    @Event playerDealtDamage
+    @Hero orisa
+    @Condition eventPlayer.isAlive() == true
+    @Condition victim.isAlive() == true
+    @Condition eventAbility == Button.SECONDARY_FIRE
+    @Condition eventPlayer.player_state[45] > 0
+
+    eventPlayer.player_state[49] = eventPlayer.player_state[45]
+    eventPlayer.player_state[45] = 0
+    smallMessage(eventPlayer, "释放裁决：{}层".format(eventPlayer.player_state[49]))
+    smallMessage(victim, "你被裁决")
+    if eventPlayer.player_state[49] >= 7:
+        victim.setMoveSpeed(45)
+        if victim.getAbilityCooldown(Button.ABILITY_1) < 6:
+            victim.setAbilityCooldown(Button.ABILITY_1, 6)
+        if victim.getAbilityCooldown(Button.ABILITY_2) < 6:
+            victim.setAbilityCooldown(Button.ABILITY_2, 6)
+        if eventPlayer.getAbilityCooldown(Button.ABILITY_1) > 0:
+            eventPlayer.setAbilityCooldown(Button.ABILITY_1, 0)
+        heal(eventPlayer, null, 45)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, victim, 4)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 3)
+        bigMessage(eventPlayer, "满裁决")
+        wait(1.5)
+    elif eventPlayer.player_state[49] >= 5:
+        victim.setMoveSpeed(55)
+        if victim.getAbilityCooldown(Button.ABILITY_1) < 4.5:
+            victim.setAbilityCooldown(Button.ABILITY_1, 4.5)
+        if victim.getAbilityCooldown(Button.ABILITY_2) < 4.5:
+            victim.setAbilityCooldown(Button.ABILITY_2, 4.5)
+        if eventPlayer.getAbilityCooldown(Button.ABILITY_1) > 2:
+            eventPlayer.setAbilityCooldown(Button.ABILITY_1, 2)
+        heal(eventPlayer, null, 30)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, victim, 3)
+        bigMessage(eventPlayer, "重裁决")
+        wait(1.25)
+    elif eventPlayer.player_state[49] >= 3:
+        victim.setMoveSpeed(70)
+        if victim.getAbilityCooldown(Button.ABILITY_1) < 3:
+            victim.setAbilityCooldown(Button.ABILITY_1, 3)
+        if victim.getAbilityCooldown(Button.ABILITY_2) < 3:
+            victim.setAbilityCooldown(Button.ABILITY_2, 3)
+        if eventPlayer.getAbilityCooldown(Button.ABILITY_1) > 4:
+            eventPlayer.setAbilityCooldown(Button.ABILITY_1, 4)
+        heal(eventPlayer, null, 20)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, victim, 2.4)
+        smallMessage(eventPlayer, "中裁决")
+        wait(1)
+    else:
+        victim.setMoveSpeed(85)
+        if victim.getAbilityCooldown(Button.ABILITY_1) < 1.5:
+            victim.setAbilityCooldown(Button.ABILITY_1, 1.5)
+        if victim.getAbilityCooldown(Button.ABILITY_2) < 1.5:
+            victim.setAbilityCooldown(Button.ABILITY_2, 1.5)
+        if eventPlayer.getAbilityCooldown(Button.ABILITY_1) > 6:
+            eventPlayer.setAbilityCooldown(Button.ABILITY_1, 6)
+        heal(eventPlayer, null, 10)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, victim, 1.8)
+        smallMessage(eventPlayer, "轻裁决")
+        wait(0.8)
+    victim.setMoveSpeed(100)
+    eventPlayer.player_state[49] = 0
+
+
+rule "[orisa] clear judgment temp state on death":
+    @Event playerDied
+    @Hero orisa
+
+    eventPlayer.player_state[46] = false
+    eventPlayer.player_state[49] = 0
+
+
+rule "[orisa] clear judgment energy after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.ORISA
+    @Condition eventPlayer.player_state[45] > 0 or eventPlayer.player_state[46] == true or eventPlayer.player_state[47] == true or eventPlayer.player_state[49] > 0
+
+    if eventPlayer.player_state[47] == true:
+        destroyHudText(eventPlayer.player_state[48])
+    eventPlayer.player_state[45] = 0
+    eventPlayer.player_state[46] = false
+    eventPlayer.player_state[47] = false
+    eventPlayer.player_state[48] = null
+    eventPlayer.player_state[49] = 0
 
 
 rule "[reaper] leave soul anchor on final blow":
