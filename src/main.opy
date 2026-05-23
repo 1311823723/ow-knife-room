@@ -88,6 +88,20 @@ playervar reaper_anchor_timer_on 110
 playervar reaper_hunt_active 111
 playervar reaper_hunt_fx 112
 playervar disabled_secondary_fire 113
+playervar sigma_grasp_was_active 114
+playervar sigma_burst_cd 115
+playervar sigma_burst_pos 116
+playervar zen_element 117
+playervar zen_reload_lock 118
+playervar zen_hit_cd 119
+playervar zen_right_cd 120
+playervar zen_ult_cd 121
+playervar zen_skill_pos 122
+playervar zen_fx 123
+playervar zen_slow_active 124
+playervar zen_slow_timer 125
+playervar zen_slow_hero 126
+playervar zen_chain_target 127
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
@@ -409,12 +423,14 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.REAPER:
         hudSubtext(eventPlayer, "死神：收魂追猎\n击杀后留下短暂亡魂锚点\n按 E 借魂传送追猎，并展开黑雾猎场\n右键技能关闭", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.ZENYATTA:
+        hudSubtext(eventPlayer, "禅雅塔：三相念珠\n换弹键按火、冰、雷固定顺序切换元素\n普攻和右键附带弱化元素效果\n所有额外伤害单次不超过 10 点", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BASTION:
         hudSubtext(eventPlayer, "堡垒：废铁非法改装\n造成有效伤害攒废铁，满 6 个自动随机改装\n死亡不掉废铁，换英雄清零\n改装结束后属性会恢复", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.RAMATTRA:
         hudSubtext(eventPlayer, "拉玛刹：痛苦重力\n攻击施加超重，短时间叠满 3 层会重力压制\n技能 2 放置痛苦核心充能，敌人可近战摧毁\n痛苦满后下一次近战变为痛苦拳", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.SIGMA:
-        hudSubtext(eventPlayer, "西格玛：小黑洞\n技能 1 在准星前方释放小黑洞，轻微吸引附近玩家\n中心有少量持续伤害\n结束时爆炸并把附近玩家炸飞", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "西格玛：小黑洞与重力震爆\n技能 1 在准星前方释放小黑洞，轻微吸引附近玩家\n动能俘获结束时，面前发生重力震爆\n近距离目标会被小幅推开、减速并受到少量伤害", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.WINSTON:
         hudSubtext(eventPlayer, "温斯顿：跳跃撞人可抱摔\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BRIGITTE:
@@ -1010,12 +1026,15 @@ rule "[sigma] clear small black hole on death":
     eventPlayer.sigma_black_hole_position = null
     eventPlayer.sigma_black_hole_effects = []
     eventPlayer.sigma_black_hole_tick = 0
+    eventPlayer.sigma_grasp_was_active = false
+    eventPlayer.sigma_burst_cd = false
+    eventPlayer.sigma_burst_pos = null
 
 
 rule "[sigma] clear small black hole after hero swap":
     @Event eachPlayer
     @Condition eventPlayer.getHero() != Hero.SIGMA
-    @Condition eventPlayer.sigma_black_hole_active == true or eventPlayer.sigma_black_hole_cooldown == true
+    @Condition eventPlayer.sigma_black_hole_active == true or eventPlayer.sigma_black_hole_cooldown == true or eventPlayer.sigma_grasp_was_active == true or eventPlayer.sigma_burst_cd == true
 
     if eventPlayer.sigma_black_hole_active == true:
         if len(eventPlayer.sigma_black_hole_effects) > 0:
@@ -1029,6 +1048,41 @@ rule "[sigma] clear small black hole after hero swap":
     eventPlayer.sigma_black_hole_position = null
     eventPlayer.sigma_black_hole_effects = []
     eventPlayer.sigma_black_hole_tick = 0
+    eventPlayer.sigma_grasp_was_active = false
+    eventPlayer.sigma_burst_cd = false
+    eventPlayer.sigma_burst_pos = null
+
+
+rule "[sigma] remember kinetic grasp active":
+    @Event eachPlayer
+    @Hero sigma
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+
+    eventPlayer.sigma_grasp_was_active = true
+
+
+rule "[sigma] kinetic grasp release gravity burst":
+    @Event eachPlayer
+    @Hero sigma
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == false
+    @Condition eventPlayer.sigma_grasp_was_active == true
+    @Condition eventPlayer.sigma_burst_cd == false
+
+    eventPlayer.sigma_grasp_was_active = false
+    eventPlayer.sigma_burst_cd = true
+    eventPlayer.sigma_burst_pos = eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 3.5
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.BLUE, eventPlayer.sigma_burst_pos, 3)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.PURPLE, eventPlayer.sigma_burst_pos, 2)
+    getPlayersInRadius(eventPlayer.sigma_burst_pos, 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(eventPlayer.sigma_burst_pos, getPlayersInRadius(eventPlayer.sigma_burst_pos, 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition()), 8, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    damage(getPlayersInRadius(eventPlayer.sigma_burst_pos, 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 12)
+    getPlayersInRadius(eventPlayer.sigma_burst_pos, 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true).setMoveSpeed(85)
+    wait(1)
+    getPlayersInRadius(eventPlayer.sigma_burst_pos, 5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true).setMoveSpeed(100)
+    eventPlayer.sigma_burst_pos = null
+    wait(0.8)
+    eventPlayer.sigma_burst_cd = false
 
 
 rule "[reaper] disable secondary fire":
@@ -1057,6 +1111,233 @@ rule "[reaper and winston] restore secondary fire after hero swap":
 
     eventPlayer.allowButton(Button.SECONDARY_FIRE)
     eventPlayer.disabled_secondary_fire = false
+
+
+rule "[zenyatta] initialize element":
+    @Event eachPlayer
+    @Hero zenyatta
+    @Condition eventPlayer.zen_element == 0
+
+    eventPlayer.zen_element = 1
+    smallMessage(eventPlayer, "当前元素：火")
+
+
+rule "[zenyatta] cycle element on reload":
+    @Event eachPlayer
+    @Hero zenyatta
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isHoldingButton(Button.RELOAD) == true
+    @Condition eventPlayer.zen_reload_lock == false
+
+    eventPlayer.zen_reload_lock = true
+    if eventPlayer.zen_element == 1:
+        eventPlayer.zen_element = 2
+        playEffect(eventPlayer, DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 1.5)
+        smallMessage(eventPlayer, "当前元素：冰")
+    elif eventPlayer.zen_element == 2:
+        eventPlayer.zen_element = 3
+        playEffect(eventPlayer, DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer, 1.5)
+        smallMessage(eventPlayer, "当前元素：雷")
+    else:
+        eventPlayer.zen_element = 1
+        playEffect(eventPlayer, DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 1.5)
+        smallMessage(eventPlayer, "当前元素：火")
+    waitUntil(eventPlayer.isHoldingButton(Button.RELOAD) == false, 2)
+    eventPlayer.zen_reload_lock = false
+
+
+rule "[zenyatta] elemental primary hit":
+    @Event playerDealtDamage
+    @Hero zenyatta
+    @Condition eventPlayer.isAlive() == true
+    @Condition victim.isAlive() == true
+    @Condition victim != eventPlayer
+    @Condition eventDamage > 0
+    @Condition eventPlayer.zen_hit_cd == false
+    @Condition eventPlayer.zen_right_cd == false
+    @Condition eventPlayer.zen_ult_cd == false
+
+    eventPlayer.zen_hit_cd = true
+    if eventPlayer.zen_element == 1:
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.ORANGE, victim, 1.5)
+        damage(victim, eventPlayer, 6)
+    elif eventPlayer.zen_element == 2:
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, victim, 1.5)
+        damage(victim, eventPlayer, 4)
+        if victim.zen_slow_active == false:
+            victim.zen_slow_active = true
+            victim.zen_slow_timer = true
+            victim.zen_slow_hero = victim.getHero()
+            victim.setMoveSpeed(80)
+    else:
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, victim, 1.5)
+        damage(victim, eventPlayer, 5)
+        if len(getPlayersInRadius(victim.getPosition(), 3, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != victim and player != eventPlayer and player.isAlive() == true)) > 0:
+            eventPlayer.zen_chain_target = sorted(getPlayersInRadius(victim.getPosition(), 3, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != victim and player != eventPlayer and player.isAlive() == true), key=lambda player: distance(victim, player))[0]
+            damage(eventPlayer.zen_chain_target, eventPlayer, 4)
+            playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer.zen_chain_target, 1)
+            eventPlayer.zen_chain_target = null
+    wait(0.22)
+    eventPlayer.zen_hit_cd = false
+
+
+rule "[zenyatta] restore frost slow":
+    @Event eachPlayer
+    @Condition eventPlayer.zen_slow_active == true
+    @Condition eventPlayer.zen_slow_timer == true
+
+    wait(1)
+    if eventPlayer.zen_slow_active == true and eventPlayer.getHero() == eventPlayer.zen_slow_hero:
+        eventPlayer.setMoveSpeed(100)
+    eventPlayer.zen_slow_active = false
+    eventPlayer.zen_slow_timer = false
+    eventPlayer.zen_slow_hero = null
+
+
+rule "[zenyatta] elemental secondary skill":
+    @Event eachPlayer
+    @Hero zenyatta
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true
+    @Condition eventPlayer.zen_right_cd == false
+
+    eventPlayer.zen_right_cd = true
+    eventPlayer.zen_skill_pos = eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 8
+    if eventPlayer.zen_element == 1:
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.ORANGE, eventPlayer.zen_skill_pos, 3)
+        damage(getPlayersInRadius(eventPlayer.zen_skill_pos, 3.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 8)
+    elif eventPlayer.zen_element == 2:
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer.zen_skill_pos, 3)
+        damage(getPlayersInRadius(eventPlayer.zen_skill_pos, 3.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 4)
+        getPlayersInRadius(eventPlayer.zen_skill_pos, 3.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.zen_slow_active == false).zen_slow_active = true
+        getPlayersInRadius(eventPlayer.zen_skill_pos, 3.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.zen_slow_timer == false).zen_slow_timer = true
+        getPlayersInRadius(eventPlayer.zen_skill_pos, 3.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true).zen_slow_hero = getPlayersInRadius(eventPlayer.zen_skill_pos, 3.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true).getHero()
+        getPlayersInRadius(eventPlayer.zen_skill_pos, 3.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true).setMoveSpeed(75)
+    else:
+        eventPlayer.zen_fx = []
+        createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.AQUA, eventPlayer.zen_skill_pos, 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.zen_fx.append(getLastCreatedEntity())
+        createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.BLUE, eventPlayer.zen_skill_pos, 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.zen_fx.append(getLastCreatedEntity())
+        createBeam(getAllPlayers(), Beam.GOOD, eventPlayer, eventPlayer.zen_skill_pos, Color.AQUA, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.zen_fx.append(getLastCreatedEntity())
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer.zen_skill_pos, 2)
+        damage(getPlayersInRadius(eventPlayer.zen_skill_pos, 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 5)
+        wait(0.6)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer.zen_skill_pos, 2)
+        damage(getPlayersInRadius(eventPlayer.zen_skill_pos, 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 5)
+        wait(0.6)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer.zen_skill_pos, 2)
+        damage(getPlayersInRadius(eventPlayer.zen_skill_pos, 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 5)
+        wait(0.6)
+        if len(eventPlayer.zen_fx) > 0:
+            destroyEffect(eventPlayer.zen_fx[0])
+        if len(eventPlayer.zen_fx) > 1:
+            destroyEffect(eventPlayer.zen_fx[1])
+        if len(eventPlayer.zen_fx) > 2:
+            destroyEffect(eventPlayer.zen_fx[2])
+        eventPlayer.zen_fx = []
+    eventPlayer.zen_skill_pos = null
+    wait(1.2)
+    eventPlayer.zen_right_cd = false
+
+
+rule "[zenyatta] holy ult warning and strike":
+    @Event eachPlayer
+    @Hero zenyatta
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.getUltCharge() == 100
+    @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
+    @Condition eventPlayer.zen_ult_cd == false
+
+    eventPlayer.zen_ult_cd = true
+    eventPlayer.zen_skill_pos = eventPlayer.getPosition()
+    eventPlayer.zen_fx = []
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.YELLOW, eventPlayer.zen_skill_pos, 6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.zen_fx.append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.zen_skill_pos, 6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.zen_fx.append(getLastCreatedEntity())
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.zen_skill_pos, 6)
+    wait(0.25)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.zen_skill_pos, 6)
+    wait(0.25)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.zen_skill_pos, 6)
+    wait(0.35)
+    createBeam(getAllPlayers(), Beam.GOOD, eventPlayer.zen_skill_pos + Vector.UP * 18, eventPlayer.zen_skill_pos, Color.YELLOW, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.zen_fx.append(getLastCreatedEntity())
+    createBeam(getAllPlayers(), Beam.GOOD, eventPlayer.zen_skill_pos + Vector.UP * 18, eventPlayer.zen_skill_pos, Color.YELLOW, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.zen_fx.append(getLastCreatedEntity())
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.zen_skill_pos, 6)
+    damage(getPlayersInRadius(eventPlayer.zen_skill_pos, 6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 10)
+    wait(0.2)
+    if len(eventPlayer.zen_fx) > 0:
+        destroyEffect(eventPlayer.zen_fx[0])
+    if len(eventPlayer.zen_fx) > 1:
+        destroyEffect(eventPlayer.zen_fx[1])
+    if len(eventPlayer.zen_fx) > 2:
+        destroyEffect(eventPlayer.zen_fx[2])
+    if len(eventPlayer.zen_fx) > 3:
+        destroyEffect(eventPlayer.zen_fx[3])
+    if len(eventPlayer.zen_fx) > 2:
+        destroyEffect(eventPlayer.zen_fx[2])
+    if len(eventPlayer.zen_fx) > 3:
+        destroyEffect(eventPlayer.zen_fx[3])
+    eventPlayer.zen_fx = []
+    eventPlayer.zen_skill_pos = null
+    wait(3)
+    eventPlayer.zen_ult_cd = false
+
+
+rule "[zenyatta] clear elemental state on death":
+    @Event playerDied
+    @Hero zenyatta
+
+    if len(eventPlayer.zen_fx) > 0:
+        destroyEffect(eventPlayer.zen_fx[0])
+    if len(eventPlayer.zen_fx) > 1:
+        destroyEffect(eventPlayer.zen_fx[1])
+    if len(eventPlayer.zen_fx) > 2:
+        destroyEffect(eventPlayer.zen_fx[2])
+    if len(eventPlayer.zen_fx) > 3:
+        destroyEffect(eventPlayer.zen_fx[3])
+    eventPlayer.zen_element = 0
+    eventPlayer.zen_reload_lock = false
+    eventPlayer.zen_hit_cd = false
+    eventPlayer.zen_right_cd = false
+    eventPlayer.zen_ult_cd = false
+    eventPlayer.zen_skill_pos = null
+    eventPlayer.zen_fx = []
+    eventPlayer.zen_chain_target = null
+
+
+rule "[zenyatta] clear elemental state after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.ZENYATTA
+    @Condition eventPlayer.zen_element != 0 or eventPlayer.zen_reload_lock == true or eventPlayer.zen_hit_cd == true or eventPlayer.zen_right_cd == true or eventPlayer.zen_ult_cd == true
+
+    if len(eventPlayer.zen_fx) > 0:
+        destroyEffect(eventPlayer.zen_fx[0])
+    if len(eventPlayer.zen_fx) > 1:
+        destroyEffect(eventPlayer.zen_fx[1])
+    eventPlayer.zen_element = 0
+    eventPlayer.zen_reload_lock = false
+    eventPlayer.zen_hit_cd = false
+    eventPlayer.zen_right_cd = false
+    eventPlayer.zen_ult_cd = false
+    eventPlayer.zen_skill_pos = null
+    eventPlayer.zen_fx = []
+    eventPlayer.zen_chain_target = null
+
+
+rule "[zenyatta] clear slow on target death or hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.zen_slow_active == true or eventPlayer.zen_slow_timer == true
+    @Condition eventPlayer.isDead() == true or (eventPlayer.zen_slow_hero != null and eventPlayer.getHero() != eventPlayer.zen_slow_hero)
+
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.zen_slow_active = false
+    eventPlayer.zen_slow_timer = false
+    eventPlayer.zen_slow_hero = null
 
 
 rule "[reaper] leave soul anchor on final blow":

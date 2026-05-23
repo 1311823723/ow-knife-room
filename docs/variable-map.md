@@ -91,6 +91,9 @@
 | `sigma_black_hole_effects` | `sigma_black_hole_effects` | `[sigma] release small black hole`、西格玛清理规则 | 保存小黑洞光环和光柱效果实体，用于结束或异常中断时销毁。 | 否。 | 是，生成黑洞前设为空数组。 | 黑洞结束、死亡或换英雄时销毁并清空。 |
 | `sigma_black_hole_tick` | `sigma_black_hole_tick` | `[sigma] release small black hole`、西格玛清理规则 | 小黑洞 0.5 秒循环计数。当前运行 6 次，约 3 秒。 | 否。 | 是，释放时设 0。 | 黑洞结束、死亡或换英雄时设 0。 |
 | `sigma_black_hole_damage_taken` | `sigma_black_hole_damage_taken` | `[sigma] release small black hole`、西格玛清理规则 | 记录玩家在当前小黑洞中心持续伤害中已受到的伤害，用于限制单次黑洞中心伤害。 | 否。 | 是，进入黑洞流程时附近玩家设 0。 | 黑洞结束、释放者死亡或换英雄时附近玩家设 0。 |
+| `sigma_grasp_was_active` | `sigma_grasp_was_active` | `[sigma] remember kinetic grasp active`、`[sigma] kinetic grasp release gravity burst` | 记录西格玛刚刚使用过动能俘获/技能 1，用于在技能结束边沿触发一次重力震爆。 | 否。 | 是，默认假。 | 震爆触发、死亡或换英雄时设假。 |
+| `sigma_burst_cd` | `sigma_burst_cd` | `[sigma] kinetic grasp release gravity burst`、西格玛清理规则 | 重力震爆短冷却，避免技能结束时重复触发。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
+| `sigma_burst_pos` | `sigma_burst_pos` | `[sigma] kinetic grasp release gravity burst`、西格玛清理规则 | 保存重力震爆中心位置，独立于小黑洞位置，避免两个机制互相覆盖。 | 否。 | 是，触发震爆时保存。 | 震爆结束、死亡或换英雄时设空。 |
 | `reaper_anchor_active` | `reaper_anchor_active` | 死神收魂追猎规则 | 标记当前是否存在亡魂锚点。 | 否。 | 是，默认假。 | 锚点超时、追猎、死亡或换英雄时设假。 |
 | `reaper_anchor_pos` | `reaper_anchor_pos` | 死神收魂追猎规则 | 保存亡魂锚点位置，用于借魂传送。 | 否。 | 是，击杀后保存死者位置。 | 锚点清理、追猎、死亡或换英雄时设空。 |
 | `reaper_anchor_fx` | `reaper_anchor_fx` | 死神收魂追猎规则 | 保存亡魂锚点的黑雾光环和光柱效果句柄。 | 否。 | 是，击杀后设为空数组再写入句柄。 | 锚点超时、追猎、死亡或换英雄时销毁并清空。 |
@@ -100,6 +103,17 @@
 | `reaper_hunt_active` | `reaper_hunt_active` | `[reaper] soul hunt to anchor`、死神清理规则 | 标记黑雾猎场和追猎短强化是否正在生效。 | 否。 | 是，默认假。 | 猎场结束、死亡或换英雄时设假并恢复速度。 |
 | `reaper_hunt_fx` | `reaper_hunt_fx` | `[reaper] soul hunt to anchor`、死神清理规则 | 保存借魂追猎后的黑雾猎场效果句柄。 | 否。 | 是，追猎时设为空数组再写入句柄。 | 猎场结束、死亡或换英雄时销毁并清空。 |
 | `disabled_secondary_fire` | `disabled_secondary_fire` | 死神/温斯顿右键关闭规则 | 标记当前玩家是否已经被关闭右键，避免每帧重复禁用。 | 否。 | 是，默认假。 | 换到非死神/非温斯顿英雄时恢复右键并设假。 |
+| `zen_element` | `zen_element` | 禅雅塔三相念珠规则 | 当前元素，`1` 火、`2` 冰、`3` 雷。 | 否。 | 是，进入禅雅塔时默认设为火。 | 死亡或换英雄时设 0。 |
+| `zen_reload_lock` | `zen_reload_lock` | `[zenyatta] cycle element on reload` | 换弹键切换元素的边沿锁，避免按住换弹时连续切换。 | 否。 | 是，默认假。 | 松开换弹、死亡或换英雄时设假。 |
+| `zen_hit_cd` | `zen_hit_cd` | `[zenyatta] elemental primary hit` | 普攻元素效果短节流，避免多段伤害高频触发额外效果。 | 否。 | 是，默认假。 | 约 0.22 秒后解除；死亡或换英雄时设假。 |
+| `zen_right_cd` | `zen_right_cd` | `[zenyatta] elemental secondary skill` | 右键元素技能冷却锁。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
+| `zen_ult_cd` | `zen_ult_cd` | `[zenyatta] holy ult warning and strike` | 圣光大招额外表现的冷却锁，避免按住大招重复触发。 | 否。 | 是，默认假。 | 冷却结束、死亡或换英雄时设假。 |
+| `zen_skill_pos` | `zen_skill_pos` | 禅雅塔右键和大招规则 | 保存本次元素爆点、磁暴球或圣光位置。 | 否。 | 是，触发时保存。 | 技能结束、死亡或换英雄时设空。 |
+| `zen_fx` | `zen_fx` | 禅雅塔雷右键和圣光大招规则 | 保存磁暴球、电流连线、圣光预警和落雷光柱特效句柄。 | 否。 | 是，触发前设为空数组。 | 技能结束、死亡或换英雄时销毁并清空。 |
+| `zen_slow_active` | `zen_slow_active` | 禅雅塔冰元素规则、目标清理规则 | 标记玩家正受到禅雅塔冰元素短暂减速。 | 否。 | 是，默认假。 | 减速结束、死亡或换英雄时恢复移速并设假。 |
+| `zen_slow_timer` | `zen_slow_timer` | `[zenyatta] restore frost slow` | 冰元素减速恢复线程锁。 | 否。 | 是，默认假。 | 恢复完成、死亡或换英雄时设假。 |
+| `zen_slow_hero` | `zen_slow_hero` | 禅雅塔冰元素规则、目标清理规则 | 记录被减速时的英雄，用于换英雄后恢复速度。 | 否。 | 是，减速时保存。 | 减速结束、死亡或换英雄时清空。 |
+| `zen_chain_target` | `zen_chain_target` | `[zenyatta] elemental primary hit` | 雷元素普攻临时保存最近的连锁目标。 | 否。 | 否，临时变量。 | 每次连锁结算后设空。 |
 ## 建议新增变量
 
 | 建议变量 | 类型 | 用途 | 备注 |
