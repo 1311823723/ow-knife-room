@@ -2909,13 +2909,14 @@ rule "[lifeweaver] create garden bowling ball":
     eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
     eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
     eventPlayer.player_state[83] = []
+    eventPlayer.player_state[94] = 0
     createDummy(Hero.LIFEWEAVER, eventPlayer.getTeam(), -1, eventPlayer.player_state[82], eventPlayer.player_state[85])
     eventPlayer.player_state[93] = getLastCreatedEntity()
-    eventPlayer.player_state[93].startScalingSize(0.01)
+    eventPlayer.player_state[93].setInvisibility(Invis.ALL)
     eventPlayer.player_state[93].setMaxHealth(1000)
     eventPlayer.player_state[93].setMoveSpeed(50)
     eventPlayer.player_state[93].setDamageDealt(0)
-    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[93].getPosition() + Vector.UP * 0.8, eventPlayer.player_state[93].getFacingDirection(), 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85], 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
     eventPlayer.player_state[83].append(getLastCreatedEntity())
     createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.GREEN, eventPlayer.player_state[82], 1.6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.player_state[83].append(getLastCreatedEntity())
@@ -2938,6 +2939,34 @@ rule "[lifeweaver] garden ball follows owner":
     eventPlayer.player_state[93].teleport(eventPlayer.player_state[82])
     eventPlayer.player_state[93].startFacing(eventPlayer.player_state[85], 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.1)
+    if ruleCondition:
+        loop()
+
+
+rule "[lifeweaver] refresh garden ball visual":
+    @Event eachPlayer
+    @Hero lifeweaver
+    @Condition eventPlayer.isDummy() == false
+    @Condition eventPlayer.player_state[81] == true
+    @Condition eventPlayer.player_state[93] != null
+    @Condition len(eventPlayer.player_state[83]) > 0
+
+    eventPlayer.player_state[82] = eventPlayer.player_state[93].getPosition() + Vector.UP * 0.7
+    eventPlayer.player_state[94] = (eventPlayer.player_state[94] + 1) % 4
+    destroyEffect(eventPlayer.player_state[83][0])
+    if eventPlayer.player_state[84] == 1:
+        if eventPlayer.player_state[94] == 0:
+            createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85] + Vector.UP, 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+        elif eventPlayer.player_state[94] == 1:
+            createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85] + vect(1, 0, 0), 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+        elif eventPlayer.player_state[94] == 2:
+            createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85] + Vector.DOWN, 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+        else:
+            createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85] + vect(-1, 0, 0), 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+    else:
+        createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85], 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+    eventPlayer.player_state[83][0] = getLastCreatedEntity()
+    wait(0.08)
     if ruleCondition:
         loop()
 

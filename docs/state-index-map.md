@@ -99,8 +99,8 @@
 | 90 | `lifeweaver_ult_pos` | 生命之梭 | 天降花盆预警/砸地位置 | `null` | 大招开始写入；结束或清理置空 | 位置槽，可复用 | [lifeweaver] garden pot ultimate/clear |
 | 91 | `lifeweaver_ult_fx` | 生命之梭 | 天降花盆预警效果句柄数组 | `[]` | 大招预警创建；砸地、换英雄时 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [lifeweaver] garden pot ultimate/clear |
 | 92 | `lifeweaver_pull_beam` | 生命之梭 | 拉回园艺球光束句柄 | `null` | 拉回开始写入；结束或清理 destroyEffect 后置空 | 效果句柄槽，可复用前必须销毁 | [lifeweaver] pull/clear |
-| 93 | `lifeweaver_ball_dummy` | 生命之梭 | 承载园艺球实体物理的极小生命之梭 dummy | `null` | 创建园艺球时生成并写入；换英雄 destroyDummy 后清空 | 玩家引用槽，可复用前必须销毁 dummy | [lifeweaver] create/follow/launch/pull/ult/clear |
-| 94 | `lifeweaver_reserved_b` | 生命之梭 | 预留占位，当前未使用 | `null` | 默认空 | 可复用 | 暂无 |
+| 93 | `lifeweaver_ball_dummy` | 生命之梭 | 承载园艺球实体物理的隐藏生命之梭 dummy | `null` | 创建园艺球时生成并写入；换英雄 destroyDummy 后清空 | 玩家引用槽，可复用前必须销毁 dummy | [lifeweaver] create/follow/launch/pull/ult/clear |
+| 94 | `lifeweaver_ball_spin_tick` | 生命之梭 | 园艺球飞行视觉刷新朝向节拍，用于模拟滚动感 | `0` | 创建置 0；视觉刷新时循环递增；换英雄清空 | 临时计数槽，可复用 | [lifeweaver] refresh garden ball visual/clear |
 | 95 | `lifeweaver_ball_hit_cd` | 生命之梭/目标 | 被园艺球命中的目标短防重复判定 | `false` | 命中设 true；约 1.1 秒后清 false | 目标短 cooldown 槽，可复用 | [lifeweaver] melee launches/clear garden ball hit cooldown |
 
 ## 扩展约定
