@@ -80,9 +80,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 50
+    @Condition len(eventPlayer.player_state) < 66
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null]
 
 
 def applySoldierAntmanState():
@@ -385,7 +385,7 @@ rule "[hud] open current hero ability guide on interact":
     elif eventPlayer.getHero() == Hero.TORBJORN:
         hudSubtext(eventPlayer, "托比昂：非法改装\n参与击杀获得零件，3 个零件后按 E 触发随机改装\n可能变巨型、迷你、防爆，也可能改装失败\n死亡或换英雄清空零件和改装", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.MEI:
-        hudSubtext(eventPlayer, "小美：冰冻拳\n造成伤害时有 20% 概率冰冻目标 1 秒\n概率按每次造成伤害独立判定", HudPosition.ACTUALLY_LEFT, -998, Color.AQUA, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "小美：寒气掌控\n近战和冰爆会叠寒气，满 3 层短暂冰冻并减速\n技能 1 开启 4 秒近身寒气圈\n技能 2 在准星位置生成延迟冰爆陷阱", HudPosition.ACTUALLY_LEFT, -998, Color.AQUA, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.ROADHOG:
         hudSubtext(eventPlayer, "路霸：钩中改造\n钩中敌人会让目标缩小 3 秒\n目标移速提高但受到击退增加\n路霸下一次近战会附加强击退", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.LUCIO:
@@ -1747,13 +1747,213 @@ rule "雾子法阵击倒":
     eventPlayer.D = []
 
 
-rule "[mei] freeze target on damage chance":
+rule "[mei] melee adds frost stack":
     @Event playerDealtDamage
     @Hero mei
+    @Condition eventPlayer.isAlive() == true
+    @Condition victim.isAlive() == true
+    @Condition victim != eventPlayer
+    @Condition eventAbility == Button.MELEE
+    @Condition eventDamage > 0
+    @Condition getCurrentGamemode() == Gamemode.FFA or victim.getTeam() != eventPlayer.getTeam()
+    @Condition victim.player_state[50] < 3
+    @Condition victim.player_state[59] == false
 
-    if random.randint(1, 100) <= 20:
-        victim.setStatusEffect(eventPlayer, Status.FROZEN, 1)
-        smallMessage(eventPlayer, "小美冰冻触发")
+    victim.player_state[59] = true
+    victim.player_state[50] += 1
+    victim.player_state[51] += 1
+    victim.player_state[55] = victim.getHero()
+    victim.player_state[65] = eventPlayer
+    if victim.player_state[50] >= 3:
+        victim.player_state[50] = 3
+    smallMessage(eventPlayer, "寒气 {}/3".format(victim.player_state[50]))
+    smallMessage(victim, "寒气 {}/3".format(victim.player_state[50]))
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, victim, 1.2)
+    wait(0.35)
+    victim.player_state[59] = false
+
+
+rule "[mei] iceburst trap":
+    @Event eachPlayer
+    @Hero mei
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility2() == true
+    @Condition eventPlayer.player_state[58] == false
+
+    eventPlayer.player_state[58] = true
+    eventPlayer.player_state[62] = nearestWalkablePosition(eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 12)
+    eventPlayer.setAbilityCooldown(Button.ABILITY_2, 8)
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.AQUA, eventPlayer.player_state[62], 3.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[63].append(getLastCreatedEntity())
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer.player_state[62], 2)
+    wait(0.65)
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.AQUA, eventPlayer.player_state[62], 3.2)
+    damage(getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 8)
+    getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[50] += 2
+    getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[51] += 1
+    getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[55] = getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).getHero()
+    getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[65] = eventPlayer
+    getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setMoveSpeed(75)
+    getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[53] = true
+    getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[54] += 1
+    smallMessage(getPlayersInRadius(eventPlayer.player_state[62], 3.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "寒气 +2")
+    wait(0.8)
+    if len(eventPlayer.player_state[63]) > 0:
+        destroyEffect(eventPlayer.player_state[63][0])
+    eventPlayer.player_state[62] = null
+    eventPlayer.player_state[63] = []
+    wait(7.2)
+    eventPlayer.player_state[58] = false
+
+
+rule "[mei] frost aura":
+    @Event eachPlayer
+    @Hero mei
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.player_state[56] == false
+
+    eventPlayer.player_state[56] = true
+    eventPlayer.setAbilityCooldown(Button.ABILITY_1, 8)
+    createEffect(getAllPlayers(), Effect.CLOUD, Color.AQUA, eventPlayer, 3.8, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[57].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.AQUA, eventPlayer, 3.8, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[57].append(getLastCreatedEntity())
+    smallMessage(eventPlayer, "寒气圈展开")
+    wait(4)
+    if len(eventPlayer.player_state[57]) > 0:
+        destroyEffect(eventPlayer.player_state[57][0])
+    if len(eventPlayer.player_state[57]) > 1:
+        destroyEffect(eventPlayer.player_state[57][1])
+    eventPlayer.player_state[57] = []
+    eventPlayer.player_state[56] = false
+
+
+rule "[mei] frost aura adds stack":
+    @Event eachPlayer
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[61] == false
+    @Condition len(getPlayersOnHero(Hero.MEI, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[56] == true and distance(eventPlayer, player) <= 3.8 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0
+    @Condition eventPlayer.player_state[50] < 3
+
+    eventPlayer.player_state[61] = true
+    eventPlayer.player_state[50] += 1
+    eventPlayer.player_state[51] += 1
+    eventPlayer.player_state[55] = eventPlayer.getHero()
+    eventPlayer.player_state[65] = sorted(getPlayersOnHero(Hero.MEI, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[56] == true and distance(eventPlayer, player) <= 3.8 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), key=lambda player: distance(eventPlayer, player))[0]
+    if eventPlayer.player_state[50] >= 3:
+        eventPlayer.player_state[50] = 3
+    smallMessage(eventPlayer, "寒气 {}/3".format(eventPlayer.player_state[50]))
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer, 1)
+    wait(2)
+    eventPlayer.player_state[61] = false
+
+
+rule "[mei] full frost freezes target":
+    @Event eachPlayer
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[50] >= 3
+
+    eventPlayer.player_state[50] = 0
+    eventPlayer.player_state[51] += 1
+    eventPlayer.player_state[55] = eventPlayer.getHero()
+    bigMessage(eventPlayer, "寒气爆发")
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer, 2.5)
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.WHITE, eventPlayer, 2)
+    eventPlayer.setStatusEffect(null, Status.FROZEN, 0.6)
+    wait(0.6)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == eventPlayer.player_state[55]:
+        eventPlayer.setMoveSpeed(65)
+        eventPlayer.player_state[53] = true
+        eventPlayer.player_state[54] += 1
+
+
+rule "[mei] restore frost slow":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[53] == true
+    @Condition eventPlayer.player_state[64] != eventPlayer.player_state[54]
+
+    eventPlayer.player_state[64] = eventPlayer.player_state[54]
+    wait(2)
+    if eventPlayer.player_state[53] == true and eventPlayer.player_state[64] == eventPlayer.player_state[54] and eventPlayer.isAlive() == true and eventPlayer.getHero() == eventPlayer.player_state[55]:
+        eventPlayer.setMoveSpeed(100)
+    if eventPlayer.player_state[64] == eventPlayer.player_state[54]:
+        eventPlayer.player_state[53] = false
+
+
+rule "[mei] frost stack decay":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[50] > 0
+    @Condition eventPlayer.player_state[52] == false
+
+    eventPlayer.player_state[52] = true
+    eventPlayer.player_state[60] = eventPlayer.player_state[51]
+    waitUntil(eventPlayer.player_state[60] != eventPlayer.player_state[51] or eventPlayer.isDead() == true or eventPlayer.getHero() != eventPlayer.player_state[55], 3)
+    while eventPlayer.player_state[50] > 0 and eventPlayer.player_state[60] == eventPlayer.player_state[51] and eventPlayer.isAlive() == true and eventPlayer.getHero() == eventPlayer.player_state[55]:
+        wait(2)
+        if eventPlayer.player_state[50] > 0 and eventPlayer.player_state[60] == eventPlayer.player_state[51] and eventPlayer.isAlive() == true and eventPlayer.getHero() == eventPlayer.player_state[55]:
+            eventPlayer.player_state[50] -= 1
+            smallMessage(eventPlayer, "寒气消退：{}/3".format(eventPlayer.player_state[50]))
+    eventPlayer.player_state[52] = false
+
+
+rule "[mei] clear frost target state":
+    @Event eachPlayer
+    @Condition eventPlayer.isDead() == true or eventPlayer.getHero() != eventPlayer.player_state[55]
+    @Condition eventPlayer.player_state[50] > 0 or eventPlayer.player_state[52] == true or eventPlayer.player_state[53] == true or eventPlayer.player_state[59] == true or eventPlayer.player_state[61] == true
+
+    eventPlayer.player_state[50] = 0
+    eventPlayer.player_state[51] += 1
+    eventPlayer.player_state[52] = false
+    eventPlayer.player_state[53] = false
+    eventPlayer.player_state[54] += 1
+    eventPlayer.player_state[55] = null
+    eventPlayer.player_state[65] = null
+    eventPlayer.player_state[59] = false
+    eventPlayer.player_state[60] = 0
+    eventPlayer.player_state[61] = false
+    eventPlayer.player_state[64] = 0
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.clearStatusEffect(Status.FROZEN)
+
+
+rule "[mei] clear frost when source mei leaves":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[65] != null
+    @Condition eventPlayer.player_state[65].isDead() == true or eventPlayer.player_state[65].getHero() != Hero.MEI
+    @Condition eventPlayer.player_state[50] > 0 or eventPlayer.player_state[52] == true or eventPlayer.player_state[53] == true or eventPlayer.player_state[59] == true or eventPlayer.player_state[61] == true
+
+    eventPlayer.player_state[50] = 0
+    eventPlayer.player_state[51] += 1
+    eventPlayer.player_state[52] = false
+    eventPlayer.player_state[53] = false
+    eventPlayer.player_state[54] += 1
+    eventPlayer.player_state[55] = null
+    eventPlayer.player_state[59] = false
+    eventPlayer.player_state[60] = 0
+    eventPlayer.player_state[61] = false
+    eventPlayer.player_state[64] = 0
+    eventPlayer.player_state[65] = null
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.clearStatusEffect(Status.FROZEN)
+
+
+rule "[mei] clear frost aura after death or hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.MEI or eventPlayer.isDead() == true
+    @Condition eventPlayer.player_state[56] == true or len(eventPlayer.player_state[57]) > 0 or eventPlayer.player_state[58] == true or eventPlayer.player_state[62] != null or len(eventPlayer.player_state[63]) > 0
+
+    if len(eventPlayer.player_state[57]) > 0:
+        destroyEffect(eventPlayer.player_state[57][0])
+    if len(eventPlayer.player_state[57]) > 1:
+        destroyEffect(eventPlayer.player_state[57][1])
+    if len(eventPlayer.player_state[63]) > 0:
+        destroyEffect(eventPlayer.player_state[63][0])
+    eventPlayer.player_state[56] = false
+    eventPlayer.player_state[57] = []
+    eventPlayer.player_state[58] = false
+    eventPlayer.player_state[62] = null
+    eventPlayer.player_state[63] = []
 
 
 rule "[baptiste] mirror matrix trigger":

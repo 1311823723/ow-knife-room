@@ -56,6 +56,22 @@
 | 47 | `orisa_judgment_hud_created` | 奥丽莎 | 裁决能量 HUD 是否已创建 | `false` | 进入奥丽莎创建；换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [orisa] create judgment energy hud/clear judgment energy after hero swap |
 | 48 | `orisa_judgment_hud_id` | 奥丽莎 | 裁决能量 HUD 文本 ID | `null` | 创建后写入；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [orisa] create judgment energy hud/clear judgment energy after hero swap |
 | 49 | `orisa_judgment_spent` | 奥丽莎 | 本次标枪释放裁决消耗的层数缓存 | `0` | 标枪命中时写入；裁决效果结束、死亡或换英雄设 0 | 临时数值槽，可复用 | [orisa] javelin releases judgment energy/clear judgment temp state |
+| 50 | `mei_frost_stacks` | 小美/目标 | 目标当前寒气层数，0 到 3 | `0` | 小美近战、冰爆、寒气圈增加；满 3 层清零；死亡/换英雄清零 | 目标资源槽，可复用前需清理减速/冰冻 | [mei] melee/iceburst/aura/full frost/decay/clear |
+| 51 | `mei_frost_token` | 小美/目标 | 寒气增加版本号，用于重置衰减等待 | `0` | 每次获得寒气或满层清零时递增；死亡/换英雄递增 | token 槽，可复用 | [mei] melee/iceburst/aura/full frost/decay/clear |
+| 52 | `mei_frost_decay_active` | 小美/目标 | 寒气衰减线程是否运行 | `false` | 衰减规则开始设 true；结束、死亡或换英雄设 false | 线程锁槽，可复用 | [mei] frost stack decay/clear |
+| 53 | `mei_frost_slow_active` | 小美/目标 | 目标是否处于小美寒气减速恢复流程 | `false` | 冰爆或满层后设 true；恢复、死亡或换英雄设 false | 减速状态槽，可复用前必须恢复速度 | [mei] iceburst/full frost/restore/clear |
+| 54 | `mei_frost_slow_token` | 小美/目标 | 减速恢复版本号，避免旧恢复覆盖新减速 | `0` | 每次施加寒气减速时递增；清理时递增 | token 槽，可复用 | [mei] iceburst/full frost/restore/clear |
+| 55 | `mei_frost_original_hero` | 小美/目标 | 目标获得寒气时的英雄，用于换英雄清理 | `null` | 获得寒气或减速时写入；清理后置空 | 英雄引用槽，可复用 | [mei] melee/iceburst/aura/full frost/decay/clear |
+| 56 | `mei_aura_active` | 小美 | 技能 1 寒气圈是否运行 | `false` | 技能 1 触发设 true；4 秒后、死亡或换英雄设 false | 英雄状态槽，可复用 | [mei] frost aura/clear |
+| 57 | `mei_aura_fx` | 小美 | 寒气圈持续特效句柄数组 | `[]` | 技能 1 创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [mei] frost aura/clear |
+| 58 | `mei_iceburst_cd` | 小美 | 技能 2 冰爆内置冷却锁 | `false` | 冰爆触发设 true；流程和冷却结束、死亡或换英雄设 false | 冷却槽，可复用 | [mei] iceburst trap/clear |
+| 59 | `mei_melee_hit_cd` | 小美/目标 | 近战叠寒气短节流，防同一次近战重复加层 | `false` | 近战叠层设 true；0.35 秒后或清理设 false | 短 cooldown 槽，可复用 | [mei] melee adds frost stack/clear |
+| 60 | `mei_frost_decay_snapshot` | 小美/目标 | 衰减线程记录的寒气 token 快照 | `0` | 衰减开始写入；清理后置 0 | 临时数值槽，可复用 | [mei] frost stack decay/clear |
+| 61 | `mei_aura_stack_cd` | 小美/目标 | 寒气圈对同一目标的 2 秒叠层节流 | `false` | 寒气圈叠层设 true；2 秒后或清理设 false | 短 cooldown 槽，可复用 | [mei] frost aura adds stack/clear |
+| 62 | `mei_iceburst_pos` | 小美 | 本次冰爆陷阱位置 | `null` | 技能 2 触发写入；爆炸/清理后置空 | 位置槽，可复用 | [mei] iceburst trap/clear |
+| 63 | `mei_iceburst_fx` | 小美 | 冰爆预警特效句柄数组 | `[]` | 预警创建；爆炸后、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [mei] iceburst trap/clear |
+| 64 | `mei_frost_slow_snapshot` | 小美/目标 | 减速恢复线程记录的 slow token 快照 | `0` | 恢复规则开始写入；清理后置 0 | 临时数值槽，可复用 | [mei] restore frost slow/clear |
+| 65 | `mei_frost_source` | 小美/目标 | 最近给目标叠加寒气的小美玩家引用，用于来源死亡/换英雄清理 | `null` | 获得寒气时写入；目标清理或来源离开小美时置空 | 玩家引用槽，可复用 | [mei] melee/iceburst/aura/clear source |
 
 ## 扩展约定
 

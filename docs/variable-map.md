@@ -9,7 +9,7 @@
 - 当前实际使用玩家变量槽约 78 个。
 - 第一轮前显式 `playervar` 为 109 个；两轮迁移后为 72 个。
 - 已迁入 `player_state` 的旧独立变量共 38 个；新增数组变量 1 个，净减少 37 个显式玩家变量。
-- `player_state` 当前定义 `0..49`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引。
+- `player_state` 当前定义 `0..65`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引。
 - 当前未发现 `disabled rule` / 禁用规则块；没有变量属于“只在禁用规则中使用”。
 
 ## 当前玩家变量列表
@@ -154,6 +154,22 @@
 | `player_state[47]` | `orisa_judgment_hud_created` | 奥丽莎裁决能量 HUD 创建标记 |
 | `player_state[48]` | `orisa_judgment_hud_id` | 奥丽莎裁决能量 HUD id |
 | `player_state[49]` | `orisa_judgment_spent` | 奥丽莎本次标枪释放裁决消耗层数缓存 |
+| `player_state[50]` | `mei_frost_stacks` | 目标当前寒气层数，0 到 3 |
+| `player_state[51]` | `mei_frost_token` | 寒气增加版本号，用于重置衰减等待 |
+| `player_state[52]` | `mei_frost_decay_active` | 寒气衰减线程锁 |
+| `player_state[53]` | `mei_frost_slow_active` | 小美寒气减速恢复流程状态 |
+| `player_state[54]` | `mei_frost_slow_token` | 减速恢复版本号，避免旧恢复覆盖新减速 |
+| `player_state[55]` | `mei_frost_original_hero` | 目标获得寒气时的英雄，用于换英雄清理 |
+| `player_state[56]` | `mei_aura_active` | 小美技能 1 寒气圈运行状态 |
+| `player_state[57]` | `mei_aura_fx` | 小美寒气圈持续特效句柄数组 |
+| `player_state[58]` | `mei_iceburst_cd` | 小美技能 2 冰爆内置冷却锁 |
+| `player_state[59]` | `mei_melee_hit_cd` | 近战叠寒气短节流，防同一次近战重复加层 |
+| `player_state[60]` | `mei_frost_decay_snapshot` | 衰减线程记录的寒气 token 快照 |
+| `player_state[61]` | `mei_aura_stack_cd` | 寒气圈对同一目标的 2 秒叠层节流 |
+| `player_state[62]` | `mei_iceburst_pos` | 小美本次冰爆陷阱位置 |
+| `player_state[63]` | `mei_iceburst_fx` | 小美冰爆预警特效句柄数组 |
+| `player_state[64]` | `mei_frost_slow_snapshot` | 减速恢复线程记录的 slow token 快照 |
+| `player_state[65]` | `mei_frost_source` | 最近给目标叠加寒气的小美玩家引用，用于来源死亡/换英雄清理 |
 
 ## 疑似旧逻辑残留但未删除
 
