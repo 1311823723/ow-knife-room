@@ -1,24 +1,14 @@
 #Player variables
 
 playervar Kiriko_Skill 26
-playervar roadhog_hook_melee_boost_ready 27
-playervar lucio_was_airborne 28
-playervar lucio_landing_bounce_cooldown 29
-playervar sojourn_slide_bump_cooldown 30
-playervar illari_sunburn_cooldown 31
+playervar player_state 27
 playervar illari_sunburn_active 32
-playervar illari_burst_cooldown 33
-playervar freya_launch_circle_cooldown 34
-playervar ana_sleep_fx_active 35
-playervar ana_sleep_fx_handle 36
-playervar illari_sunburn_pop_cooldown 37
 playervar freya_launch_circle_effects 38
 playervar genji_dash_reset_cooldown 39
 playervar genji_overheat_active 40
 playervar baptiste_mirror_active 41
 playervar baptiste_mirror_roll 42
 playervar baptiste_mirror_target_active 43
-playervar baptiste_fake_drug_cooldown 44
 playervar baptiste_drug_target_active 45
 playervar baptiste_fake_drug_roll 46
 playervar genji_ult_window_active 47
@@ -33,10 +23,7 @@ playervar torb_parts_hud_created 55
 playervar torb_parts_hud_id 56
 playervar genji_ult_window_hud_created 57
 playervar genji_ult_window_hud_id 58
-playervar ability_guide_hud_created 59
-playervar ability_guide_hud_id 60
 playervar soldier_resize_cooldown 61
-playervar ability_guide_toggle_locked 62
 playervar tracer_auto_recall_state 63
 playervar tracer_debt_active 64
 playervar bastion_scrap 65
@@ -54,8 +41,6 @@ playervar winston_grapple_target 76
 playervar winston_grapple_lock 77
 playervar winston_grapple_carrier 78
 playervar winston_grapple_original_hero 79
-playervar brigitte_blink_cooldown 80
-playervar brigitte_blink_target 81
 playervar ramattra_ow_stacks 82
 playervar ramattra_ow_window_active 83
 playervar ramattra_ow_hit_cooldown 84
@@ -71,7 +56,6 @@ playervar ramattra_core_active 93
 playervar ramattra_core_position 94
 playervar ramattra_core_effects 95
 playervar ramattra_core_cooldown 96
-playervar ramattra_core_destroy_target 97
 playervar ramattra_ow_source 98
 playervar sigma_black_hole_active 99
 playervar sigma_black_hole_cooldown 100
@@ -87,7 +71,6 @@ playervar reaper_anchor_timer 109
 playervar reaper_anchor_timer_on 110
 playervar reaper_hunt_active 111
 playervar reaper_hunt_fx 112
-playervar disabled_secondary_fire 113
 playervar sigma_grasp_was_active 114
 playervar sigma_burst_cd 115
 playervar sigma_burst_pos 116
@@ -101,18 +84,22 @@ playervar zen_fx 123
 playervar zen_slow_active 124
 playervar zen_slow_timer 125
 playervar zen_slow_hero 126
-playervar zen_chain_target 127
 playervar winston_barrier_active 4
 playervar winston_barrier_pos 5
 playervar winston_barrier_fx 6
 playervar winston_zap_cd 7
 playervar winston_zap_fx 8
-playervar brigitte_counter_cd 9
-playervar brigitte_counter_target 10
 
 
 #Only remove the following directive if the gamemode does not use tricks such as A+0, A*0, "am" == "**", etc which would otherwise be optimized out.
 #!optimizeStrict
+
+
+rule "[state] initialize player state array":
+    @Event eachPlayer
+    @Condition len(eventPlayer.player_state) < 21
+
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false]
 
 
 def applySoldierAntmanState():
@@ -251,19 +238,19 @@ rule "击败回血":
 rule "被睡冷却":
     @Event eachPlayer
     @Condition eventPlayer.hasStatus(Status.ASLEEP) == true
-    @Condition eventPlayer.ana_sleep_fx_active == false
+    @Condition eventPlayer.player_state[17] == false
 
-    eventPlayer.ana_sleep_fx_active = true
+    eventPlayer.player_state[17] = true
     eventPlayer.setAbilityCooldown(Button.ABILITY_1, 50)
     eventPlayer.setAbilityCooldown(Button.ABILITY_2, 50)
     eventPlayer.setUltCharge(20)
     createEffect(getAllPlayers(), Effect.BAD_AURA, Color.ROSE, eventPlayer, 2.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    eventPlayer.ana_sleep_fx_handle = getLastCreatedEntity()
+    eventPlayer.player_state[18] = getLastCreatedEntity()
     smallMessage(eventPlayer, "你被睡了")
     waitUntil(eventPlayer.hasStatus(Status.ASLEEP) == false, 99999)
-    destroyEffect(eventPlayer.ana_sleep_fx_handle)
-    eventPlayer.ana_sleep_fx_handle = null
-    eventPlayer.ana_sleep_fx_active = false
+    destroyEffect(eventPlayer.player_state[18])
+    eventPlayer.player_state[18] = null
+    eventPlayer.player_state[17] = false
 
 
 rule "[soldier] initialize antman state":
@@ -395,11 +382,11 @@ rule "[hud] create ability guide prompt":
 rule "[hud] open current hero ability guide on interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
-    @Condition eventPlayer.ability_guide_toggle_locked == false
-    @Condition eventPlayer.ability_guide_hud_created == false
+    @Condition eventPlayer.player_state[2] == false
+    @Condition eventPlayer.player_state[0] == false
 
-    eventPlayer.ability_guide_toggle_locked = true
-    eventPlayer.ability_guide_hud_created = true
+    eventPlayer.player_state[2] = true
+    eventPlayer.player_state[0] = true
     if eventPlayer.getHero() == Hero.SOLDIER:
         hudSubtext(eventPlayer, "士兵76：蚁人体型\n左键变大，右键变小，共 11 档\n最大 32，最小 0.01\n变大后伤害逐档降低，变小后移速逐档提高，音调随体型变化", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.MERCY:
@@ -444,38 +431,38 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "布丽吉塔：盾击瞬移与盾反\n举盾攻击远处目标可传送到目标附近并短暂眩晕\n举盾被近战命中时触发盾反，短暂眩晕攻击者\n两个效果都不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     else:
         hudSubtext(eventPlayer, "通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
-    eventPlayer.ability_guide_hud_id = getLastCreatedText()
+    eventPlayer.player_state[1] = getLastCreatedText()
 
 
 rule "[hud] close current hero ability guide on interact":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == true
-    @Condition eventPlayer.ability_guide_toggle_locked == false
-    @Condition eventPlayer.ability_guide_hud_created == true
+    @Condition eventPlayer.player_state[2] == false
+    @Condition eventPlayer.player_state[0] == true
 
-    eventPlayer.ability_guide_toggle_locked = true
-    destroyHudText(eventPlayer.ability_guide_hud_id)
-    eventPlayer.ability_guide_hud_created = false
-    eventPlayer.ability_guide_hud_id = null
+    eventPlayer.player_state[2] = true
+    destroyHudText(eventPlayer.player_state[1])
+    eventPlayer.player_state[0] = false
+    eventPlayer.player_state[1] = null
 
 
 rule "[hud] unlock ability guide toggle":
     @Event eachPlayer
     @Condition eventPlayer.isHoldingButton(Button.INTERACT) == false
-    @Condition eventPlayer.ability_guide_toggle_locked == true
+    @Condition eventPlayer.player_state[2] == true
 
-    eventPlayer.ability_guide_toggle_locked = false
+    eventPlayer.player_state[2] = false
 
 
 rule "[hud] clear current hero ability guide on death":
     @Event eachPlayer
-    @Condition eventPlayer.ability_guide_hud_created == true
+    @Condition eventPlayer.player_state[0] == true
     @Condition eventPlayer.isDead() == true
 
-    destroyHudText(eventPlayer.ability_guide_hud_id)
-    eventPlayer.ability_guide_hud_created = false
-    eventPlayer.ability_guide_hud_id = null
-    eventPlayer.ability_guide_toggle_locked = false
+    destroyHudText(eventPlayer.player_state[1])
+    eventPlayer.player_state[0] = false
+    eventPlayer.player_state[1] = null
+    eventPlayer.player_state[2] = false
 
 
 rule "[mercy] grant revive armor on spawn":
@@ -897,18 +884,18 @@ rule "[ramattra] destroy pain core by melee":
     @Condition eventPlayer.isMeleeing() == true
     @Condition len(getPlayersOnHero(Hero.RAMATTRA, Team.ALL).filter(lambda player: player.ramattra_core_active == true and player != eventPlayer and distance(eventPlayer, player.ramattra_core_position) <= 3.2 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0
 
-    eventPlayer.ramattra_core_destroy_target = sorted(getPlayersOnHero(Hero.RAMATTRA, Team.ALL).filter(lambda player: player.ramattra_core_active == true and player != eventPlayer and distance(eventPlayer, player.ramattra_core_position) <= 3.2 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), key=lambda player: distance(eventPlayer, player.ramattra_core_position))[0]
-    if len(eventPlayer.ramattra_core_destroy_target.ramattra_core_effects) > 0:
-        destroyEffect(eventPlayer.ramattra_core_destroy_target.ramattra_core_effects[0])
-    if len(eventPlayer.ramattra_core_destroy_target.ramattra_core_effects) > 1:
-        destroyEffect(eventPlayer.ramattra_core_destroy_target.ramattra_core_effects[1])
-    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer.ramattra_core_destroy_target.ramattra_core_position, 3)
+    eventPlayer.player_state[8] = sorted(getPlayersOnHero(Hero.RAMATTRA, Team.ALL).filter(lambda player: player.ramattra_core_active == true and player != eventPlayer and distance(eventPlayer, player.ramattra_core_position) <= 3.2 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), key=lambda player: distance(eventPlayer, player.ramattra_core_position))[0]
+    if len(eventPlayer.player_state[8].ramattra_core_effects) > 0:
+        destroyEffect(eventPlayer.player_state[8].ramattra_core_effects[0])
+    if len(eventPlayer.player_state[8].ramattra_core_effects) > 1:
+        destroyEffect(eventPlayer.player_state[8].ramattra_core_effects[1])
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer.player_state[8].ramattra_core_position, 3)
     smallMessage(eventPlayer, "摧毁痛苦核心")
-    smallMessage(eventPlayer.ramattra_core_destroy_target, "痛苦核心被摧毁")
-    eventPlayer.ramattra_core_destroy_target.ramattra_core_active = false
-    eventPlayer.ramattra_core_destroy_target.ramattra_core_position = null
-    eventPlayer.ramattra_core_destroy_target.ramattra_core_effects = []
-    eventPlayer.ramattra_core_destroy_target = null
+    smallMessage(eventPlayer.player_state[8], "痛苦核心被摧毁")
+    eventPlayer.player_state[8].ramattra_core_active = false
+    eventPlayer.player_state[8].ramattra_core_position = null
+    eventPlayer.player_state[8].ramattra_core_effects = []
+    eventPlayer.player_state[8] = null
 
 
 rule "[ramattra] clear pain gravity on death":
@@ -1105,29 +1092,29 @@ rule "[sigma] kinetic grasp release gravity burst":
 rule "[reaper] disable secondary fire":
     @Event eachPlayer
     @Hero reaper
-    @Condition eventPlayer.disabled_secondary_fire == false
+    @Condition eventPlayer.player_state[9] == false
 
     eventPlayer.disallowButton(Button.SECONDARY_FIRE)
-    eventPlayer.disabled_secondary_fire = true
+    eventPlayer.player_state[9] = true
 
 
 rule "[winston] disable secondary fire":
     @Event eachPlayer
     @Hero winston
-    @Condition eventPlayer.disabled_secondary_fire == false
+    @Condition eventPlayer.player_state[9] == false
 
     eventPlayer.disallowButton(Button.SECONDARY_FIRE)
-    eventPlayer.disabled_secondary_fire = true
+    eventPlayer.player_state[9] = true
 
 
 rule "[reaper and winston] restore secondary fire after hero swap":
     @Event eachPlayer
     @Condition eventPlayer.getHero() != Hero.REAPER
     @Condition eventPlayer.getHero() != Hero.WINSTON
-    @Condition eventPlayer.disabled_secondary_fire == true
+    @Condition eventPlayer.player_state[9] == true
 
     eventPlayer.allowButton(Button.SECONDARY_FIRE)
-    eventPlayer.disabled_secondary_fire = false
+    eventPlayer.player_state[9] = false
 
 
 rule "[zenyatta] initialize element":
@@ -1190,10 +1177,10 @@ rule "[zenyatta] elemental primary hit":
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, victim, 1.5)
         damage(victim, eventPlayer, 5)
         if len(getPlayersInRadius(victim.getPosition(), 3, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != victim and player != eventPlayer and player.isAlive() == true)) > 0:
-            eventPlayer.zen_chain_target = sorted(getPlayersInRadius(victim.getPosition(), 3, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != victim and player != eventPlayer and player.isAlive() == true), key=lambda player: distance(victim, player))[0]
-            damage(eventPlayer.zen_chain_target, eventPlayer, 4)
-            playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer.zen_chain_target, 1)
-            eventPlayer.zen_chain_target = null
+            eventPlayer.player_state[7] = sorted(getPlayersInRadius(victim.getPosition(), 3, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != victim and player != eventPlayer and player.isAlive() == true), key=lambda player: distance(victim, player))[0]
+            damage(eventPlayer.player_state[7], eventPlayer, 4)
+            playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer.player_state[7], 1)
+            eventPlayer.player_state[7] = null
     wait(0.22)
     eventPlayer.zen_hit_cd = false
 
@@ -1324,7 +1311,7 @@ rule "[zenyatta] clear elemental state on death":
     eventPlayer.zen_ult_cd = false
     eventPlayer.zen_skill_pos = null
     eventPlayer.zen_fx = []
-    eventPlayer.zen_chain_target = null
+    eventPlayer.player_state[7] = null
 
 
 rule "[zenyatta] clear elemental state after hero swap":
@@ -1343,7 +1330,7 @@ rule "[zenyatta] clear elemental state after hero swap":
     eventPlayer.zen_ult_cd = false
     eventPlayer.zen_skill_pos = null
     eventPlayer.zen_fx = []
-    eventPlayer.zen_chain_target = null
+    eventPlayer.player_state[7] = null
 
 
 rule "[zenyatta] clear slow on target death or hero swap":
@@ -1668,11 +1655,11 @@ rule "[baptiste] fake drug injection":
     @Event playerDealtDamage
     @Hero baptiste
     @Condition victim.isAlive() == true
-    @Condition eventPlayer.baptiste_fake_drug_cooldown == false
+    @Condition eventPlayer.player_state[20] == false
     @Condition victim.baptiste_drug_target_active == false
 
     if random.randint(1, 100) <= 18:
-        eventPlayer.baptiste_fake_drug_cooldown = true
+        eventPlayer.player_state[20] = true
         victim.baptiste_drug_target_active = true
         victim.baptiste_fake_drug_roll = random.randint(1, 4)
         playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.YELLOW, victim, 1.5)
@@ -1705,7 +1692,7 @@ rule "[baptiste] fake drug injection":
         victim.setKnockbackReceived(100)
         victim.baptiste_drug_target_active = false
         wait(1)
-        eventPlayer.baptiste_fake_drug_cooldown = false
+        eventPlayer.player_state[20] = false
 
 
 rule "[genji] lock swift strike outside blade window":
@@ -1999,7 +1986,7 @@ rule "[roadhog] hook weakens target":
     victim.startScalingSize(0.5)
     victim.setMoveSpeed(140)
     victim.setKnockbackReceived(180)
-    eventPlayer.roadhog_hook_melee_boost_ready = true
+    eventPlayer.player_state[10] = true
     smallMessage(eventPlayer, "钩中目标：下一次近战击退增强")
     wait(3)
     victim.stopScalingSize()
@@ -2010,10 +1997,10 @@ rule "[roadhog] hook weakens target":
 rule "[roadhog] consume boosted melee knockback":
     @Event playerDealtDamage
     @Hero roadhog
-    @Condition eventPlayer.roadhog_hook_melee_boost_ready == true
+    @Condition eventPlayer.player_state[10] == true
     @Condition eventPlayer.isMeleeing() == true
 
-    eventPlayer.roadhog_hook_melee_boost_ready = false
+    eventPlayer.player_state[10] = false
     victim.applyImpulse(directionTowards(eventPlayer.getPosition(), victim.getPosition()), 25, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     smallMessage(eventPlayer, "强化近战击退触发")
 
@@ -2022,22 +2009,22 @@ rule "[lucio] remember airborne state":
     @Event eachPlayer
     @Hero lucio
     @Condition eventPlayer.isInAir() == true
-    @Condition eventPlayer.lucio_landing_bounce_cooldown == false
+    @Condition eventPlayer.player_state[12] == false
 
-    eventPlayer.lucio_was_airborne = true
+    eventPlayer.player_state[11] = true
 
 
 rule "[lucio] landing bounce":
     @Event eachPlayer
     @Hero lucio
-    @Condition eventPlayer.lucio_was_airborne == true
+    @Condition eventPlayer.player_state[11] == true
     @Condition eventPlayer.isInAir() == false
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.lucio_landing_bounce_cooldown == false
+    @Condition eventPlayer.player_state[12] == false
 
-    eventPlayer.lucio_was_airborne = false
-    eventPlayer.lucio_landing_bounce_cooldown = true
-    getPlayersInRadius(eventPlayer.getPosition(), 8, Team.ALL).filter(lambda player: player != eventPlayer).lucio_landing_bounce_cooldown = true
+    eventPlayer.player_state[11] = false
+    eventPlayer.player_state[12] = true
+    getPlayersInRadius(eventPlayer.getPosition(), 8, Team.ALL).filter(lambda player: player != eventPlayer).player_state[12] = true
     getPlayersInRadius(eventPlayer.getPosition(), 8, Team.ALL).filter(lambda player: player != eventPlayer).applyImpulse(Vector.UP, 12, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     eventPlayer.setMoveSpeed(140)
     smallMessage(eventPlayer, "落地冲击")
@@ -2048,10 +2035,10 @@ rule "[lucio] landing bounce":
 rule "[lucio] clear landing bounce cooldown":
     @Event eachPlayer
     @Hero lucio
-    @Condition eventPlayer.lucio_landing_bounce_cooldown == true
+    @Condition eventPlayer.player_state[12] == true
 
     wait(1)
-    eventPlayer.lucio_landing_bounce_cooldown = false
+    eventPlayer.player_state[12] = false
 
 
 rule "[sojourn] power slide launches nearby players":
@@ -2059,84 +2046,84 @@ rule "[sojourn] power slide launches nearby players":
     @Hero sojourn
     @Condition eventPlayer.isUsingAbility1() == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.sojourn_slide_bump_cooldown == false
+    @Condition eventPlayer.player_state[13] == false
     @Condition len(getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer)) > 0
 
-    eventPlayer.sojourn_slide_bump_cooldown = true
+    eventPlayer.player_state[13] = true
     damage(getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer), eventPlayer, 20)
     getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 1.25)
     getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer).applyImpulse(directionTowards(eventPlayer.getPosition(), getPlayersInRadius(eventPlayer.getPosition(), 2.6, Team.ALL).filter(lambda player: player != eventPlayer).getPosition()), 18, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 2.6)
     smallMessage(eventPlayer, "滑铲创飞！")
     wait(0.8)
-    eventPlayer.sojourn_slide_bump_cooldown = false
+    eventPlayer.player_state[13] = false
 
 
 rule "[brigitte] shield bash blink stun":
     @Event eachPlayer
     @Hero brigitte
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.brigitte_blink_cooldown == false
+    @Condition eventPlayer.player_state[3] == false
     @Condition eventPlayer.isFiringSecondaryFire() == true
     @Condition eventPlayer.isFiringPrimaryFire() == true
     @Condition len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and eventPlayer.isInViewAngle(player.getPosition(), 60) == true and distance(eventPlayer, player) > 12 and distance(eventPlayer, player) <= 25 and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true)) > 0
 
-    eventPlayer.brigitte_blink_target = sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and eventPlayer.isInViewAngle(player.getPosition(), 60) == true and distance(eventPlayer, player) > 12 and distance(eventPlayer, player) <= 25 and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true), key=lambda player: angleBetweenVectors(eventPlayer.getFacingDirection(), player.getPosition() - eventPlayer.getEyePosition()))[0]
-    if distance(nearestWalkablePosition(eventPlayer.brigitte_blink_target.getPosition() + directionTowards(eventPlayer.brigitte_blink_target.getPosition(), eventPlayer.getPosition()) * 2.2), eventPlayer.brigitte_blink_target) <= 4:
-        eventPlayer.brigitte_blink_cooldown = true
+    eventPlayer.player_state[4] = sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and eventPlayer.isInViewAngle(player.getPosition(), 60) == true and distance(eventPlayer, player) > 12 and distance(eventPlayer, player) <= 25 and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true), key=lambda player: angleBetweenVectors(eventPlayer.getFacingDirection(), player.getPosition() - eventPlayer.getEyePosition()))[0]
+    if distance(nearestWalkablePosition(eventPlayer.player_state[4].getPosition() + directionTowards(eventPlayer.player_state[4].getPosition(), eventPlayer.getPosition()) * 2.2), eventPlayer.player_state[4]) <= 4:
+        eventPlayer.player_state[3] = true
         eventPlayer.cancelPrimaryAction()
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.getEyePosition(), 1.5)
-        eventPlayer.teleport(nearestWalkablePosition(eventPlayer.brigitte_blink_target.getPosition() + directionTowards(eventPlayer.brigitte_blink_target.getPosition(), eventPlayer.getPosition()) * 2.2))
+        eventPlayer.teleport(nearestWalkablePosition(eventPlayer.player_state[4].getPosition() + directionTowards(eventPlayer.player_state[4].getPosition(), eventPlayer.getPosition()) * 2.2))
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 2)
-        eventPlayer.brigitte_blink_target.setStatusEffect(eventPlayer, Status.STUNNED, 0.5)
+        eventPlayer.player_state[4].setStatusEffect(eventPlayer, Status.STUNNED, 0.5)
         smallMessage(eventPlayer, "盾击瞬移")
         wait(4)
-        eventPlayer.brigitte_blink_cooldown = false
-    eventPlayer.brigitte_blink_target = null
+        eventPlayer.player_state[3] = false
+    eventPlayer.player_state[4] = null
 
 
 rule "[brigitte] shield counter melee attackers":
     @Event eachPlayer
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.isMeleeing() == true
-    @Condition eventPlayer.brigitte_counter_cd == false
+    @Condition eventPlayer.player_state[5] == false
     @Condition len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.BRIGITTE and player.isAlive() == true and player.isFiringSecondaryFire() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and distance(eventPlayer, player) <= 3.2 and eventPlayer.isInViewAngle(player.getPosition(), 70) == true and player.isInViewAngle(eventPlayer.getPosition(), 100) == true and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true)) > 0
 
-    eventPlayer.brigitte_counter_cd = true
-    eventPlayer.brigitte_counter_target = sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.BRIGITTE and player.isAlive() == true and player.isFiringSecondaryFire() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and distance(eventPlayer, player) <= 3.2 and eventPlayer.isInViewAngle(player.getPosition(), 70) == true and player.isInViewAngle(eventPlayer.getPosition(), 100) == true and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true), key=lambda player: distance(eventPlayer, player))[0]
-    eventPlayer.setStatusEffect(eventPlayer.brigitte_counter_target, Status.STUNNED, 0.35)
-    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.brigitte_counter_target.getEyePosition(), 1.6)
-    smallMessage(eventPlayer.brigitte_counter_target, "盾反成功")
+    eventPlayer.player_state[5] = true
+    eventPlayer.player_state[6] = sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.getHero() == Hero.BRIGITTE and player.isAlive() == true and player.isFiringSecondaryFire() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()) and distance(eventPlayer, player) <= 3.2 and eventPlayer.isInViewAngle(player.getPosition(), 70) == true and player.isInViewAngle(eventPlayer.getPosition(), 100) == true and isInLoS(eventPlayer, player, BarrierLos.PASS_THROUGH_BARRIERS) == true), key=lambda player: distance(eventPlayer, player))[0]
+    eventPlayer.setStatusEffect(eventPlayer.player_state[6], Status.STUNNED, 0.35)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.player_state[6].getEyePosition(), 1.6)
+    smallMessage(eventPlayer.player_state[6], "盾反成功")
     smallMessage(eventPlayer, "被盾反")
-    eventPlayer.brigitte_counter_target = null
+    eventPlayer.player_state[6] = null
     wait(1)
-    eventPlayer.brigitte_counter_cd = false
+    eventPlayer.player_state[5] = false
 
 
 rule "[brigitte] clear shield bash blink on death":
     @Event playerDied
     @Hero brigitte
 
-    eventPlayer.brigitte_blink_cooldown = false
-    eventPlayer.brigitte_blink_target = null
+    eventPlayer.player_state[3] = false
+    eventPlayer.player_state[4] = null
 
 
 rule "[brigitte] clear shield bash blink after hero swap":
     @Event eachPlayer
     @Condition eventPlayer.getHero() != Hero.BRIGITTE
-    @Condition eventPlayer.brigitte_blink_cooldown == true or eventPlayer.brigitte_blink_target != null
+    @Condition eventPlayer.player_state[3] == true or eventPlayer.player_state[4] != null
 
-    eventPlayer.brigitte_blink_cooldown = false
-    eventPlayer.brigitte_blink_target = null
+    eventPlayer.player_state[3] = false
+    eventPlayer.player_state[4] = null
 
 
 rule "[brigitte] clear shield counter attacker state":
     @Event eachPlayer
-    @Condition eventPlayer.brigitte_counter_cd == true or eventPlayer.brigitte_counter_target != null
+    @Condition eventPlayer.player_state[5] == true or eventPlayer.player_state[6] != null
     @Condition eventPlayer.isDead() == true
 
-    eventPlayer.brigitte_counter_cd = false
-    eventPlayer.brigitte_counter_target = null
+    eventPlayer.player_state[5] = false
+    eventPlayer.player_state[6] = null
 
 
 rule "[winston] electric barrier field":
@@ -2313,12 +2300,12 @@ rule "[illari] apply sunburn on damage":
     @Event playerDealtDamage
     @Hero illari
     @Condition victim.isAlive() == true
-    @Condition eventPlayer.illari_sunburn_cooldown == false
+    @Condition eventPlayer.player_state[14] == false
 
     if random.randint(1, 100) <= 20:
-        eventPlayer.illari_sunburn_cooldown = true
+        eventPlayer.player_state[14] = true
         victim.illari_sunburn_active = true
-        victim.illari_sunburn_pop_cooldown = false
+        victim.player_state[19] = false
         victim.startScalingSize(1.4)
         victim.setMoveSpeed(85)
         victim.setKnockbackReceived(140)
@@ -2330,19 +2317,19 @@ rule "[illari] apply sunburn on damage":
         victim.setKnockbackReceived(100)
         victim.illari_sunburn_active = false
         wait(2)
-        eventPlayer.illari_sunburn_cooldown = false
+        eventPlayer.player_state[14] = false
 
 
 rule "[illari] pop sunburned target on damage":
     @Event playerDealtDamage
     @Hero illari
     @Condition victim.illari_sunburn_active == true
-    @Condition victim.illari_sunburn_pop_cooldown == false
+    @Condition victim.player_state[19] == false
 
-    victim.illari_sunburn_pop_cooldown = true
+    victim.player_state[19] = true
     victim.applyImpulse(Vector.UP, 8, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     wait(0.4)
-    victim.illari_sunburn_pop_cooldown = false
+    victim.player_state[19] = false
 
 
 rule "[illari] outburst knocks nearby players":
@@ -2350,9 +2337,9 @@ rule "[illari] outburst knocks nearby players":
     @Hero illari
     @Condition eventPlayer.isUsingAbility2() == true
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.illari_burst_cooldown == false
+    @Condition eventPlayer.player_state[15] == false
 
-    eventPlayer.illari_burst_cooldown = true
+    eventPlayer.player_state[15] = true
     getPlayersInRadius(eventPlayer.getPosition(), 4, Team.ALL).filter(lambda player: player != eventPlayer).applyImpulse(directionTowards(eventPlayer.getPosition(), getPlayersInRadius(eventPlayer.getPosition(), 4, Team.ALL).filter(lambda player: player != eventPlayer).getPosition()), 16, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     getPlayersInRadius(eventPlayer.getPosition(), 4, Team.ALL).filter(lambda player: player != eventPlayer and player.isInAir() == true).applyImpulse(Vector.UP, 8, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     eventPlayer.setMoveSpeed(140)
@@ -2361,17 +2348,17 @@ rule "[illari] outburst knocks nearby players":
     wait(1)
     eventPlayer.setMoveSpeed(100)
     wait(3)
-    eventPlayer.illari_burst_cooldown = false
+    eventPlayer.player_state[15] = false
 
 
 rule "[freya] launch circle":
     @Event eachPlayer
     @Hero freja
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.freya_launch_circle_cooldown == false
+    @Condition eventPlayer.player_state[16] == false
     @Condition eventPlayer.isUsingAbility2() == true
 
-    eventPlayer.freya_launch_circle_cooldown = true
+    eventPlayer.player_state[16] = true
     eventPlayer.freya_launch_circle_effects = []
     createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.AQUA, eventPlayer, 6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.freya_launch_circle_effects.append(getLastCreatedEntity())
@@ -2385,4 +2372,4 @@ rule "[freya] launch circle":
     destroyEffect(eventPlayer.freya_launch_circle_effects[1])
     eventPlayer.freya_launch_circle_effects = []
     wait(3)
-    eventPlayer.freya_launch_circle_cooldown = false
+    eventPlayer.player_state[16] = false

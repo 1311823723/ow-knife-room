@@ -9,29 +9,17 @@
         6: winston_barrier_fx
         7: winston_zap_cd
         8: winston_zap_fx
-        9: brigitte_counter_cd
-        10: brigitte_counter_target
         24: Y
         25: Z
         26: Kiriko_Skill
-        27: roadhog_hook_melee_boost_ready
-        28: lucio_was_airborne
-        29: lucio_landing_bounce_cooldown
-        30: sojourn_slide_bump_cooldown
-        31: illari_sunburn_cooldown
+        27: player_state
         32: illari_sunburn_active
-        33: illari_burst_cooldown
-        34: freya_launch_circle_cooldown
-        35: ana_sleep_fx_active
-        36: ana_sleep_fx_handle
-        37: illari_sunburn_pop_cooldown
         38: freya_launch_circle_effects
         39: genji_dash_reset_cooldown
         40: genji_overheat_active
         41: baptiste_mirror_active
         42: baptiste_mirror_roll
         43: baptiste_mirror_target_active
-        44: baptiste_fake_drug_cooldown
         45: baptiste_drug_target_active
         46: baptiste_fake_drug_roll
         47: genji_ult_window_active
@@ -46,10 +34,7 @@
         56: torb_parts_hud_id
         57: genji_ult_window_hud_created
         58: genji_ult_window_hud_id
-        59: ability_guide_hud_created
-        60: ability_guide_hud_id
         61: soldier_resize_cooldown
-        62: ability_guide_toggle_locked
         63: tracer_auto_recall_state
         64: tracer_debt_active
         65: bastion_scrap
@@ -67,8 +52,6 @@
         77: winston_grapple_lock
         78: winston_grapple_carrier
         79: winston_grapple_original_hero
-        80: brigitte_blink_cooldown
-        81: brigitte_blink_target
         82: ramattra_ow_stacks
         83: ramattra_ow_window_active
         84: ramattra_ow_hit_cooldown
@@ -84,7 +67,6 @@
         94: ramattra_core_position
         95: ramattra_core_effects
         96: ramattra_core_cooldown
-        97: ramattra_core_destroy_target
         98: ramattra_ow_source
         99: sigma_black_hole_active
         100: sigma_black_hole_cooldown
@@ -100,7 +82,6 @@
         110: reaper_anchor_timer_on
         111: reaper_hunt_active
         112: reaper_hunt_fx
-        113: disabled_secondary_fire
         114: sigma_grasp_was_active
         115: sigma_burst_cd
         116: sigma_burst_pos
@@ -114,7 +95,6 @@
         124: zen_slow_active
         125: zen_slow_timer
         126: zen_slow_hero
-        127: zen_chain_target
 }
 
 子程序 {
@@ -122,6 +102,20 @@
 }
 
 //Strict optimizations enabled
+规则 ("[state] initialize player state array") {
+    事件 {
+        持续 - 每名玩家;
+        双方;
+        全部;
+    }
+    条件 {
+        数量((事件玩家).player_state) < 21;
+    }
+    动作 {
+        设置玩家变量(事件玩家, player_state, 数组(假, 空, 假, 假, 空, 假, 空, 空, 空, 假, 假, 假, 假, 假, 假, 假, 假, 假, 空, 假, 假));
+    }
+}
+
 规则 ("Apply Soldier Antman State") {
     事件 {
         子程序;
@@ -326,20 +320,20 @@
     }
     条件 {
         具有状态(事件玩家, 沉睡) == 真;
-        (事件玩家).ana_sleep_fx_active == 假;
+        数组中的值((事件玩家).player_state, 17) == 假;
     }
     动作 {
-        设置玩家变量(事件玩家, ana_sleep_fx_active, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 17, 真);
         设置技能冷却(事件玩家, 按钮(技能1), 50);
         设置技能冷却(事件玩家, 按钮(技能2), 50);
         设置终极技能充能(事件玩家, 20);
         创建效果(所有玩家(所有队伍), 有害光环, 颜色(玫红), 事件玩家, 2.5, 可见，位置和半径);
-        设置玩家变量(事件玩家, ana_sleep_fx_handle, 最后创建的实体);
+        在索引处设置玩家变量(事件玩家, player_state, 18, 最后创建的实体);
         小字体信息(事件玩家, 自定义字符串("你被睡了"));
         等待直到 (非(具有状态(事件玩家, 沉睡)), 99999);
-        消除效果((事件玩家).ana_sleep_fx_handle);
-        设置玩家变量(事件玩家, ana_sleep_fx_handle, 空);
-        设置玩家变量(事件玩家, ana_sleep_fx_active, 假);
+        消除效果(数组中的值((事件玩家).player_state, 18));
+        在索引处设置玩家变量(事件玩家, player_state, 18, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 17, 假);
     }
 }
 
@@ -526,12 +520,12 @@
     }
     条件 {
         按钮被按下(事件玩家, 按钮(互动)) == 真;
-        (事件玩家).ability_guide_toggle_locked == 假;
-        (事件玩家).ability_guide_hud_created == 假;
+        数组中的值((事件玩家).player_state, 2) == 假;
+        首个((事件玩家).player_state) == 假;
     }
     动作 {
-        设置玩家变量(事件玩家, ability_guide_toggle_locked, 真);
-        设置玩家变量(事件玩家, ability_guide_hud_created, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 2, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 0, 真);
         If(比较(所用英雄(事件玩家), ==, 英雄(士兵：76)));
             创建HUD文本(事件玩家, 空, 空, 自定义字符串("士兵76：蚁人体型\n左键变大，右键变小，共 11 档\n最大 32，最小 0.01\n变大后伤害逐档降低，变小后移速逐档提高，音调随体型变化                                                         {0}", 自定义字符串("                                                                                                                 ")), 左边, -998, 空, 空, 颜色(黄色), 可见和字符串, 默认可见度);
         Else If(比较(所用英雄(事件玩家), ==, 英雄(天使)));
@@ -577,7 +571,7 @@
         Else;
             创建HUD文本(事件玩家, 空, 空, 自定义字符串("通用规则\n所有角色拥有二段跳\n击杀会回血\n被入侵会变大并持续扣血\n被睡会进入冷却惩罚并显示醒目标记                                                                            {0}", 自定义字符串("                                                                                              ")), 左边, -998, 空, 空, 颜色(白色), 可见和字符串, 默认可见度);
         End;
-        设置玩家变量(事件玩家, ability_guide_hud_id, 上一个文本ID);
+        在索引处设置玩家变量(事件玩家, player_state, 1, 上一个文本ID);
     }
 }
 
@@ -589,14 +583,14 @@
     }
     条件 {
         按钮被按下(事件玩家, 按钮(互动)) == 真;
-        (事件玩家).ability_guide_toggle_locked == 假;
-        (事件玩家).ability_guide_hud_created == 真;
+        数组中的值((事件玩家).player_state, 2) == 假;
+        首个((事件玩家).player_state) == 真;
     }
     动作 {
-        设置玩家变量(事件玩家, ability_guide_toggle_locked, 真);
-        消除HUD文本((事件玩家).ability_guide_hud_id);
-        设置玩家变量(事件玩家, ability_guide_hud_created, 假);
-        设置玩家变量(事件玩家, ability_guide_hud_id, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 2, 真);
+        消除HUD文本(数组中的值((事件玩家).player_state, 1));
+        在索引处设置玩家变量(事件玩家, player_state, 0, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 1, 空);
     }
 }
 
@@ -608,10 +602,10 @@
     }
     条件 {
         按钮被按下(事件玩家, 按钮(互动)) == 假;
-        (事件玩家).ability_guide_toggle_locked == 真;
+        数组中的值((事件玩家).player_state, 2) == 真;
     }
     动作 {
-        设置玩家变量(事件玩家, ability_guide_toggle_locked, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 2, 假);
     }
 }
 
@@ -622,14 +616,14 @@
         全部;
     }
     条件 {
-        (事件玩家).ability_guide_hud_created == 真;
+        首个((事件玩家).player_state) == 真;
         死亡(事件玩家) == 真;
     }
     动作 {
-        消除HUD文本((事件玩家).ability_guide_hud_id);
-        设置玩家变量(事件玩家, ability_guide_hud_created, 假);
-        设置玩家变量(事件玩家, ability_guide_hud_id, 空);
-        设置玩家变量(事件玩家, ability_guide_toggle_locked, 假);
+        消除HUD文本(数组中的值((事件玩家).player_state, 1));
+        在索引处设置玩家变量(事件玩家, player_state, 0, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 1, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 2, 假);
     }
 }
 
@@ -1197,20 +1191,20 @@
         数量(已过滤的数组(选择英雄的玩家(英雄(拉玛刹), 所有队伍), 与(与(与(比较((当前数组元素).ramattra_core_active, ==, 真), 比较(当前数组元素, !=, 事件玩家)), 比较(相距距离(事件玩家, (当前数组元素).ramattra_core_position), <=, 3.2)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))))) > 0;
     }
     动作 {
-        设置玩家变量(事件玩家, ramattra_core_destroy_target, 首个(已排序的数组(已过滤的数组(选择英雄的玩家(英雄(拉玛刹), 所有队伍), 与(与(与(比较((当前数组元素).ramattra_core_active, ==, 真), 比较(当前数组元素, !=, 事件玩家)), 比较(相距距离(事件玩家, (当前数组元素).ramattra_core_position), <=, 3.2)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家))))), 相距距离(事件玩家, (当前数组元素).ramattra_core_position))));
-        If(比较(数量(((事件玩家).ramattra_core_destroy_target).ramattra_core_effects), >, 0));
-            消除效果(首个(((事件玩家).ramattra_core_destroy_target).ramattra_core_effects));
+        在索引处设置玩家变量(事件玩家, player_state, 8, 首个(已排序的数组(已过滤的数组(选择英雄的玩家(英雄(拉玛刹), 所有队伍), 与(与(与(比较((当前数组元素).ramattra_core_active, ==, 真), 比较(当前数组元素, !=, 事件玩家)), 比较(相距距离(事件玩家, (当前数组元素).ramattra_core_position), <=, 3.2)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家))))), 相距距离(事件玩家, (当前数组元素).ramattra_core_position))));
+        If(比较(数量((数组中的值((事件玩家).player_state, 8)).ramattra_core_effects), >, 0));
+            消除效果(首个((数组中的值((事件玩家).player_state, 8)).ramattra_core_effects));
         End;
-        If(比较(数量(((事件玩家).ramattra_core_destroy_target).ramattra_core_effects), >, 1));
-            消除效果(数组中的值(((事件玩家).ramattra_core_destroy_target).ramattra_core_effects, 1));
+        If(比较(数量((数组中的值((事件玩家).player_state, 8)).ramattra_core_effects), >, 1));
+            消除效果(数组中的值((数组中的值((事件玩家).player_state, 8)).ramattra_core_effects, 1));
         End;
-        播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), ((事件玩家).ramattra_core_destroy_target).ramattra_core_position, 3);
+        播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(亮紫色), (数组中的值((事件玩家).player_state, 8)).ramattra_core_position, 3);
         小字体信息(事件玩家, 自定义字符串("摧毁痛苦核心"));
-        小字体信息((事件玩家).ramattra_core_destroy_target, 自定义字符串("痛苦核心被摧毁"));
-        设置玩家变量((事件玩家).ramattra_core_destroy_target, ramattra_core_active, 假);
-        设置玩家变量((事件玩家).ramattra_core_destroy_target, ramattra_core_position, 空);
-        设置玩家变量((事件玩家).ramattra_core_destroy_target, ramattra_core_effects, 空数组);
-        设置玩家变量(事件玩家, ramattra_core_destroy_target, 空);
+        小字体信息(数组中的值((事件玩家).player_state, 8), 自定义字符串("痛苦核心被摧毁"));
+        设置玩家变量(数组中的值((事件玩家).player_state, 8), ramattra_core_active, 假);
+        设置玩家变量(数组中的值((事件玩家).player_state, 8), ramattra_core_position, 空);
+        设置玩家变量(数组中的值((事件玩家).player_state, 8), ramattra_core_effects, 空数组);
+        在索引处设置玩家变量(事件玩家, player_state, 8, 空);
     }
 }
 
@@ -1485,11 +1479,11 @@
         死神;
     }
     条件 {
-        (事件玩家).disabled_secondary_fire == 假;
+        数组中的值((事件玩家).player_state, 9) == 假;
     }
     动作 {
         禁用按钮(事件玩家, 按钮(辅助攻击模式));
-        设置玩家变量(事件玩家, disabled_secondary_fire, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 9, 真);
     }
 }
 
@@ -1500,11 +1494,11 @@
         温斯顿;
     }
     条件 {
-        (事件玩家).disabled_secondary_fire == 假;
+        数组中的值((事件玩家).player_state, 9) == 假;
     }
     动作 {
         禁用按钮(事件玩家, 按钮(辅助攻击模式));
-        设置玩家变量(事件玩家, disabled_secondary_fire, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 9, 真);
     }
 }
 
@@ -1517,11 +1511,11 @@
     条件 {
         所用英雄(事件玩家) != 英雄(死神);
         所用英雄(事件玩家) != 英雄(温斯顿);
-        (事件玩家).disabled_secondary_fire == 真;
+        数组中的值((事件玩家).player_state, 9) == 真;
     }
     动作 {
         可用按钮(事件玩家, 按钮(辅助攻击模式));
-        设置玩家变量(事件玩家, disabled_secondary_fire, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 9, 假);
     }
 }
 
@@ -1604,10 +1598,10 @@
             播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(水绿色), 被攻击方, 1.5);
             伤害(被攻击方, 事件玩家, 5);
             If(比较(数量(已过滤的数组(范围内玩家(所选位置(被攻击方), 3, 所有队伍, 表面), 与(与(比较(当前数组元素, !=, 被攻击方), 比较(当前数组元素, !=, 事件玩家)), 存活(当前数组元素)))), >, 0));
-                设置玩家变量(事件玩家, zen_chain_target, 首个(已排序的数组(已过滤的数组(范围内玩家(所选位置(被攻击方), 3, 所有队伍, 表面), 与(与(比较(当前数组元素, !=, 被攻击方), 比较(当前数组元素, !=, 事件玩家)), 存活(当前数组元素))), 相距距离(被攻击方, 当前数组元素))));
-                伤害((事件玩家).zen_chain_target, 事件玩家, 4);
-                播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(水绿色), (事件玩家).zen_chain_target, 1);
-                设置玩家变量(事件玩家, zen_chain_target, 空);
+                在索引处设置玩家变量(事件玩家, player_state, 7, 首个(已排序的数组(已过滤的数组(范围内玩家(所选位置(被攻击方), 3, 所有队伍, 表面), 与(与(比较(当前数组元素, !=, 被攻击方), 比较(当前数组元素, !=, 事件玩家)), 存活(当前数组元素))), 相距距离(被攻击方, 当前数组元素))));
+                伤害(数组中的值((事件玩家).player_state, 7), 事件玩家, 4);
+                播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(水绿色), 数组中的值((事件玩家).player_state, 7), 1);
+                在索引处设置玩家变量(事件玩家, player_state, 7, 空);
             End;
         End;
         等待(0.22, 无视条件);
@@ -1778,7 +1772,7 @@
         设置玩家变量(事件玩家, zen_ult_cd, 假);
         设置玩家变量(事件玩家, zen_skill_pos, 空);
         设置玩家变量(事件玩家, zen_fx, 空数组);
-        设置玩家变量(事件玩家, zen_chain_target, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 7, 空);
     }
 }
 
@@ -1806,7 +1800,7 @@
         设置玩家变量(事件玩家, zen_ult_cd, 假);
         设置玩家变量(事件玩家, zen_skill_pos, 空);
         设置玩家变量(事件玩家, zen_fx, 空数组);
-        设置玩家变量(事件玩家, zen_chain_target, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 7, 空);
     }
 }
 
@@ -2263,12 +2257,12 @@
     }
     条件 {
         存活(被攻击方) == 真;
-        (事件玩家).baptiste_fake_drug_cooldown == 假;
+        数组中的值((事件玩家).player_state, 20) == 假;
         (被攻击方).baptiste_drug_target_active == 假;
     }
     动作 {
         If(比较(随机整数(1, 100), <=, 18));
-            设置玩家变量(事件玩家, baptiste_fake_drug_cooldown, 真);
+            在索引处设置玩家变量(事件玩家, player_state, 20, 真);
             设置玩家变量(被攻击方, baptiste_drug_target_active, 真);
             设置玩家变量(被攻击方, baptiste_fake_drug_roll, 随机整数(1, 4));
             播放效果(所有玩家(所有队伍), 有害爆炸, 颜色(黄色), 被攻击方, 1.5);
@@ -2302,7 +2296,7 @@
             设置受到的击退(被攻击方, 100);
             设置玩家变量(被攻击方, baptiste_drug_target_active, 假);
             等待(1, 无视条件);
-            设置玩家变量(事件玩家, baptiste_fake_drug_cooldown, 假);
+            在索引处设置玩家变量(事件玩家, player_state, 20, 假);
     }
 }
 
@@ -2683,7 +2677,7 @@
         开始调整玩家大小(被攻击方, 0.5, 真);
         设置移动速度(被攻击方, 140);
         设置受到的击退(被攻击方, 180);
-        设置玩家变量(事件玩家, roadhog_hook_melee_boost_ready, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 10, 真);
         小字体信息(事件玩家, 自定义字符串("钩中目标：下一次近战击退增强"));
         等待(3, 无视条件);
         停止调整玩家大小(被攻击方);
@@ -2699,11 +2693,11 @@
         路霸;
     }
     条件 {
-        (事件玩家).roadhog_hook_melee_boost_ready == 真;
+        数组中的值((事件玩家).player_state, 10) == 真;
         正在近战攻击(事件玩家) == 真;
     }
     动作 {
-        设置玩家变量(事件玩家, roadhog_hook_melee_boost_ready, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 10, 假);
         施加推力(被攻击方, 方向(所选位置(事件玩家), 所选位置(被攻击方)), 25, 至地图, 取消相反运动);
         小字体信息(事件玩家, 自定义字符串("强化近战击退触发"));
     }
@@ -2717,10 +2711,10 @@
     }
     条件 {
         正在空中(事件玩家) == 真;
-        (事件玩家).lucio_landing_bounce_cooldown == 假;
+        数组中的值((事件玩家).player_state, 12) == 假;
     }
     动作 {
-        设置玩家变量(事件玩家, lucio_was_airborne, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 11, 真);
     }
 }
 
@@ -2731,15 +2725,15 @@
         卢西奥;
     }
     条件 {
-        (事件玩家).lucio_was_airborne == 真;
+        数组中的值((事件玩家).player_state, 11) == 真;
         正在空中(事件玩家) == 假;
         存活(事件玩家) == 真;
-        (事件玩家).lucio_landing_bounce_cooldown == 假;
+        数组中的值((事件玩家).player_state, 12) == 假;
     }
     动作 {
-        设置玩家变量(事件玩家, lucio_was_airborne, 假);
-        设置玩家变量(事件玩家, lucio_landing_bounce_cooldown, 真);
-        设置玩家变量(从数组中移除(范围内玩家(所选位置(事件玩家), 8, 所有队伍, 关闭), 事件玩家), lucio_landing_bounce_cooldown, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 11, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 12, 真);
+        在索引处设置玩家变量(从数组中移除(范围内玩家(所选位置(事件玩家), 8, 所有队伍, 关闭), 事件玩家), player_state, 12, 真);
         施加推力(从数组中移除(范围内玩家(所选位置(事件玩家), 8, 所有队伍, 关闭), 事件玩家), 上, 12, 至地图, 取消相反运动);
         设置移动速度(事件玩家, 140);
         小字体信息(事件玩家, 自定义字符串("落地冲击"));
@@ -2755,11 +2749,11 @@
         卢西奥;
     }
     条件 {
-        (事件玩家).lucio_landing_bounce_cooldown == 真;
+        数组中的值((事件玩家).player_state, 12) == 真;
     }
     动作 {
         等待(1, 无视条件);
-        设置玩家变量(事件玩家, lucio_landing_bounce_cooldown, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 12, 假);
     }
 }
 
@@ -2772,18 +2766,18 @@
     条件 {
         正在使用技能 1(事件玩家) == 真;
         存活(事件玩家) == 真;
-        (事件玩家).sojourn_slide_bump_cooldown == 假;
+        数组中的值((事件玩家).player_state, 13) == 假;
         数量(从数组中移除(范围内玩家(所选位置(事件玩家), 2.6, 所有队伍, 关闭), 事件玩家)) > 0;
     }
     动作 {
-        设置玩家变量(事件玩家, sojourn_slide_bump_cooldown, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 13, 真);
         伤害(从数组中移除(范围内玩家(所选位置(事件玩家), 2.6, 所有队伍, 关闭), 事件玩家), 事件玩家, 20);
         设置状态(从数组中移除(范围内玩家(所选位置(事件玩家), 2.6, 所有队伍, 关闭), 事件玩家), 事件玩家, 击倒, 1.25);
         施加推力(从数组中移除(范围内玩家(所选位置(事件玩家), 2.6, 所有队伍, 关闭), 事件玩家), 方向(所选位置(事件玩家), 所选位置(从数组中移除(范围内玩家(所选位置(事件玩家), 2.6, 所有队伍, 关闭), 事件玩家))), 18, 至地图, 取消相反运动);
         播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(蓝色), 事件玩家, 2.6);
         小字体信息(事件玩家, 自定义字符串("滑铲创飞！"));
         等待(0.8, 无视条件);
-        设置玩家变量(事件玩家, sojourn_slide_bump_cooldown, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 13, 假);
     }
 }
 
@@ -2795,25 +2789,25 @@
     }
     条件 {
         存活(事件玩家) == 真;
-        (事件玩家).brigitte_blink_cooldown == 假;
+        数组中的值((事件玩家).player_state, 3) == 假;
         正在使用辅助武器(事件玩家) == 真;
         正在使用主要武器(事件玩家) == 真;
         数量(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))), 在视野内(事件玩家, 所选位置(当前数组元素), 60)), 比较(相距距离(事件玩家, 当前数组元素), >, 12)), 比较(相距距离(事件玩家, 当前数组元素), <=, 25)), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线)))) > 0;
     }
     动作 {
-        设置玩家变量(事件玩家, brigitte_blink_target, 首个(已排序的数组(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))), 在视野内(事件玩家, 所选位置(当前数组元素), 60)), 比较(相距距离(事件玩家, 当前数组元素), >, 12)), 比较(相距距离(事件玩家, 当前数组元素), <=, 25)), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线))), 矢量间夹角(面朝方向(事件玩家), 减(所选位置(当前数组元素), 眼睛位置(事件玩家))))));
-        If(比较(相距距离(最近的可行走位置(加(所选位置((事件玩家).brigitte_blink_target), 乘(方向(所选位置((事件玩家).brigitte_blink_target), 所选位置(事件玩家)), 2.2))), (事件玩家).brigitte_blink_target), <=, 4));
-            设置玩家变量(事件玩家, brigitte_blink_cooldown, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 4, 首个(已排序的数组(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 存活(当前数组元素)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))), 在视野内(事件玩家, 所选位置(当前数组元素), 60)), 比较(相距距离(事件玩家, 当前数组元素), >, 12)), 比较(相距距离(事件玩家, 当前数组元素), <=, 25)), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线))), 矢量间夹角(面朝方向(事件玩家), 减(所选位置(当前数组元素), 眼睛位置(事件玩家))))));
+        If(比较(相距距离(最近的可行走位置(加(所选位置(数组中的值((事件玩家).player_state, 4)), 乘(方向(所选位置(数组中的值((事件玩家).player_state, 4)), 所选位置(事件玩家)), 2.2))), 数组中的值((事件玩家).player_state, 4)), <=, 4));
+            在索引处设置玩家变量(事件玩家, player_state, 3, 真);
             取消主要动作(事件玩家);
             播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(黄色), 眼睛位置(事件玩家), 1.5);
-            传送(事件玩家, 最近的可行走位置(加(所选位置((事件玩家).brigitte_blink_target), 乘(方向(所选位置((事件玩家).brigitte_blink_target), 所选位置(事件玩家)), 2.2))));
+            传送(事件玩家, 最近的可行走位置(加(所选位置(数组中的值((事件玩家).player_state, 4)), 乘(方向(所选位置(数组中的值((事件玩家).player_state, 4)), 所选位置(事件玩家)), 2.2))));
             播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(黄色), 事件玩家, 2);
-            设置状态((事件玩家).brigitte_blink_target, 事件玩家, 击晕, 0.5);
+            设置状态(数组中的值((事件玩家).player_state, 4), 事件玩家, 击晕, 0.5);
             小字体信息(事件玩家, 自定义字符串("盾击瞬移"));
             等待(4, 无视条件);
-            设置玩家变量(事件玩家, brigitte_blink_cooldown, 假);
+            在索引处设置玩家变量(事件玩家, player_state, 3, 假);
         End;
-        设置玩家变量(事件玩家, brigitte_blink_target, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 4, 空);
     }
 }
 
@@ -2826,19 +2820,19 @@
     条件 {
         存活(事件玩家) == 真;
         正在近战攻击(事件玩家) == 真;
-        (事件玩家).brigitte_counter_cd == 假;
+        数组中的值((事件玩家).player_state, 5) == 假;
         数量(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(布丽吉塔))), 存活(当前数组元素)), 正在使用辅助武器(当前数组元素)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))), 比较(相距距离(事件玩家, 当前数组元素), <=, 3.2)), 在视野内(事件玩家, 所选位置(当前数组元素), 70)), 在视野内(当前数组元素, 所选位置(事件玩家), 100)), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线)))) > 0;
     }
     动作 {
-        设置玩家变量(事件玩家, brigitte_counter_cd, 真);
-        设置玩家变量(事件玩家, brigitte_counter_target, 首个(已排序的数组(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(布丽吉塔))), 存活(当前数组元素)), 正在使用辅助武器(当前数组元素)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))), 比较(相距距离(事件玩家, 当前数组元素), <=, 3.2)), 在视野内(事件玩家, 所选位置(当前数组元素), 70)), 在视野内(当前数组元素, 所选位置(事件玩家), 100)), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线))), 相距距离(事件玩家, 当前数组元素))));
-        设置状态(事件玩家, (事件玩家).brigitte_counter_target, 击晕, 0.35);
-        播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(黄色), 眼睛位置((事件玩家).brigitte_counter_target), 1.6);
-        小字体信息((事件玩家).brigitte_counter_target, 自定义字符串("盾反成功"));
+        在索引处设置玩家变量(事件玩家, player_state, 5, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 6, 首个(已排序的数组(已过滤的数组(所有存活玩家(所有队伍), 与(与(与(与(与(与(与(与(比较(当前数组元素, !=, 事件玩家), 比较(所用英雄(当前数组元素), ==, 英雄(布丽吉塔))), 存活(当前数组元素)), 正在使用辅助武器(当前数组元素)), 或(比较(当前游戏模式, ==, 游戏模式(死斗)), 比较(所在队伍(当前数组元素), !=, 所在队伍(事件玩家)))), 比较(相距距离(事件玩家, 当前数组元素), <=, 3.2)), 在视野内(事件玩家, 所选位置(当前数组元素), 70)), 在视野内(当前数组元素, 所选位置(事件玩家), 100)), 在视线内(事件玩家, 当前数组元素, 屏障不会阻挡视线))), 相距距离(事件玩家, 当前数组元素))));
+        设置状态(事件玩家, 数组中的值((事件玩家).player_state, 6), 击晕, 0.35);
+        播放效果(所有玩家(所有队伍), 有益爆炸, 颜色(黄色), 眼睛位置(数组中的值((事件玩家).player_state, 6)), 1.6);
+        小字体信息(数组中的值((事件玩家).player_state, 6), 自定义字符串("盾反成功"));
         小字体信息(事件玩家, 自定义字符串("被盾反"));
-        设置玩家变量(事件玩家, brigitte_counter_target, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 6, 空);
         等待(1, 无视条件);
-        设置玩家变量(事件玩家, brigitte_counter_cd, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 5, 假);
     }
 }
 
@@ -2849,8 +2843,8 @@
         布丽吉塔;
     }
     动作 {
-        设置玩家变量(事件玩家, brigitte_blink_cooldown, 假);
-        设置玩家变量(事件玩家, brigitte_blink_target, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 3, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 4, 空);
     }
 }
 
@@ -2862,11 +2856,11 @@
     }
     条件 {
         所用英雄(事件玩家) != 英雄(布丽吉塔);
-        或(比较((事件玩家).brigitte_blink_cooldown, ==, 真), 比较((事件玩家).brigitte_blink_target, !=, 空)) == 真;
+        或(比较(数组中的值((事件玩家).player_state, 3), ==, 真), 比较(数组中的值((事件玩家).player_state, 4), !=, 空)) == 真;
     }
     动作 {
-        设置玩家变量(事件玩家, brigitte_blink_cooldown, 假);
-        设置玩家变量(事件玩家, brigitte_blink_target, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 3, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 4, 空);
     }
 }
 
@@ -2877,12 +2871,12 @@
         全部;
     }
     条件 {
-        或(比较((事件玩家).brigitte_counter_cd, ==, 真), 比较((事件玩家).brigitte_counter_target, !=, 空)) == 真;
+        或(比较(数组中的值((事件玩家).player_state, 5), ==, 真), 比较(数组中的值((事件玩家).player_state, 6), !=, 空)) == 真;
         死亡(事件玩家) == 真;
     }
     动作 {
-        设置玩家变量(事件玩家, brigitte_counter_cd, 假);
-        设置玩家变量(事件玩家, brigitte_counter_target, 空);
+        在索引处设置玩家变量(事件玩家, player_state, 5, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 6, 空);
     }
 }
 
@@ -3125,13 +3119,13 @@
     }
     条件 {
         存活(被攻击方) == 真;
-        (事件玩家).illari_sunburn_cooldown == 假;
+        数组中的值((事件玩家).player_state, 14) == 假;
     }
     动作 {
         If(比较(随机整数(1, 100), <=, 20));
-            设置玩家变量(事件玩家, illari_sunburn_cooldown, 真);
+            在索引处设置玩家变量(事件玩家, player_state, 14, 真);
             设置玩家变量(被攻击方, illari_sunburn_active, 真);
-            设置玩家变量(被攻击方, illari_sunburn_pop_cooldown, 假);
+            在索引处设置玩家变量(被攻击方, player_state, 19, 假);
             开始调整玩家大小(被攻击方, 1.4, 真);
             设置移动速度(被攻击方, 85);
             设置受到的击退(被攻击方, 140);
@@ -3143,7 +3137,7 @@
             设置受到的击退(被攻击方, 100);
             设置玩家变量(被攻击方, illari_sunburn_active, 假);
             等待(2, 无视条件);
-            设置玩家变量(事件玩家, illari_sunburn_cooldown, 假);
+            在索引处设置玩家变量(事件玩家, player_state, 14, 假);
     }
 }
 
@@ -3155,13 +3149,13 @@
     }
     条件 {
         (被攻击方).illari_sunburn_active == 真;
-        (被攻击方).illari_sunburn_pop_cooldown == 假;
+        数组中的值((被攻击方).player_state, 19) == 假;
     }
     动作 {
-        设置玩家变量(被攻击方, illari_sunburn_pop_cooldown, 真);
+        在索引处设置玩家变量(被攻击方, player_state, 19, 真);
         施加推力(被攻击方, 上, 8, 至地图, 取消相反运动);
         等待(0.4, 无视条件);
-        设置玩家变量(被攻击方, illari_sunburn_pop_cooldown, 假);
+        在索引处设置玩家变量(被攻击方, player_state, 19, 假);
     }
 }
 
@@ -3174,10 +3168,10 @@
     条件 {
         正在使用技能 2(事件玩家) == 真;
         存活(事件玩家) == 真;
-        (事件玩家).illari_burst_cooldown == 假;
+        数组中的值((事件玩家).player_state, 15) == 假;
     }
     动作 {
-        设置玩家变量(事件玩家, illari_burst_cooldown, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 15, 真);
         施加推力(从数组中移除(范围内玩家(所选位置(事件玩家), 4, 所有队伍, 关闭), 事件玩家), 方向(所选位置(事件玩家), 所选位置(从数组中移除(范围内玩家(所选位置(事件玩家), 4, 所有队伍, 关闭), 事件玩家))), 16, 至地图, 取消相反运动);
         施加推力(已过滤的数组(范围内玩家(所选位置(事件玩家), 4, 所有队伍, 关闭), 与(比较(当前数组元素, !=, 事件玩家), 正在空中(当前数组元素))), 上, 8, 至地图, 取消相反运动);
         设置移动速度(事件玩家, 140);
@@ -3186,7 +3180,7 @@
         等待(1, 无视条件);
         设置移动速度(事件玩家, 100);
         等待(3, 无视条件);
-        设置玩家变量(事件玩家, illari_burst_cooldown, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 15, 假);
     }
 }
 
@@ -3198,11 +3192,11 @@
     }
     条件 {
         存活(事件玩家) == 真;
-        (事件玩家).freya_launch_circle_cooldown == 假;
+        数组中的值((事件玩家).player_state, 16) == 假;
         正在使用技能 2(事件玩家) == 真;
     }
     动作 {
-        设置玩家变量(事件玩家, freya_launch_circle_cooldown, 真);
+        在索引处设置玩家变量(事件玩家, player_state, 16, 真);
         设置玩家变量(事件玩家, freya_launch_circle_effects, 空数组);
         创建效果(所有玩家(所有队伍), 有益光环, 颜色(水绿色), 事件玩家, 6, 可见，位置和半径);
         修改玩家变量(事件玩家, freya_launch_circle_effects, 添加至数组, 最后创建的实体);
@@ -3216,6 +3210,6 @@
         消除效果(数组中的值((事件玩家).freya_launch_circle_effects, 1));
         设置玩家变量(事件玩家, freya_launch_circle_effects, 空数组);
         等待(3, 无视条件);
-        设置玩家变量(事件玩家, freya_launch_circle_cooldown, 假);
+        在索引处设置玩家变量(事件玩家, player_state, 16, 假);
     }
 }
