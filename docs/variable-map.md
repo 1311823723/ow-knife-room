@@ -4,10 +4,11 @@
 
 ## 当前占用概览
 
-- 显式 `playervar`：89 个。
+- 显式 `playervar`：72 个。
 - 仍使用的 Workshop 默认玩家变量：`A`、`B`、`C`、`D`、`Y`、`Z` 共 6 个。
-- 当前实际使用玩家变量槽约 95 个。
-- 本轮迁移前显式 `playervar` 为 109 个，本轮迁移后为 89 个；新增 `player_state` 1 个，释放旧独立变量 21 个，净减少 20 个显式玩家变量。
+- 当前实际使用玩家变量槽约 78 个。
+- 第一轮前显式 `playervar` 为 109 个；两轮迁移后为 72 个。
+- 已迁入 `player_state` 的旧独立变量共 38 个；新增数组变量 1 个，净减少 37 个显式玩家变量。
 - 当前未发现 `disabled rule` / 禁用规则块；没有变量属于“只在禁用规则中使用”。
 
 ## 当前玩家变量列表
@@ -26,7 +27,7 @@
 | 24 | `Y` | resource/state | 士兵 76 蚁人体型档位。 | [state] initialize player state array<br>[soldier] initialize antman state<br>[soldier] grow one antman step<br>[soldier] shrink one antman step<br>[soldier] clear antman state on death<br>[soldier] clear antman state after hero swap<br>76长时间变大 | 暂不迁移。 |
 | 25 | `Z` | resource/state | 士兵 76 派生属性百分比。 | [state] initialize player state array<br>[soldier] initialize antman state<br>[soldier] clear antman state on death<br>[soldier] clear antman state after hero swap | 暂不迁移。 |
 | 26 | `Kiriko_Skill` | resource/state | 雾子法阵运行标记，目前只设真/假，不作为条件使用，疑似可进一步清理。 | 雾子法阵击倒 | 疑似旧逻辑残留，未删除。 |
-| 27 | `player_state` | state array | 新增统一玩家状态数组，承载短状态、临时目标、HUD id、短冷却和少量通用标记。 | [state] initialize player state array<br>被睡冷却<br>[hud] open current hero ability guide on interact<br>[hud] close current hero ability guide on interact<br>[hud] unlock ability guide toggle<br>[hud] clear current hero ability guide on death<br>[ramattra] destroy pain core by melee<br>[reaper] disable secondary fire<br>[winston] disable secondary fire<br>[reaper and winston] restore secondary fire after hero swap<br>[zenyatta] elemental primary hit<br>[zenyatta] clear elemental state on death<br>[zenyatta] clear elemental state after hero swap<br>[baptiste] fake drug injection<br>[roadhog] hook weakens target<br>[roadhog] consume boosted melee knockback<br>[lucio] remember airborne state<br>[lucio] landing bounce<br>[lucio] clear landing bounce cooldown<br>[sojourn] power slide launches nearby players<br>[brigitte] shield bash blink stun<br>[brigitte] shield counter melee attackers<br>[brigitte] clear shield bash blink on death<br>[brigitte] clear shield bash blink after hero swap<br>[brigitte] clear shield counter attacker state<br>[illari] apply sunburn on damage<br>[illari] pop sunburned target on damage<br>[illari] outburst knocks nearby players<br>[freya] launch circle | 新统一状态数组。 |
+| 27 | `player_state` | state array | 统一玩家状态数组，承载短状态、临时目标、HUD id、短冷却，以及本轮迁入的托比昂/堡垒资源和 HUD 状态。 | [state] initialize player state array<br>被睡冷却<br>[hud] open current hero ability guide on interact<br>[hud] close current hero ability guide on interact<br>[hud] unlock ability guide toggle<br>[hud] clear current hero ability guide on death<br>[bastion] create scrap hud<br>[bastion] gain scrap on damage<br>[bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap<br>[ramattra] destroy pain core by melee<br>[reaper] disable secondary fire<br>[winston] disable secondary fire<br>[reaper and winston] restore secondary fire after hero swap<br>[zenyatta] elemental primary hit<br>[zenyatta] clear elemental state on death<br>[zenyatta] clear elemental state after hero swap<br>[baptiste] fake drug injection<br>[torbjorn] create parts hud<br>[torbjorn] gain parts on elimination<br>[torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap<br>[roadhog] hook weakens target<br>[roadhog] consume boosted melee knockback<br>[lucio] remember airborne state<br>[lucio] landing bounce<br>[lucio] clear landing bounce cooldown<br>[sojourn] power slide launches nearby players<br>[brigitte] shield bash blink stun<br>[brigitte] shield counter melee attackers<br>[brigitte] clear shield bash blink on death<br>[brigitte] clear shield bash blink after hero swap<br>[brigitte] clear shield counter attacker state<br>[illari] apply sunburn on damage<br>[illari] pop sunburned target on damage<br>[illari] outburst knocks nearby players<br>[freya] launch circle | 新统一状态数组。 |
 | 32 | `illari_sunburn_active` | active/flag | 伊拉锐晒黑目标状态，影响二次命中弹飞和恢复属性。 | [illari] apply sunburn on damage<br>[illari] pop sunburned target on damage | 后续可评估迁入数组。 |
 | 38 | `freya_launch_circle_effects` | effect/HUD handle | 芙蕾娅飞天法阵持续特效句柄数组。 | [freya] launch circle | 暂不迁移。 |
 | 39 | `genji_dash_reset_cooldown` | cooldown | 旧源氏过热机制遗留，只在源氏清理规则中兜底设假，疑似可清理。 | [genji] clear blade window on death<br>[genji] clear blade window after hero swap | 疑似旧逻辑残留，未删除。 |
@@ -38,29 +39,12 @@
 | 46 | `baptiste_fake_drug_roll` | roll | 假药副作用随机结果。 | [baptiste] fake drug injection | 后续可评估迁入数组。 |
 | 47 | `genji_ult_window_active` | active/flag | 源氏疯狗龙刃窗口状态。 | [genji] lock swift strike outside blade window<br>[genji] start blade window on final blow<br>[genji] refresh blade window on final blow<br>[genji] blade damage cap during window<br>[genji] clear blade window on death<br>[genji] clear blade window after hero swap<br>[genji] clear blade window after leaving alive window | 后续可评估迁入数组。 |
 | 48 | `genji_ult_window_timer` | timer | 源氏疯狗窗口倒计时。 | [genji] start blade window on final blow<br>[genji] refresh blade window on final blow<br>[genji] clear blade window on death<br>[genji] clear blade window after hero swap<br>[genji] clear blade window after leaving alive window | 后续可评估迁入数组。 |
-| 49 | `genji_ult_window_token` | token | 源氏窗口版本 token，当前主要用于清理递增。 | [genji] start blade window on final blow<br>[genji] refresh blade window on final blow<br>[genji] clear blade window on death<br>[genji] clear blade window after hero swap<br>[genji] clear blade window after leaving alive window | 暂不迁移。 |
-| 50 | `torb_parts` | resource/state | 托比昂零件数量。 | [torbjorn] create parts hud<br>[torbjorn] gain parts on elimination<br>[torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap | 暂不迁移。 |
-| 51 | `torb_mod_ready` | active/flag | 托比昂非法改装就绪标记。 | [torbjorn] gain parts on elimination<br>[torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap | 后续可评估迁入数组。 |
-| 52 | `torb_mod_active` | active/flag | 托比昂非法改装运行状态。 | [torbjorn] gain parts on elimination<br>[torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap | 后续可评估迁入数组。 |
-| 53 | `torb_mod_roll` | roll | 托比昂非法改装随机结果。 | [torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap | 后续可评估迁入数组。 |
-| 54 | `torb_mod_cooldown` | cooldown | 托比昂非法改装按键/触发冷却。 | [torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap | 后续可评估迁入数组。 |
-| 55 | `torb_parts_hud_created` | active/flag | 托比昂零件 HUD 创建标记。 | [torbjorn] create parts hud<br>[torbjorn] clear illegal modification after hero swap | 后续可评估迁入数组。 |
-| 56 | `torb_parts_hud_id` | effect/HUD handle | 托比昂零件 HUD id。 | [torbjorn] create parts hud<br>[torbjorn] clear illegal modification after hero swap | 后续可评估迁入数组。 |
+| 49 | `genji_ult_window_token` | token | 源氏窗口版本 token。 | [genji] start blade window on final blow<br>[genji] refresh blade window on final blow<br>[genji] clear blade window on death<br>[genji] clear blade window after hero swap<br>[genji] clear blade window after leaving alive window | 暂不迁移。 |
 | 57 | `genji_ult_window_hud_created` | active/flag | 源氏疯狗窗口 HUD 创建标记。 | [genji] start blade window on final blow<br>[genji] clear blade window on death<br>[genji] clear blade window after hero swap<br>[genji] clear blade window after leaving alive window | 后续可评估迁入数组。 |
 | 58 | `genji_ult_window_hud_id` | effect/HUD handle | 源氏疯狗窗口 HUD id。 | [genji] start blade window on final blow<br>[genji] clear blade window on death<br>[genji] clear blade window after hero swap<br>[genji] clear blade window after leaving alive window | 后续可评估迁入数组。 |
 | 61 | `soldier_resize_cooldown` | cooldown | 士兵 76 体型变档短冷却。 | [soldier] initialize antman state<br>[soldier] grow one antman step<br>[soldier] shrink one antman step<br>[soldier] clear antman state on death<br>[soldier] clear antman state after hero swap | 后续可评估迁入数组。 |
 | 63 | `tracer_auto_recall_state` | resource/state | 猎空自动回溯本条命状态。 | [tracer] grant auto recall on spawn<br>[tracer] auto recall on lethal damage<br>[tracer] clear auto recall on death<br>[tracer] clear auto recall after hero swap | 暂不迁移。 |
 | 64 | `tracer_debt_active` | active/flag | 猎空时间债务状态。 | [tracer] grant auto recall on spawn<br>[tracer] auto recall on lethal damage<br>[tracer] clear auto recall on death<br>[tracer] clear auto recall after hero swap | 后续可评估迁入数组。 |
-| 65 | `bastion_scrap` | resource/state | 堡垒废铁资源。 | [bastion] create scrap hud<br>[bastion] gain scrap on damage<br>[bastion] activate scrap modification<br>[bastion] clear scrap after hero swap | 暂不迁移。 |
-| 66 | `bastion_scrap_gain_cooldown` | cooldown | 堡垒废铁获取节流。 | [bastion] gain scrap on damage<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap | 后续可评估迁入数组。 |
-| 67 | `bastion_mod_active` | active/flag | 堡垒非法改装运行状态。 | [bastion] gain scrap on damage<br>[bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap | 后续可评估迁入数组。 |
-| 68 | `bastion_mod_roll` | roll | 堡垒非法改装随机结果。 | [bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap | 后续可评估迁入数组。 |
-| 69 | `bastion_scrap_hud_created` | active/flag | 堡垒废铁 HUD 创建标记。 | [bastion] create scrap hud<br>[bastion] clear scrap after hero swap | 后续可评估迁入数组。 |
-| 70 | `bastion_scrap_hud_id` | effect/HUD handle | 堡垒废铁 HUD id。 | [bastion] create scrap hud<br>[bastion] clear scrap after hero swap | 后续可评估迁入数组。 |
-| 71 | `torb_mod_status_hud_created` | active/flag | 托比昂改装状态 HUD 创建标记。 | [torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap | 后续可评估迁入数组。 |
-| 72 | `torb_mod_status_hud_id` | effect/HUD handle | 托比昂改装状态 HUD id。 | [torbjorn] activate illegal modification<br>[torbjorn] clear illegal modification on death<br>[torbjorn] clear illegal modification after hero swap | 后续可评估迁入数组。 |
-| 73 | `bastion_mod_status_hud_created` | active/flag | 堡垒改装状态 HUD 创建标记。 | [bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap | 后续可评估迁入数组。 |
-| 74 | `bastion_mod_status_hud_id` | effect/HUD handle | 堡垒改装状态 HUD id。 | [bastion] activate scrap modification<br>[bastion] clear modification on death keep scrap<br>[bastion] clear scrap after hero swap | 后续可评估迁入数组。 |
 | 75 | `winston_grapple_active` | active/flag | 温斯顿抱摔流程状态。 | [winston] grapple slam on jump contact<br>[winston] clear grapple on death<br>[winston] clear grapple after hero swap<br>[winston] clear grappled target on death or hero swap | 后续可评估迁入数组。 |
 | 76 | `winston_grapple_target` | reference/position | 温斯顿抱摔目标。 | [winston] grapple slam on jump contact<br>[winston] clear grapple on death<br>[winston] clear grapple after hero swap<br>[winston] clear grappled target on death or hero swap | 暂不迁移。 |
 | 77 | `winston_grapple_lock` | active/flag | 温斯顿抱摔一次跳跃触发锁。 | [winston] grapple slam on jump contact<br>[winston] clear grapple on death<br>[winston] clear grapple after hero swap<br>[winston] clear grappled target on death or hero swap | 暂不迁移。 |
@@ -110,7 +94,7 @@
 | 125 | `zen_slow_timer` | timer | 禅雅塔冰元素减速恢复线程锁。 | [zenyatta] elemental primary hit<br>[zenyatta] restore frost slow<br>[zenyatta] elemental secondary skill<br>[zenyatta] clear slow on target death or hero swap | 后续可评估迁入数组。 |
 | 126 | `zen_slow_hero` | reference/position | 禅雅塔冰元素目标原英雄。 | [zenyatta] elemental primary hit<br>[zenyatta] restore frost slow<br>[zenyatta] elemental secondary skill<br>[zenyatta] clear slow on target death or hero swap | 暂不迁移。 |
 
-## 本轮已迁移进 `player_state` 的旧变量
+## 已迁移进 `player_state` 的旧变量
 
 | 旧槽位 | 旧变量 | 新索引 | 用途 |
 | --- | --- | --- | --- |
@@ -135,6 +119,23 @@
 | 127 | `zen_chain_target` | `player_state[7]` | 禅雅塔雷元素普攻临时连锁目标 |
 | 9 | `brigitte_counter_cd` | `player_state[5]` | 布丽吉塔盾反攻击者短冷却 |
 | 10 | `brigitte_counter_target` | `player_state[6]` | 布丽吉塔盾反临时目标 |
+| 50 | `torb_parts` | `player_state[21]` | 托比昂零件数量 |
+| 51 | `torb_mod_ready` | `player_state[22]` | 托比昂非法改装就绪标记 |
+| 52 | `torb_mod_active` | `player_state[23]` | 托比昂非法改装运行状态 |
+| 53 | `torb_mod_roll` | `player_state[24]` | 托比昂非法改装随机结果 |
+| 54 | `torb_mod_cooldown` | `player_state[25]` | 托比昂非法改装触发冷却 |
+| 55 | `torb_parts_hud_created` | `player_state[26]` | 托比昂零件 HUD 创建标记 |
+| 56 | `torb_parts_hud_id` | `player_state[27]` | 托比昂零件 HUD id |
+| 71 | `torb_mod_status_hud_created` | `player_state[28]` | 托比昂改装状态 HUD 创建标记 |
+| 72 | `torb_mod_status_hud_id` | `player_state[29]` | 托比昂改装状态 HUD id |
+| 65 | `bastion_scrap` | `player_state[30]` | 堡垒废铁数量，死亡保留、换英雄清零 |
+| 66 | `bastion_scrap_gain_cooldown` | `player_state[31]` | 堡垒废铁获取节流 |
+| 67 | `bastion_mod_active` | `player_state[32]` | 堡垒非法改装运行状态 |
+| 68 | `bastion_mod_roll` | `player_state[33]` | 堡垒非法改装随机结果 |
+| 69 | `bastion_scrap_hud_created` | `player_state[34]` | 堡垒废铁 HUD 创建标记 |
+| 70 | `bastion_scrap_hud_id` | `player_state[35]` | 堡垒废铁 HUD id |
+| 73 | `bastion_mod_status_hud_created` | `player_state[36]` | 堡垒改装状态 HUD 创建标记 |
+| 74 | `bastion_mod_status_hud_id` | `player_state[37]` | 堡垒改装状态 HUD id |
 
 ## 疑似旧逻辑残留但未删除
 
@@ -146,9 +147,7 @@
 
 ## 可继续数组化的候选
 
-- 托比昂：`torb_parts`、`torb_mod_ready`、`torb_mod_active`、`torb_mod_roll`、`torb_mod_cooldown`、`torb_parts_hud_created`、`torb_parts_hud_id`、`torb_mod_status_hud_created`、`torb_mod_status_hud_id`，建议作为下一轮整组迁移。
-- 堡垒：`bastion_scrap`、`bastion_scrap_gain_cooldown`、`bastion_mod_active`、`bastion_mod_roll`、HUD 相关变量，建议整组迁移，并特别保留“死亡不清废铁、换英雄清废铁”的行为。
-- 源氏疯狗窗口：`genji_ult_window_*` 可以整组迁移，但涉及 HUD、计时、死亡/换英雄清理，本轮暂缓。
+- 源氏疯狗窗口：`genji_ult_window_*` 可以整组迁移，但涉及 HUD、计时、死亡/换英雄清理，暂缓。
 - 禅雅塔：`zen_*` 中部分 cooldown/临时位置可迁移，但右键和大招共享持续特效数组，本轮只迁移了临时连锁目标。
 - 特效句柄数组：`freya_launch_circle_effects`、`ramattra_core_effects`、`sigma_black_hole_effects`、`reaper_*_fx`、`zen_fx`、`winston_barrier_fx` 可逐步迁到专用 `player_effects` 数组；本轮为降低风险未新增第二个数组。
 

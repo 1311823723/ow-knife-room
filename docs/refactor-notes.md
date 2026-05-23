@@ -48,3 +48,24 @@
 - 数组槽中的效果句柄和 HUD id 必须先销毁再清空。
 - 索引 12 会被卢西奥写到附近其他玩家身上，用于防落地冲击连锁；这不是污染，是原 `lucio_landing_bounce_cooldown` 的等价迁移。
 - 本轮没有改动 cooldown 计时模型，因此不会减少 wait 线程，但变量占用已经下降。
+
+## 2026-05-23 玩家变量数组化第二轮
+
+### 本次追加做了什么
+
+- 将托比昂零件/非法改装整组迁入 `player_state[21..29]`。
+- 将堡垒废铁/非法改装整组迁入 `player_state[30..37]`。
+- `player_state` 初始化长度从 21 扩展到 38。
+- 删除 17 个旧独立 `playervar` 声明，显式玩家变量从 89 个降到 72 个。
+- 保留托比昂“死亡清空零件”和堡垒“死亡保留废铁、换英雄清空废铁”的原行为差异。
+
+### 追加迁移清单
+
+- 托比昂：`torb_parts`、`torb_mod_ready`、`torb_mod_active`、`torb_mod_roll`、`torb_mod_cooldown`、`torb_parts_hud_created`、`torb_parts_hud_id`、`torb_mod_status_hud_created`、`torb_mod_status_hud_id`
+- 堡垒：`bastion_scrap`、`bastion_scrap_gain_cooldown`、`bastion_mod_active`、`bastion_mod_roll`、`bastion_scrap_hud_created`、`bastion_scrap_hud_id`、`bastion_mod_status_hud_created`、`bastion_mod_status_hud_id`
+
+### 追加风险点
+
+- 托比昂成功改装仍按旧逻辑持续到死亡或换英雄，失败改装仍约 2 秒后恢复。
+- 堡垒死亡清理不会清空 `player_state[30]` 废铁；换英雄才会清空。
+- 两组 HUD id 都迁入数组，销毁前必须检查对应 created 槽。

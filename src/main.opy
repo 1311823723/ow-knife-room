@@ -14,28 +14,11 @@ playervar baptiste_fake_drug_roll 46
 playervar genji_ult_window_active 47
 playervar genji_ult_window_timer 48
 playervar genji_ult_window_token 49
-playervar torb_parts 50
-playervar torb_mod_ready 51
-playervar torb_mod_active 52
-playervar torb_mod_roll 53
-playervar torb_mod_cooldown 54
-playervar torb_parts_hud_created 55
-playervar torb_parts_hud_id 56
 playervar genji_ult_window_hud_created 57
 playervar genji_ult_window_hud_id 58
 playervar soldier_resize_cooldown 61
 playervar tracer_auto_recall_state 63
 playervar tracer_debt_active 64
-playervar bastion_scrap 65
-playervar bastion_scrap_gain_cooldown 66
-playervar bastion_mod_active 67
-playervar bastion_mod_roll 68
-playervar bastion_scrap_hud_created 69
-playervar bastion_scrap_hud_id 70
-playervar torb_mod_status_hud_created 71
-playervar torb_mod_status_hud_id 72
-playervar bastion_mod_status_hud_created 73
-playervar bastion_mod_status_hud_id 74
 playervar winston_grapple_active 75
 playervar winston_grapple_target 76
 playervar winston_grapple_lock 77
@@ -97,9 +80,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 21
+    @Condition len(eventPlayer.player_state) < 38
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null]
 
 
 def applySoldierAntmanState():
@@ -562,11 +545,11 @@ rule "[tracer] clear auto recall after hero swap":
 rule "[bastion] create scrap hud":
     @Event eachPlayer
     @Hero bastion
-    @Condition eventPlayer.bastion_scrap_hud_created == false
+    @Condition eventPlayer.player_state[34] == false
 
-    eventPlayer.bastion_scrap_hud_created = true
-    hudHeader(eventPlayer, "废铁：{}/6".format(eventPlayer.bastion_scrap), HudPosition.RIGHT, -800, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
-    eventPlayer.bastion_scrap_hud_id = getLastCreatedText()
+    eventPlayer.player_state[34] = true
+    hudHeader(eventPlayer, "废铁：{}/6".format(eventPlayer.player_state[30]), HudPosition.RIGHT, -800, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.player_state[35] = getLastCreatedText()
 
 
 rule "[bastion] gain scrap on damage":
@@ -574,122 +557,122 @@ rule "[bastion] gain scrap on damage":
     @Hero bastion
     @Condition eventPlayer.isAlive() == true
     @Condition eventDamage > 0
-    @Condition eventPlayer.bastion_scrap < 6
-    @Condition eventPlayer.bastion_scrap_gain_cooldown == false
-    @Condition eventPlayer.bastion_mod_active == false
+    @Condition eventPlayer.player_state[30] < 6
+    @Condition eventPlayer.player_state[31] == false
+    @Condition eventPlayer.player_state[32] == false
 
-    eventPlayer.bastion_scrap_gain_cooldown = true
-    eventPlayer.bastion_scrap += 1
-    if eventPlayer.bastion_scrap >= 6:
-        eventPlayer.bastion_scrap = 6
+    eventPlayer.player_state[31] = true
+    eventPlayer.player_state[30] += 1
+    if eventPlayer.player_state[30] >= 6:
+        eventPlayer.player_state[30] = 6
         bigMessage(eventPlayer, "非法改装启动")
     else:
-        smallMessage(eventPlayer, "废铁：{}/6".format(eventPlayer.bastion_scrap))
+        smallMessage(eventPlayer, "废铁：{}/6".format(eventPlayer.player_state[30]))
     wait(0.45)
-    eventPlayer.bastion_scrap_gain_cooldown = false
+    eventPlayer.player_state[31] = false
 
 
 rule "[bastion] activate scrap modification":
     @Event eachPlayer
     @Hero bastion
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.bastion_scrap >= 6
-    @Condition eventPlayer.bastion_mod_active == false
+    @Condition eventPlayer.player_state[30] >= 6
+    @Condition eventPlayer.player_state[32] == false
 
-    eventPlayer.bastion_mod_active = true
-    eventPlayer.bastion_scrap = 0
-    eventPlayer.bastion_mod_roll = random.randint(1, 4)
+    eventPlayer.player_state[32] = true
+    eventPlayer.player_state[30] = 0
+    eventPlayer.player_state[33] = random.randint(1, 4)
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
-    if eventPlayer.bastion_mod_roll == 1:
+    if eventPlayer.player_state[33] == 1:
         eventPlayer.setDamageDealt(125)
         eventPlayer.setDamageReceived(125)
-        eventPlayer.bastion_mod_status_hud_created = true
+        eventPlayer.player_state[36] = true
         hudHeader(eventPlayer, "当前改装：破甲机枪", HudPosition.RIGHT, -799, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
-        eventPlayer.bastion_mod_status_hud_id = getLastCreatedText()
+        eventPlayer.player_state[37] = getLastCreatedText()
         playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
         bigMessage(eventPlayer, "非法改装：破甲机枪")
         wait(6)
-        if eventPlayer.bastion_mod_active == true and eventPlayer.getHero() == Hero.BASTION:
+        if eventPlayer.player_state[32] == true and eventPlayer.getHero() == Hero.BASTION:
             eventPlayer.setDamageDealt(100)
             eventPlayer.setDamageReceived(100)
-            if eventPlayer.bastion_mod_status_hud_created == true:
-                destroyHudText(eventPlayer.bastion_mod_status_hud_id)
-            eventPlayer.bastion_mod_status_hud_created = false
-            eventPlayer.bastion_mod_status_hud_id = null
-            eventPlayer.bastion_mod_active = false
-    elif eventPlayer.bastion_mod_roll == 2:
+            if eventPlayer.player_state[36] == true:
+                destroyHudText(eventPlayer.player_state[37])
+            eventPlayer.player_state[36] = false
+            eventPlayer.player_state[37] = null
+            eventPlayer.player_state[32] = false
+    elif eventPlayer.player_state[33] == 2:
         eventPlayer.startScalingSize(1.2)
         eventPlayer.setDamageReceived(70)
         eventPlayer.setMoveSpeed(55)
-        eventPlayer.bastion_mod_status_hud_created = true
+        eventPlayer.player_state[36] = true
         hudHeader(eventPlayer, "当前改装：铁皮乌龟", HudPosition.RIGHT, -799, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
-        eventPlayer.bastion_mod_status_hud_id = getLastCreatedText()
+        eventPlayer.player_state[37] = getLastCreatedText()
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.WHITE, eventPlayer, 3)
         bigMessage(eventPlayer, "非法改装：铁皮乌龟")
         wait(6)
-        if eventPlayer.bastion_mod_active == true and eventPlayer.getHero() == Hero.BASTION:
+        if eventPlayer.player_state[32] == true and eventPlayer.getHero() == Hero.BASTION:
             eventPlayer.stopScalingSize()
             eventPlayer.setDamageReceived(100)
             eventPlayer.setMoveSpeed(100)
-            if eventPlayer.bastion_mod_status_hud_created == true:
-                destroyHudText(eventPlayer.bastion_mod_status_hud_id)
-            eventPlayer.bastion_mod_status_hud_created = false
-            eventPlayer.bastion_mod_status_hud_id = null
-            eventPlayer.bastion_mod_active = false
-    elif eventPlayer.bastion_mod_roll == 3:
+            if eventPlayer.player_state[36] == true:
+                destroyHudText(eventPlayer.player_state[37])
+            eventPlayer.player_state[36] = false
+            eventPlayer.player_state[37] = null
+            eventPlayer.player_state[32] = false
+    elif eventPlayer.player_state[33] == 3:
         eventPlayer.startScalingSize(0.65)
         eventPlayer.setMoveSpeed(135)
         eventPlayer.setDamageDealt(75)
         eventPlayer.setKnockbackReceived(160)
-        eventPlayer.bastion_mod_status_hud_created = true
+        eventPlayer.player_state[36] = true
         hudHeader(eventPlayer, "当前改装：迷你履带", HudPosition.RIGHT, -799, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
-        eventPlayer.bastion_mod_status_hud_id = getLastCreatedText()
+        eventPlayer.player_state[37] = getLastCreatedText()
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 2.5)
         bigMessage(eventPlayer, "非法改装：迷你履带")
         wait(6)
-        if eventPlayer.bastion_mod_active == true and eventPlayer.getHero() == Hero.BASTION:
+        if eventPlayer.player_state[32] == true and eventPlayer.getHero() == Hero.BASTION:
             eventPlayer.stopScalingSize()
             eventPlayer.setMoveSpeed(100)
             eventPlayer.setDamageDealt(100)
             eventPlayer.setKnockbackReceived(100)
-            if eventPlayer.bastion_mod_status_hud_created == true:
-                destroyHudText(eventPlayer.bastion_mod_status_hud_id)
-            eventPlayer.bastion_mod_status_hud_created = false
-            eventPlayer.bastion_mod_status_hud_id = null
-            eventPlayer.bastion_mod_active = false
+            if eventPlayer.player_state[36] == true:
+                destroyHudText(eventPlayer.player_state[37])
+            eventPlayer.player_state[36] = false
+            eventPlayer.player_state[37] = null
+            eventPlayer.player_state[32] = false
     else:
         eventPlayer.startScalingSize(1.5)
         eventPlayer.setMoveSpeed(60)
         eventPlayer.setDamageReceived(130)
         eventPlayer.setStatusEffect(null, Status.KNOCKED_DOWN, 0.75)
-        eventPlayer.bastion_mod_status_hud_created = true
+        eventPlayer.player_state[36] = true
         hudHeader(eventPlayer, "当前改装：废铁爆仓", HudPosition.RIGHT, -799, Color.RED, HudReeval.VISIBILITY_AND_STRING)
-        eventPlayer.bastion_mod_status_hud_id = getLastCreatedText()
+        eventPlayer.player_state[37] = getLastCreatedText()
         playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer, 3)
         bigMessage(eventPlayer, "非法改装失败：废铁爆仓")
         wait(2)
-        if eventPlayer.bastion_mod_active == true and eventPlayer.getHero() == Hero.BASTION:
+        if eventPlayer.player_state[32] == true and eventPlayer.getHero() == Hero.BASTION:
             eventPlayer.stopScalingSize()
             eventPlayer.setMoveSpeed(100)
             eventPlayer.setDamageReceived(100)
-            if eventPlayer.bastion_mod_status_hud_created == true:
-                destroyHudText(eventPlayer.bastion_mod_status_hud_id)
-            eventPlayer.bastion_mod_status_hud_created = false
-            eventPlayer.bastion_mod_status_hud_id = null
-            eventPlayer.bastion_mod_active = false
+            if eventPlayer.player_state[36] == true:
+                destroyHudText(eventPlayer.player_state[37])
+            eventPlayer.player_state[36] = false
+            eventPlayer.player_state[37] = null
+            eventPlayer.player_state[32] = false
 
 
 rule "[bastion] clear modification on death keep scrap":
     @Event playerDied
     @Hero bastion
 
-    eventPlayer.bastion_mod_active = false
-    eventPlayer.bastion_scrap_gain_cooldown = false
-    eventPlayer.bastion_mod_roll = 0
-    if eventPlayer.bastion_mod_status_hud_created == true:
-        destroyHudText(eventPlayer.bastion_mod_status_hud_id)
-    eventPlayer.bastion_mod_status_hud_created = false
-    eventPlayer.bastion_mod_status_hud_id = null
+    eventPlayer.player_state[32] = false
+    eventPlayer.player_state[31] = false
+    eventPlayer.player_state[33] = 0
+    if eventPlayer.player_state[36] == true:
+        destroyHudText(eventPlayer.player_state[37])
+    eventPlayer.player_state[36] = false
+    eventPlayer.player_state[37] = null
     eventPlayer.stopScalingSize()
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageDealt(100)
@@ -700,20 +683,20 @@ rule "[bastion] clear modification on death keep scrap":
 rule "[bastion] clear scrap after hero swap":
     @Event eachPlayer
     @Condition eventPlayer.getHero() != Hero.BASTION
-    @Condition eventPlayer.bastion_scrap > 0 or eventPlayer.bastion_scrap_gain_cooldown == true or eventPlayer.bastion_mod_active == true or eventPlayer.bastion_scrap_hud_created == true or eventPlayer.bastion_mod_status_hud_created == true
+    @Condition eventPlayer.player_state[30] > 0 or eventPlayer.player_state[31] == true or eventPlayer.player_state[32] == true or eventPlayer.player_state[34] == true or eventPlayer.player_state[36] == true
 
-    if eventPlayer.bastion_scrap_hud_created == true:
-        destroyHudText(eventPlayer.bastion_scrap_hud_id)
-    if eventPlayer.bastion_mod_status_hud_created == true:
-        destroyHudText(eventPlayer.bastion_mod_status_hud_id)
-    eventPlayer.bastion_scrap = 0
-    eventPlayer.bastion_scrap_gain_cooldown = false
-    eventPlayer.bastion_mod_active = false
-    eventPlayer.bastion_mod_roll = 0
-    eventPlayer.bastion_scrap_hud_created = false
-    eventPlayer.bastion_scrap_hud_id = null
-    eventPlayer.bastion_mod_status_hud_created = false
-    eventPlayer.bastion_mod_status_hud_id = null
+    if eventPlayer.player_state[34] == true:
+        destroyHudText(eventPlayer.player_state[35])
+    if eventPlayer.player_state[36] == true:
+        destroyHudText(eventPlayer.player_state[37])
+    eventPlayer.player_state[30] = 0
+    eventPlayer.player_state[31] = false
+    eventPlayer.player_state[32] = false
+    eventPlayer.player_state[33] = 0
+    eventPlayer.player_state[34] = false
+    eventPlayer.player_state[35] = null
+    eventPlayer.player_state[36] = false
+    eventPlayer.player_state[37] = null
     eventPlayer.stopScalingSize()
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageDealt(100)
@@ -1831,27 +1814,27 @@ rule "[genji] clear blade window after leaving alive window":
 rule "[torbjorn] create parts hud":
     @Event eachPlayer
     @Hero torbjorn
-    @Condition eventPlayer.torb_parts_hud_created == false
+    @Condition eventPlayer.player_state[26] == false
 
-    eventPlayer.torb_parts_hud_created = true
-    hudHeader(eventPlayer, "托比昂零件：{}/3".format(eventPlayer.torb_parts), HudPosition.RIGHT, -850, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
-    eventPlayer.torb_parts_hud_id = getLastCreatedText()
+    eventPlayer.player_state[26] = true
+    hudHeader(eventPlayer, "托比昂零件：{}/3".format(eventPlayer.player_state[21]), HudPosition.RIGHT, -850, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.player_state[27] = getLastCreatedText()
 
 
 rule "[torbjorn] gain parts on elimination":
     @Event playerEarnedElimination
     @Hero torbjorn
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.torb_mod_active == false
+    @Condition eventPlayer.player_state[23] == false
 
-    if eventPlayer.torb_parts < 3:
-        eventPlayer.torb_parts += 1
-    if eventPlayer.torb_parts >= 3:
-        eventPlayer.torb_parts = 3
-        eventPlayer.torb_mod_ready = true
+    if eventPlayer.player_state[21] < 3:
+        eventPlayer.player_state[21] += 1
+    if eventPlayer.player_state[21] >= 3:
+        eventPlayer.player_state[21] = 3
+        eventPlayer.player_state[22] = true
         smallMessage(eventPlayer, "非法改装就绪")
     else:
-        smallMessage(eventPlayer, "获得零件：{}/3".format(eventPlayer.torb_parts))
+        smallMessage(eventPlayer, "获得零件：{}/3".format(eventPlayer.player_state[21]))
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 1.5)
 
 
@@ -1859,63 +1842,63 @@ rule "[torbjorn] activate illegal modification":
     @Event eachPlayer
     @Hero torbjorn
     @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.torb_parts >= 3
-    @Condition eventPlayer.torb_mod_active == false
-    @Condition eventPlayer.torb_mod_cooldown == false
+    @Condition eventPlayer.player_state[21] >= 3
+    @Condition eventPlayer.player_state[23] == false
+    @Condition eventPlayer.player_state[25] == false
     @Condition eventPlayer.isUsingAbility2() == true
 
-    eventPlayer.torb_mod_active = true
-    eventPlayer.torb_mod_ready = false
-    eventPlayer.torb_mod_cooldown = true
-    eventPlayer.torb_parts = 0
-    eventPlayer.torb_mod_roll = random.randint(1, 4)
+    eventPlayer.player_state[23] = true
+    eventPlayer.player_state[22] = false
+    eventPlayer.player_state[25] = true
+    eventPlayer.player_state[21] = 0
+    eventPlayer.player_state[24] = random.randint(1, 4)
     smallMessage(eventPlayer, "非法改装启动！")
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
-    if eventPlayer.torb_mod_roll == 1:
+    if eventPlayer.player_state[24] == 1:
         eventPlayer.startScalingSize(1.6)
         eventPlayer.setDamageDealt(120)
         eventPlayer.setMoveSpeed(80)
         eventPlayer.setKnockbackReceived(130)
-        eventPlayer.torb_mod_status_hud_created = true
+        eventPlayer.player_state[28] = true
         hudHeader(eventPlayer, "当前改装：巨型模块", HudPosition.RIGHT, -849, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
-        eventPlayer.torb_mod_status_hud_id = getLastCreatedText()
+        eventPlayer.player_state[29] = getLastCreatedText()
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 3)
         bigMessage(eventPlayer, "非法改装：巨型模块")
         wait(1)
-        eventPlayer.torb_mod_cooldown = false
-    elif eventPlayer.torb_mod_roll == 2:
+        eventPlayer.player_state[25] = false
+    elif eventPlayer.player_state[24] == 2:
         eventPlayer.startScalingSize(0.65)
         eventPlayer.setMoveSpeed(140)
         eventPlayer.setDamageDealt(70)
         eventPlayer.setKnockbackReceived(160)
-        eventPlayer.torb_mod_status_hud_created = true
+        eventPlayer.player_state[28] = true
         hudHeader(eventPlayer, "当前改装：迷你模块", HudPosition.RIGHT, -849, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
-        eventPlayer.torb_mod_status_hud_id = getLastCreatedText()
+        eventPlayer.player_state[29] = getLastCreatedText()
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.BLUE, eventPlayer, 2)
         bigMessage(eventPlayer, "非法改装：迷你模块")
         wait(1)
-        eventPlayer.torb_mod_cooldown = false
-    elif eventPlayer.torb_mod_roll == 3:
+        eventPlayer.player_state[25] = false
+    elif eventPlayer.player_state[24] == 3:
         eventPlayer.startScalingSize(1.25)
         eventPlayer.setDamageReceived(70)
         eventPlayer.setMoveSpeed(75)
         eventPlayer.setDamageDealt(80)
         eventPlayer.setKnockbackReceived(70)
-        eventPlayer.torb_mod_status_hud_created = true
+        eventPlayer.player_state[28] = true
         hudHeader(eventPlayer, "当前改装：防爆模块", HudPosition.RIGHT, -849, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
-        eventPlayer.torb_mod_status_hud_id = getLastCreatedText()
+        eventPlayer.player_state[29] = getLastCreatedText()
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.WHITE, eventPlayer, 2.5)
         bigMessage(eventPlayer, "非法改装：防爆模块")
         wait(1)
-        eventPlayer.torb_mod_cooldown = false
+        eventPlayer.player_state[25] = false
     else:
         eventPlayer.startScalingSize(1.8)
         eventPlayer.setMoveSpeed(60)
         eventPlayer.setDamageReceived(130)
         eventPlayer.setStatusEffect(null, Status.KNOCKED_DOWN, 0.75)
-        eventPlayer.torb_mod_status_hud_created = true
+        eventPlayer.player_state[28] = true
         hudHeader(eventPlayer, "当前改装：失败改装", HudPosition.RIGHT, -849, Color.RED, HudReeval.VISIBILITY_AND_STRING)
-        eventPlayer.torb_mod_status_hud_id = getLastCreatedText()
+        eventPlayer.player_state[29] = getLastCreatedText()
         playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer, 3)
         bigMessage(eventPlayer, "非法改装失败！")
         wait(2)
@@ -1924,28 +1907,28 @@ rule "[torbjorn] activate illegal modification":
         eventPlayer.setDamageDealt(100)
         eventPlayer.setDamageReceived(100)
         eventPlayer.setKnockbackReceived(100)
-        if eventPlayer.torb_mod_status_hud_created == true:
-            destroyHudText(eventPlayer.torb_mod_status_hud_id)
-        eventPlayer.torb_mod_status_hud_created = false
-        eventPlayer.torb_mod_status_hud_id = null
-        eventPlayer.torb_mod_active = false
+        if eventPlayer.player_state[28] == true:
+            destroyHudText(eventPlayer.player_state[29])
+        eventPlayer.player_state[28] = false
+        eventPlayer.player_state[29] = null
+        eventPlayer.player_state[23] = false
         wait(1)
-        eventPlayer.torb_mod_cooldown = false
+        eventPlayer.player_state[25] = false
 
 
 rule "[torbjorn] clear illegal modification on death":
     @Event playerDied
     @Hero torbjorn
 
-    eventPlayer.torb_parts = 0
-    eventPlayer.torb_mod_ready = false
-    eventPlayer.torb_mod_active = false
-    eventPlayer.torb_mod_roll = 0
-    eventPlayer.torb_mod_cooldown = false
-    if eventPlayer.torb_mod_status_hud_created == true:
-        destroyHudText(eventPlayer.torb_mod_status_hud_id)
-    eventPlayer.torb_mod_status_hud_created = false
-    eventPlayer.torb_mod_status_hud_id = null
+    eventPlayer.player_state[21] = 0
+    eventPlayer.player_state[22] = false
+    eventPlayer.player_state[23] = false
+    eventPlayer.player_state[24] = 0
+    eventPlayer.player_state[25] = false
+    if eventPlayer.player_state[28] == true:
+        destroyHudText(eventPlayer.player_state[29])
+    eventPlayer.player_state[28] = false
+    eventPlayer.player_state[29] = null
     eventPlayer.stopScalingSize()
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageDealt(100)
@@ -1956,21 +1939,21 @@ rule "[torbjorn] clear illegal modification on death":
 rule "[torbjorn] clear illegal modification after hero swap":
     @Event eachPlayer
     @Condition eventPlayer.getHero() != Hero.TORBJORN
-    @Condition eventPlayer.torb_parts > 0 or eventPlayer.torb_mod_ready == true or eventPlayer.torb_mod_active == true or eventPlayer.torb_mod_cooldown == true or eventPlayer.torb_parts_hud_created == true or eventPlayer.torb_mod_status_hud_created == true
+    @Condition eventPlayer.player_state[21] > 0 or eventPlayer.player_state[22] == true or eventPlayer.player_state[23] == true or eventPlayer.player_state[25] == true or eventPlayer.player_state[26] == true or eventPlayer.player_state[28] == true
 
-    if eventPlayer.torb_parts_hud_created == true:
-        destroyHudText(eventPlayer.torb_parts_hud_id)
-    if eventPlayer.torb_mod_status_hud_created == true:
-        destroyHudText(eventPlayer.torb_mod_status_hud_id)
-    eventPlayer.torb_parts = 0
-    eventPlayer.torb_mod_ready = false
-    eventPlayer.torb_mod_active = false
-    eventPlayer.torb_mod_roll = 0
-    eventPlayer.torb_mod_cooldown = false
-    eventPlayer.torb_parts_hud_created = false
-    eventPlayer.torb_parts_hud_id = null
-    eventPlayer.torb_mod_status_hud_created = false
-    eventPlayer.torb_mod_status_hud_id = null
+    if eventPlayer.player_state[26] == true:
+        destroyHudText(eventPlayer.player_state[27])
+    if eventPlayer.player_state[28] == true:
+        destroyHudText(eventPlayer.player_state[29])
+    eventPlayer.player_state[21] = 0
+    eventPlayer.player_state[22] = false
+    eventPlayer.player_state[23] = false
+    eventPlayer.player_state[24] = 0
+    eventPlayer.player_state[25] = false
+    eventPlayer.player_state[26] = false
+    eventPlayer.player_state[27] = null
+    eventPlayer.player_state[28] = false
+    eventPlayer.player_state[29] = null
     eventPlayer.stopScalingSize()
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageDealt(100)

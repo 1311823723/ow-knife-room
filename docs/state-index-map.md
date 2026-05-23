@@ -2,7 +2,7 @@
 
 源文件：`src/main.opy`。`player_state` 是新增的统一玩家状态数组，当前占用玩家变量槽 27。以后新增英雄技能优先评估写入这里或新建专用数组，不再随意追加独立 `playervar`。
 
-初始化规则：`[state] initialize player state array` 会在 `len(eventPlayer.player_state) < 21` 时写入默认数组。
+初始化规则：`[state] initialize player state array` 会在 `len(eventPlayer.player_state) < 38` 时写入默认数组。
 
 | Index | 名称 | 所属 | 含义 | 默认值 | 清理时机 | 是否可复用 | 相关规则/文件 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -27,6 +27,23 @@
 | 18 | `ana_sleep_fx_handle` | 安娜/被睡目标 | 睡眠标记效果句柄 | `null` | 创建效果后写入；醒来后 destroyEffect 并清空 | 效果句柄槽，可复用前必须销毁 | 被睡冷却 |
 | 19 | `illari_sunburn_pop_cooldown` | 伊拉锐/晒黑目标 | 晒黑二次命中弹飞短冷却 | `false` | 弹飞触发设 true；0.4 秒后设 false；新晒黑时设 false | 目标短 cooldown 槽，可复用 | [illari] apply/pop sunburned target on damage |
 | 20 | `baptiste_fake_drug_cooldown` | 巴蒂斯特 | 假药注射触发冷却 | `false` | 成功触发假药设 true；目标恢复后再等 1 秒设 false | 英雄 cooldown 槽，可复用 | [baptiste] fake drug injection |
+| 21 | `torb_parts` | 托比昂 | 零件数量，0 到 3 | `0` | 击杀增加；触发改装、死亡或换英雄设 0 | 英雄资源槽，可复用前必须确认死亡清零语义 | [torbjorn] create/gain/activate/clear illegal modification |
+| 22 | `torb_mod_ready` | 托比昂 | 非法改装就绪标记 | `false` | 零件满设 true；触发、死亡或换英雄设 false | 英雄状态槽，可复用 | [torbjorn] gain/activate/clear illegal modification |
+| 23 | `torb_mod_active` | 托比昂 | 非法改装运行状态 | `false` | 触发改装设 true；失败结束、死亡或换英雄设 false；成功改装按旧逻辑持续到死亡/换英雄 | 英雄状态槽，可复用 | [torbjorn] gain/activate/clear illegal modification |
+| 24 | `torb_mod_roll` | 托比昂 | 非法改装随机结果 | `0` | 触发时写入 1-4；死亡或换英雄设 0 | roll 槽，可复用 | [torbjorn] activate/clear illegal modification |
+| 25 | `torb_mod_cooldown` | 托比昂 | 非法改装触发冷却 | `false` | 触发设 true；成功分支约 1 秒后解除，失败分支约 3 秒后解除；死亡/换英雄清理 | 短 cooldown 槽，可复用 | [torbjorn] activate/clear illegal modification |
+| 26 | `torb_parts_hud_created` | 托比昂 | 零件 HUD 是否已创建 | `false` | 进入托比昂创建；换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [torbjorn] create parts hud/clear after hero swap |
+| 27 | `torb_parts_hud_id` | 托比昂 | 零件 HUD 文本 ID | `null` | 创建后写入；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [torbjorn] create parts hud/clear after hero swap |
+| 28 | `torb_mod_status_hud_created` | 托比昂 | 改装状态 HUD 是否已创建 | `false` | 触发改装设 true；失败结束、死亡或换英雄销毁后设 false | HUD 状态槽，可复用 | [torbjorn] activate/clear illegal modification |
+| 29 | `torb_mod_status_hud_id` | 托比昂 | 改装状态 HUD 文本 ID | `null` | 创建后写入；失败结束、死亡或换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [torbjorn] activate/clear illegal modification |
+| 30 | `bastion_scrap` | 堡垒 | 废铁数量，0 到 6 | `0` | 造成伤害增加；触发改装清 0；死亡保留；换英雄清 0 | 英雄资源槽，注意死亡保留语义 | [bastion] create/gain/activate/clear scrap |
+| 31 | `bastion_scrap_gain_cooldown` | 堡垒 | 废铁获取节流 | `false` | 获得废铁设 true；0.45 秒后、死亡或换英雄设 false | 短 cooldown 槽，可复用 | [bastion] gain scrap/clear |
+| 32 | `bastion_mod_active` | 堡垒 | 非法改装运行状态 | `false` | 触发改装设 true；改装结束、死亡或换英雄设 false | 英雄状态槽，可复用 | [bastion] gain/activate/clear modification |
+| 33 | `bastion_mod_roll` | 堡垒 | 非法改装随机结果 | `0` | 触发时写入 1-4；死亡或换英雄设 0 | roll 槽，可复用 | [bastion] activate/clear modification |
+| 34 | `bastion_scrap_hud_created` | 堡垒 | 废铁 HUD 是否已创建 | `false` | 进入堡垒创建；换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [bastion] create scrap hud/clear scrap after hero swap |
+| 35 | `bastion_scrap_hud_id` | 堡垒 | 废铁 HUD 文本 ID | `null` | 创建后写入；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [bastion] create scrap hud/clear scrap after hero swap |
+| 36 | `bastion_mod_status_hud_created` | 堡垒 | 改装状态 HUD 是否已创建 | `false` | 触发改装设 true；改装结束、死亡或换英雄销毁后设 false | HUD 状态槽，可复用 | [bastion] activate/clear modification |
+| 37 | `bastion_mod_status_hud_id` | 堡垒 | 改装状态 HUD 文本 ID | `null` | 创建后写入；改装结束、死亡或换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [bastion] activate/clear modification |
 
 ## 扩展约定
 
