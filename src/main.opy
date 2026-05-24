@@ -81,9 +81,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 118
+    @Condition len(eventPlayer.player_state) < 140
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false, 0, -1]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false, 0, -1, 0, false, null, false, false, false, null, null, [], 0, false, false, false, null, false, false, false, false, [], false, false]
 
 
 def applySoldierAntmanState():
@@ -400,7 +400,7 @@ rule "[hud] open current hero ability guide on interact":
     elif eventPlayer.getHero() == Hero.ANA:
         hudSubtext(eventPlayer, "安娜：睡眠标记与激素控制\n睡针命中会给目标添加明显睡眠标记\n大招按下时可让视角附近目标沉睡", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.KIRIKO:
-        hudSubtext(eventPlayer, "雾子：法阵击倒\n使用技能 2 时生成短暂法阵特效\n范围内玩家会被击倒\n法阵结束后自动清理效果", HudPosition.ACTUALLY_LEFT, -998, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "雾子：稻荷神社\n香火强化铃，瞬移留狐火鸟居\n御守可挡致命伤，净化自己或队友会狐火反噬", HudPosition.ACTUALLY_LEFT, -998, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.TRACER:
         hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.REAPER:
@@ -1743,26 +1743,293 @@ rule "激素让我安全":
     getPlayersInRadius(vect(eventPlayer.getPlayersInViewAngle(Team.ALL, 45), 5, 5), 5, Team.ALL, LosCheck.SURFACES).setStatusEffect(null, Status.ASLEEP, 3)
 
 
-rule "雾子法阵击倒":
+rule "[kiriko] create incense hud":
     @Event eachPlayer
     @Hero kiriko
-    @Condition eventPlayer.isUsingAbility2() == true
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[119] == false
 
-    eventPlayer.D = []
-    createBeam(getAllPlayers(), Beam.GOOD, eventPlayer, eventPlayer, Color.ORANGE, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    eventPlayer.D.append(getLastCreatedEntity())
-    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.VIOLET, eventPlayer, 7, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    eventPlayer.D.append(getLastCreatedEntity())
-    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.BLACK, eventPlayer, 7, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    eventPlayer.D.append(getLastCreatedEntity())
-    eventPlayer.Kiriko_Skill = true
-    getPlayersInRadius(getLivingPlayers(getOppositeTeam(Team.ALL)), 7, Team.ALL, LosCheck.SURFACES_AND_ALL_BARRIERS).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 1)
-    wait(5)
-    eventPlayer.Kiriko_Skill = false
-    destroyEffect(eventPlayer.D[0])
-    destroyEffect(eventPlayer.D[1])
-    destroyEffect(eventPlayer.D[2])
-    eventPlayer.D = []
+    eventPlayer.player_state[119] = true
+    hudHeader(eventPlayer, "香火：{}/100{}".format(eventPlayer.player_state[118], "  稻荷赦令就绪" if eventPlayer.player_state[118] >= 100 else ""), HudPosition.RIGHT, -840, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.player_state[120] = getLastCreatedText()
+
+
+rule "[kiriko] incense full prompt":
+    @Event eachPlayer
+    @Hero kiriko
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[118] >= 100
+    @Condition eventPlayer.player_state[121] == false
+
+    eventPlayer.player_state[118] = 100
+    eventPlayer.player_state[121] = true
+    bigMessage(eventPlayer, "稻荷赦令就绪")
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 2)
+
+
+rule "[kiriko] melee gains incense":
+    @Event playerDealtDamage
+    @Hero kiriko
+    @Condition victim != eventPlayer
+    @Condition eventDamage > 0
+    @Condition eventAbility == Button.MELEE
+    @Condition eventPlayer.player_state[118] < 100
+    @Condition eventPlayer.player_state[137] == false
+
+    eventPlayer.player_state[137] = true
+    eventPlayer.player_state[118] += 8
+    if eventPlayer.player_state[118] > 100:
+        eventPlayer.player_state[118] = 100
+    smallMessage(eventPlayer, "香火 +8")
+    wait(0.5)
+    eventPlayer.player_state[137] = false
+
+
+rule "[kiriko] swift step leaves foxfire torii":
+    @Event eachPlayer
+    @Hero kiriko
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.player_state[122] == false
+
+    eventPlayer.player_state[122] = true
+    eventPlayer.player_state[124] = nearestWalkablePosition(eventPlayer.getPosition())
+    wait(0.3)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.KIRIKO:
+        eventPlayer.player_state[125] = nearestWalkablePosition(eventPlayer.getPosition())
+        if distance(eventPlayer.player_state[124], eventPlayer.player_state[125]) > 1.5:
+            eventPlayer.player_state[118] += 15
+            if eventPlayer.player_state[118] > 100:
+                eventPlayer.player_state[118] = 100
+            eventPlayer.player_state[121] = false
+            eventPlayer.player_state[123] = true
+            eventPlayer.player_state[126] = []
+            eventPlayer.player_state[127] = 0
+            createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.ORANGE, eventPlayer.player_state[124], 2.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+            eventPlayer.player_state[126].append(getLastCreatedEntity())
+            createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.player_state[124], 2.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+            eventPlayer.player_state[126].append(getLastCreatedEntity())
+            createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.ORANGE, eventPlayer.player_state[125], 2.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+            eventPlayer.player_state[126].append(getLastCreatedEntity())
+            createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.player_state[125], 2.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+            eventPlayer.player_state[126].append(getLastCreatedEntity())
+            smallMessage(eventPlayer, "狐火鸟居")
+            while eventPlayer.player_state[123] == true and eventPlayer.getHero() == Hero.KIRIKO and eventPlayer.player_state[127] < 16:
+                getPlayersInRadius(eventPlayer.player_state[124], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false and (player == eventPlayer or (getCurrentGamemode() != Gamemode.FFA and player.getTeam() == eventPlayer.getTeam()))).setStatusEffect(eventPlayer, Status.INVINCIBLE, 0.45)
+                getPlayersInRadius(eventPlayer.player_state[125], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false and (player == eventPlayer or (getCurrentGamemode() != Gamemode.FFA and player.getTeam() == eventPlayer.getTeam()))).setStatusEffect(eventPlayer, Status.INVINCIBLE, 0.45)
+                getPlayersInRadius(eventPlayer.player_state[124], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false and player != eventPlayer and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[139] = true
+                getPlayersInRadius(eventPlayer.player_state[125], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false and player != eventPlayer and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[139] = true
+                getPlayersInRadius(eventPlayer.player_state[124], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false and player != eventPlayer and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).teleport(eventPlayer.player_state[124] + eventPlayer.getFacingDirection() * -1.5)
+                getPlayersInRadius(eventPlayer.player_state[125], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false and player != eventPlayer and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).teleport(eventPlayer.player_state[124] + eventPlayer.getFacingDirection() * -1.5)
+                getPlayersInRadius(eventPlayer.player_state[124], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false and player != eventPlayer and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setMoveSpeed(70)
+                getPlayersInRadius(eventPlayer.player_state[125], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false and player != eventPlayer and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setMoveSpeed(70)
+                getPlayersInRadius(eventPlayer.player_state[124], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false).player_state[135] = true
+                getPlayersInRadius(eventPlayer.player_state[125], 2.6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player.isAlive() == true and player.player_state[135] == false).player_state[135] = true
+                eventPlayer.player_state[127] += 1
+                wait(0.25)
+            if len(eventPlayer.player_state[126]) > 0:
+                destroyEffect(eventPlayer.player_state[126][0])
+            if len(eventPlayer.player_state[126]) > 1:
+                destroyEffect(eventPlayer.player_state[126][1])
+            if len(eventPlayer.player_state[126]) > 2:
+                destroyEffect(eventPlayer.player_state[126][2])
+            if len(eventPlayer.player_state[126]) > 3:
+                destroyEffect(eventPlayer.player_state[126][3])
+            eventPlayer.player_state[123] = false
+            eventPlayer.player_state[124] = null
+            eventPlayer.player_state[125] = null
+            eventPlayer.player_state[126] = []
+            eventPlayer.player_state[127] = 0
+    wait(1.2)
+    eventPlayer.player_state[122] = false
+
+
+rule "[kiriko] clear torii trigger cooldown":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[135] == true
+
+    if eventPlayer.player_state[139] == true:
+        smallMessage(eventPlayer, "误入神社")
+    wait(1.2)
+    if eventPlayer.player_state[139] == true:
+        eventPlayer.setMoveSpeed(100)
+        eventPlayer.player_state[139] = false
+    eventPlayer.player_state[135] = false
+
+
+rule "[kiriko] suzu grants omamori and backlash":
+    @Event eachPlayer
+    @Hero kiriko
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility2() == true
+    @Condition eventPlayer.player_state[128] == false
+
+    eventPlayer.player_state[128] = true
+    eventPlayer.player_state[129] = eventPlayer.player_state[118] >= 100
+    if eventPlayer.player_state[129] == true:
+        eventPlayer.player_state[118] = 0
+        eventPlayer.player_state[121] = false
+        bigMessage(eventPlayer, "稻荷赦令")
+    else:
+        eventPlayer.player_state[118] += 12
+        if eventPlayer.player_state[118] > 100:
+            eventPlayer.player_state[118] = 100
+        smallMessage(eventPlayer, "香火 +12")
+    eventPlayer.player_state[136] = eventPlayer.hasStatus(Status.HACKED) == true or eventPlayer.hasStatus(Status.ASLEEP) == true or eventPlayer.hasStatus(Status.KNOCKED_DOWN) == true or eventPlayer.hasStatus(Status.ROOTED) == true or eventPlayer.hasStatus(Status.STUNNED) == true or eventPlayer.hasStatus(Status.FROZEN) == true
+    eventPlayer.clearStatusEffect(Status.HACKED)
+    eventPlayer.clearStatusEffect(Status.ASLEEP)
+    eventPlayer.clearStatusEffect(Status.KNOCKED_DOWN)
+    eventPlayer.clearStatusEffect(Status.ROOTED)
+    eventPlayer.clearStatusEffect(Status.STUNNED)
+    eventPlayer.clearStatusEffect(Status.FROZEN)
+    if eventPlayer.player_state[130] == false and eventPlayer.player_state[133] == false:
+        eventPlayer.player_state[130] = true
+        eventPlayer.player_state[131] = eventPlayer
+        eventPlayer.player_state[132] = eventPlayer.player_state[129]
+        eventPlayer.player_state[133] = true
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 1.6)
+        smallMessage(eventPlayer, "御守加护")
+    if len(sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer) <= 8 and getCurrentGamemode() != Gamemode.FFA and player.getTeam() == eventPlayer.getTeam() and player.player_state[130] == false and player.player_state[133] == false), key=lambda player: player.getHealth())) > 0:
+        eventPlayer.player_state[138] = sorted(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer) <= 8 and getCurrentGamemode() != Gamemode.FFA and player.getTeam() == eventPlayer.getTeam() and player.player_state[130] == false and player.player_state[133] == false), key=lambda player: player.getHealth())[0]
+        eventPlayer.player_state[136] = eventPlayer.player_state[136] or eventPlayer.player_state[138].hasStatus(Status.HACKED) == true or eventPlayer.player_state[138].hasStatus(Status.ASLEEP) == true or eventPlayer.player_state[138].hasStatus(Status.KNOCKED_DOWN) == true or eventPlayer.player_state[138].hasStatus(Status.ROOTED) == true or eventPlayer.player_state[138].hasStatus(Status.STUNNED) == true or eventPlayer.player_state[138].hasStatus(Status.FROZEN) == true
+        eventPlayer.player_state[138].clearStatusEffect(Status.HACKED)
+        eventPlayer.player_state[138].clearStatusEffect(Status.ASLEEP)
+        eventPlayer.player_state[138].clearStatusEffect(Status.KNOCKED_DOWN)
+        eventPlayer.player_state[138].clearStatusEffect(Status.ROOTED)
+        eventPlayer.player_state[138].clearStatusEffect(Status.STUNNED)
+        eventPlayer.player_state[138].clearStatusEffect(Status.FROZEN)
+        eventPlayer.player_state[138].player_state[130] = true
+        eventPlayer.player_state[138].player_state[131] = eventPlayer
+        eventPlayer.player_state[138].player_state[132] = eventPlayer.player_state[129]
+        eventPlayer.player_state[138].player_state[133] = true
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.player_state[138], 1.6)
+        smallMessage(eventPlayer.player_state[138], "御守加护")
+        eventPlayer.player_state[138] = null
+    if eventPlayer.player_state[136] == true:
+        eventPlayer.player_state[118] += 18 if eventPlayer.player_state[129] == false else 0
+        if eventPlayer.player_state[118] > 100:
+            eventPlayer.player_state[118] = 100
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 2.4 if eventPlayer.player_state[129] == true else 1.8)
+        getPlayersInRadius(eventPlayer.getPosition(), 8 if eventPlayer.player_state[129] == true else 6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[134] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setMoveSpeed(70 if eventPlayer.player_state[129] == true else 80)
+        getPlayersInRadius(eventPlayer.getPosition(), 8 if eventPlayer.player_state[129] == true else 6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[134] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setAbilityCooldown(Button.ABILITY_1, 2.5 if eventPlayer.player_state[129] == true else 1.5)
+        damage(getPlayersInRadius(eventPlayer.getPosition(), 8 if eventPlayer.player_state[129] == true else 6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[134] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 8 if eventPlayer.player_state[129] == true else 4)
+        getPlayersInRadius(eventPlayer.getPosition(), 8 if eventPlayer.player_state[129] == true else 6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[134] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[134] = true
+        smallMessage(eventPlayer, "净化反噬")
+    eventPlayer.player_state[136] = false
+    eventPlayer.player_state[138] = null
+    wait(0.8)
+    eventPlayer.player_state[128] = false
+
+
+rule "[kiriko] clear backlash cooldown":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[134] == true
+
+    smallMessage(eventPlayer, "狐火反噬")
+    wait(1.4)
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.player_state[134] = false
+
+
+rule "[kiriko] omamori blocks fatal damage":
+    @Event playerTookDamage
+    @Condition eventPlayer.player_state[130] == true
+    @Condition eventPlayer.getHealth() - eventDamage <= 0
+
+    eventPlayer.player_state[130] = false
+    eventPlayer.player_state[133] = true
+    eventPlayer.resurrect()
+    eventPlayer.setHealth(60 if eventPlayer.player_state[132] == true else 45)
+    eventPlayer.setStatusEffect(eventPlayer.player_state[131], Status.INVINCIBLE, 0.7)
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 2)
+    smallMessage(eventPlayer, "御守破碎")
+    if eventPlayer.player_state[131] != null:
+        smallMessage(eventPlayer.player_state[131], "御守借命成功")
+        if eventPlayer.player_state[131].getHero() == Hero.KIRIKO:
+            eventPlayer.player_state[131].player_state[118] += 15
+            if eventPlayer.player_state[131].player_state[118] > 100:
+                eventPlayer.player_state[131].player_state[118] = 100
+            eventPlayer.player_state[131].setMoveSpeed(90)
+    eventPlayer.player_state[131] = null
+    eventPlayer.player_state[132] = false
+    wait(2)
+    if eventPlayer.isAlive() == true:
+        eventPlayer.setMoveSpeed(100)
+    wait(8)
+    eventPlayer.player_state[133] = false
+
+
+rule "[kiriko] omamori expires":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[130] == true
+
+    wait(8 if eventPlayer.player_state[132] == true else 6)
+    if eventPlayer.player_state[130] == true:
+        eventPlayer.player_state[130] = false
+        eventPlayer.player_state[131] = null
+        eventPlayer.player_state[132] = false
+        wait(4)
+        eventPlayer.player_state[133] = false
+
+
+rule "[kiriko] clear ownerless omamori":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[130] == true
+    @Condition eventPlayer.player_state[131] == null or eventPlayer.player_state[131].getHero() != Hero.KIRIKO
+
+    eventPlayer.player_state[130] = false
+    eventPlayer.player_state[131] = null
+    eventPlayer.player_state[132] = false
+    wait(4)
+    eventPlayer.player_state[133] = false
+
+
+rule "[kiriko] clear omamori on death":
+    @Event playerDied
+    @Condition eventPlayer.player_state[130] == true
+
+    eventPlayer.player_state[130] = false
+    eventPlayer.player_state[131] = null
+    eventPlayer.player_state[132] = false
+    wait(4)
+    eventPlayer.player_state[133] = false
+
+
+rule "[kiriko] clear incense state on hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.KIRIKO
+    @Condition eventPlayer.player_state[118] > 0 or eventPlayer.player_state[119] == true or eventPlayer.player_state[121] == true or eventPlayer.player_state[122] == true or eventPlayer.player_state[123] == true or eventPlayer.player_state[128] == true
+
+    if eventPlayer.player_state[119] == true:
+        destroyHudText(eventPlayer.player_state[120])
+    if len(eventPlayer.player_state[126]) > 0:
+        destroyEffect(eventPlayer.player_state[126][0])
+    if len(eventPlayer.player_state[126]) > 1:
+        destroyEffect(eventPlayer.player_state[126][1])
+    if len(eventPlayer.player_state[126]) > 2:
+        destroyEffect(eventPlayer.player_state[126][2])
+    if len(eventPlayer.player_state[126]) > 3:
+        destroyEffect(eventPlayer.player_state[126][3])
+    eventPlayer.player_state[118] = 0
+    eventPlayer.player_state[119] = false
+    eventPlayer.player_state[120] = null
+    eventPlayer.player_state[121] = false
+    eventPlayer.player_state[122] = false
+    eventPlayer.player_state[123] = false
+    eventPlayer.player_state[124] = null
+    eventPlayer.player_state[125] = null
+    eventPlayer.player_state[126] = []
+    eventPlayer.player_state[127] = 0
+    eventPlayer.player_state[128] = false
+    eventPlayer.player_state[129] = false
+    eventPlayer.player_state[130] = false
+    eventPlayer.player_state[131] = null
+    eventPlayer.player_state[132] = false
+    eventPlayer.player_state[133] = false
+    eventPlayer.player_state[136] = false
+    eventPlayer.player_state[137] = false
+    eventPlayer.player_state[138] = null
+    eventPlayer.player_state[139] = false
 
 
 rule "[mei] melee adds frost stack":
