@@ -99,9 +99,29 @@
 | 90 | `lifeweaver_ult_pos` | 生命之梭 | 天降花盆预警/砸地位置 | `null` | 大招开始写入；结束或清理置空 | 位置槽，可复用 | [lifeweaver] garden pot ultimate/clear |
 | 91 | `lifeweaver_ult_fx` | 生命之梭 | 天降花盆预警效果句柄数组 | `[]` | 大招预警创建；砸地、换英雄时 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [lifeweaver] garden pot ultimate/clear |
 | 92 | `lifeweaver_pull_beam` | 生命之梭 | 拉回园艺球光束句柄 | `null` | 拉回开始写入；结束或清理 destroyEffect 后置空 | 效果句柄槽，可复用前必须销毁 | [lifeweaver] pull/clear |
-| 93 | `lifeweaver_ball_dummy` | 生命之梭 | 承载园艺球实体物理的隐藏生命之梭 dummy | `null` | 创建园艺球时生成并写入；换英雄 destroyDummy 后清空 | 玩家引用槽，可复用前必须销毁 dummy | [lifeweaver] create/follow/launch/pull/ult/clear |
+| 93 | `lifeweaver_ball_dummy` | 生命之梭 | 旧版隐藏 dummy 引用槽；当前纯弹道视觉版本保持为空 | `null` | 创建园艺球时置空；换英雄时兼容清理旧残留 dummy | 兼容清理槽，当前不主动生成 dummy | [lifeweaver] create/clear |
 | 94 | `lifeweaver_ball_spin_tick` | 生命之梭 | 园艺球飞行视觉刷新朝向节拍，用于模拟滚动感 | `0` | 创建置 0；视觉刷新时循环递增；换英雄清空 | 临时计数槽，可复用 | [lifeweaver] refresh garden ball visual/clear |
 | 95 | `lifeweaver_ball_hit_cd` | 生命之梭/目标 | 被园艺球命中的目标短防重复判定 | `false` | 命中设 true；约 1.1 秒后清 false | 目标短 cooldown 槽，可复用 | [lifeweaver] melee launches/clear garden ball hit cooldown |
+| 96 | `reinhardt_glory` | 莱因哈特 | 荣耀值，0 到 100，死亡保留，换英雄清空 | `0` | 举盾宣战、受击、命中、冲锋命中增加；天罚触发后清 0 | 英雄资源槽，死亡保留语义不可随意复用 | [reinhardt] glory/judgement/clear |
+| 97 | `reinhardt_hud_created` | 莱因哈特 | 荣耀 HUD 是否已创建 | `false` | 进入莱因哈特创建；换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [reinhardt] create/clear glory hud |
+| 98 | `reinhardt_hud_id` | 莱因哈特 | 荣耀 HUD 文本 ID | `null` | 创建后写入；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 | [reinhardt] create/clear glory hud |
+| 99 | `reinhardt_glory_ready` | 莱因哈特 | 荣耀满值提示锁 | `false` | 荣耀到 100 后设 true；天罚或换英雄后清 false | 提示锁槽，可复用 | [reinhardt] glory ready/judgement/clear |
+| 100 | `reinhardt_gain_cd` | 莱因哈特 | 受击获得荣耀节流 | `false` | 受击开始设 true；约 0.45 秒后或清理设 false | 短 cooldown 槽，可复用 | [reinhardt] damaged gain/clear |
+| 101 | `reinhardt_declare_active` | 莱因哈特 | 举盾宣战运行状态 | `false` | 宣战开始设 true；结束、死亡或换英雄设 false | 状态槽，可复用 | [reinhardt] shield declaration/clear |
+| 102 | `reinhardt_declare_cd` | 莱因哈特 | 举盾宣战内置冷却 | `false` | 宣战开始设 true；结束后约 4 秒解除；死亡/换英雄清理 | cooldown 槽，可复用 | [reinhardt] shield declaration/clear |
+| 103 | `reinhardt_declare_fx` | 莱因哈特 | 宣战红黄法阵效果句柄数组 | `[]` | 宣战创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [reinhardt] shield declaration/clear |
+| 104 | `reinhardt_broken` | 莱因哈特 | 绕背破防状态 | `false` | 宣战期间被绕背攻击设 true；约 1.5 秒后恢复 | 临时状态槽，可复用 | [reinhardt] damaged gain/clear |
+| 105 | `reinhardt_charge_lock` | 莱因哈特 | 冲锋预警/结算锁 | `false` | 冲锋开始设 true；流程结束后解除；死亡/换英雄清理 | 状态槽，可复用 | [reinhardt] knight charge/clear |
+| 106 | `reinhardt_charge_fx` | 莱因哈特 | 冲锋警戒线效果句柄数组 | `[]` | 冲锋预警创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [reinhardt] knight charge/clear |
+| 107 | `reinhardt_smite_active` | 莱因哈特 | 天罚落锤流程状态 | `false` | 荣耀满后命中触发设 true；结算、死亡或换英雄设 false | 状态槽，可复用 | [reinhardt] heavenly smite/clear |
+| 108 | `reinhardt_smite_pos` | 莱因哈特 | 天罚预警/落锤中心位置 | `null` | 天罚触发写入；结束或清理置空 | 位置槽，可复用 | [reinhardt] heavenly smite/clear |
+| 109 | `reinhardt_smite_fx` | 莱因哈特 | 天罚预警法阵和光柱效果句柄数组 | `[]` | 天罚创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [reinhardt] heavenly smite/clear |
+| 110 | `reinhardt_oath_active` | 莱因哈特 | 破誓骑士二阶段运行状态 | `false` | 低血触发设 true；约 10 秒后、死亡或换英雄设 false | 状态槽，可复用 | [reinhardt] oathbreaker/clear |
+| 111 | `reinhardt_oath_used_life` | 莱因哈特 | 本条命是否已触发破誓骑士 | `false` | 触发后设 true；死亡或换英雄清 false | 每命状态槽，可复用 | [reinhardt] oathbreaker/clear |
+| 112 | `reinhardt_fatigued` | 莱因哈特 | 破誓结束后的疲惫状态 | `false` | 破誓结束设 true；约 3 秒后或清理设 false | 临时状态槽，可复用 | [reinhardt] oathbreaker/clear |
+| 113 | `reinhardt_oath_fx` | 莱因哈特 | 破誓骑士红黄光环效果句柄数组 | `[]` | 破誓创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [reinhardt] oathbreaker/clear |
+| 114 | `reinhardt_dodge_cd` | 莱因哈特/目标 | 躲开冲锋奖励短状态 | `false` | 擦边躲开设 true；约 1.2 秒后清 false | 目标短状态槽，可复用 | [reinhardt] knight charge/clear |
+| 115 | `reinhardt_hit_gain_cd` | 莱因哈特 | 命中获得荣耀节流 | `false` | 命中开始设 true；约 0.5 秒后或清理设 false | 短 cooldown 槽，可复用 | [reinhardt] hit gain/clear |
 
 ## 扩展约定
 

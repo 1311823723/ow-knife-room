@@ -9,7 +9,7 @@
 - 当前实际使用玩家变量槽约 78 个。
 - 第一轮前显式 `playervar` 为 109 个；两轮迁移后为 72 个。
 - 已迁入 `player_state` 的旧独立变量共 38 个；新增数组变量 1 个，净减少 37 个显式玩家变量。
-- `player_state` 当前定义 `0..95`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引，`66..80` 为伊拉锐召唤太阳状态索引，`81..95` 为生命之梭园艺保龄球状态索引。
+- `player_state` 当前定义 `0..115`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引，`66..80` 为伊拉锐召唤太阳状态索引，`81..95` 为生命之梭园艺保龄球状态索引，`96..115` 为莱因哈特荣耀骑士审判状态索引。
 - 当前未发现 `disabled rule` / 禁用规则块；没有变量属于“只在禁用规则中使用”。
 
 ## 当前玩家变量列表
@@ -197,9 +197,29 @@
 | `player_state[90]` | `lifeweaver_ult_pos` | 天降花盆预警/砸地位置 |
 | `player_state[91]` | `lifeweaver_ult_fx` | 天降花盆预警效果句柄数组 |
 | `player_state[92]` | `lifeweaver_pull_beam` | 拉回园艺球光束句柄 |
-| `player_state[93]` | `lifeweaver_ball_dummy` | 承载园艺球实体物理的隐藏生命之梭 dummy |
+| `player_state[93]` | `lifeweaver_ball_dummy` | 旧版园艺球隐藏 dummy 引用槽；当前纯弹道视觉版本保持为空，仅兼容清理旧残留 |
 | `player_state[94]` | `lifeweaver_ball_spin_tick` | 园艺球飞行视觉刷新朝向节拍 |
 | `player_state[95]` | `lifeweaver_ball_hit_cd` | 被园艺球命中的目标短防重复判定 |
+| `player_state[96]` | `reinhardt_glory` | 莱因哈特荣耀值，0 到 100，死亡保留，换英雄清空 |
+| `player_state[97]` | `reinhardt_hud_created` | 荣耀 HUD 创建标记 |
+| `player_state[98]` | `reinhardt_hud_id` | 荣耀 HUD 文本 ID |
+| `player_state[99]` | `reinhardt_glory_ready` | 荣耀满值提示锁 |
+| `player_state[100]` | `reinhardt_gain_cd` | 受击获得荣耀节流 |
+| `player_state[101]` | `reinhardt_declare_active` | 举盾宣战运行状态 |
+| `player_state[102]` | `reinhardt_declare_cd` | 举盾宣战内置冷却 |
+| `player_state[103]` | `reinhardt_declare_fx` | 宣战法阵效果句柄数组 |
+| `player_state[104]` | `reinhardt_broken` | 绕背破防状态 |
+| `player_state[105]` | `reinhardt_charge_lock` | 骑士冲锋预警/结算锁 |
+| `player_state[106]` | `reinhardt_charge_fx` | 冲锋警戒线效果句柄数组 |
+| `player_state[107]` | `reinhardt_smite_active` | 天罚落锤流程状态 |
+| `player_state[108]` | `reinhardt_smite_pos` | 天罚预警/落锤中心位置 |
+| `player_state[109]` | `reinhardt_smite_fx` | 天罚预警效果句柄数组 |
+| `player_state[110]` | `reinhardt_oath_active` | 破誓骑士运行状态 |
+| `player_state[111]` | `reinhardt_oath_used_life` | 本条命是否已触发破誓骑士 |
+| `player_state[112]` | `reinhardt_fatigued` | 破誓结束后的疲惫状态 |
+| `player_state[113]` | `reinhardt_oath_fx` | 破誓骑士效果句柄数组 |
+| `player_state[114]` | `reinhardt_dodge_cd` | 躲开冲锋奖励短状态 |
+| `player_state[115]` | `reinhardt_hit_gain_cd` | 命中获得荣耀节流 |
 
 ## 疑似旧逻辑残留但未删除
 

@@ -81,9 +81,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 96
+    @Condition len(eventPlayer.player_state) < 116
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false]
 
 
 def applySoldierAntmanState():
@@ -415,6 +415,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "西格玛：小黑洞与重力震爆\n技能 1 在准星前方释放小黑洞，轻微吸引附近玩家\n动能俘获结束时，面前发生重力震爆\n近距离目标会被小幅推开、减速并受到少量伤害", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.WINSTON:
         hudSubtext(eventPlayer, "温斯顿：抱摔与电蚊香屏障\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害\n放屏障后形成带电区域，其他玩家进入会短暂麻痹并被电弧标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.REINHARDT:
+        hudSubtext(eventPlayer, "莱因哈特：荣耀骑士审判\n举盾和战斗积累荣耀，满 100 后下一击触发天罚落锤\n举盾宣战可充能但怕绕背\n低血进入破誓骑士，结束后短暂疲惫", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BRIGITTE:
         hudSubtext(eventPlayer, "布丽吉塔：盾击瞬移与盾反\n举盾攻击远处目标可传送到目标附近并短暂眩晕\n举盾被近战命中时触发盾反，短暂眩晕攻击者\n两个效果都不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.LIFEWEAVER:
@@ -2910,13 +2912,8 @@ rule "[lifeweaver] create garden bowling ball":
     eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
     eventPlayer.player_state[83] = []
     eventPlayer.player_state[94] = 0
-    createDummy(Hero.LIFEWEAVER, eventPlayer.getTeam(), -1, eventPlayer.player_state[82], eventPlayer.player_state[85])
-    eventPlayer.player_state[93] = getLastCreatedEntity()
-    eventPlayer.player_state[93].setInvisibility(Invis.ALL)
-    eventPlayer.player_state[93].setMaxHealth(1000)
-    eventPlayer.player_state[93].setMoveSpeed(50)
-    eventPlayer.player_state[93].setDamageDealt(0)
-    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85], 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+    eventPlayer.player_state[93] = null
+    createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85], 0, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
     eventPlayer.player_state[83].append(getLastCreatedEntity())
     createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.GREEN, eventPlayer.player_state[82], 1.6, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.player_state[83].append(getLastCreatedEntity())
@@ -2931,13 +2928,10 @@ rule "[lifeweaver] garden ball follows owner":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.isDummy() == false
     @Condition eventPlayer.player_state[81] == true
-    @Condition eventPlayer.player_state[93] != null
     @Condition eventPlayer.player_state[84] == 0
 
     eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
     eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
-    eventPlayer.player_state[93].teleport(eventPlayer.player_state[82])
-    eventPlayer.player_state[93].startFacing(eventPlayer.player_state[85], 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
     wait(0.1)
     if ruleCondition:
         loop()
@@ -2948,10 +2942,8 @@ rule "[lifeweaver] refresh garden ball visual":
     @Hero lifeweaver
     @Condition eventPlayer.isDummy() == false
     @Condition eventPlayer.player_state[81] == true
-    @Condition eventPlayer.player_state[93] != null
     @Condition len(eventPlayer.player_state[83]) > 0
 
-    eventPlayer.player_state[82] = eventPlayer.player_state[93].getPosition() + Vector.UP * 0.7
     eventPlayer.player_state[94] = (eventPlayer.player_state[94] + 1) % 4
     destroyEffect(eventPlayer.player_state[83][0])
     if eventPlayer.player_state[84] == 1:
@@ -2963,8 +2955,10 @@ rule "[lifeweaver] refresh garden ball visual":
             createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85] + Vector.DOWN, 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
         else:
             createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85] + vect(-1, 0, 0), 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
-    else:
+    elif eventPlayer.player_state[84] == 3:
         createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85], 0.65, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
+    else:
+        createProjectileEffect(getAllPlayers(), Projectile.ROADHOG_SCRAP_BALL, null, eventPlayer.player_state[82], eventPlayer.player_state[85], 0, ProjectileEffectReeval.VISIBILITY_POSITION_DIRECTION_AND_SIZE)
     eventPlayer.player_state[83][0] = getLastCreatedEntity()
     wait(0.08)
     if ruleCondition:
@@ -2977,13 +2971,11 @@ rule "[lifeweaver] recover lost garden ball":
     @Condition eventPlayer.isAlive() == true
     @Condition eventPlayer.isDummy() == false
     @Condition eventPlayer.player_state[81] == true
-    @Condition eventPlayer.player_state[93] != null
     @Condition distance(eventPlayer.player_state[82], eventPlayer) > 28
 
     eventPlayer.player_state[84] = 0
     eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
     eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
-    eventPlayer.player_state[93].teleport(eventPlayer.player_state[82])
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer.player_state[82], 2)
     smallMessage(eventPlayer, "园艺球回收")
 
@@ -2995,9 +2987,8 @@ rule "[lifeweaver] melee launches garden ball":
     @Condition eventPlayer.isDummy() == false
     @Condition eventPlayer.isMeleeing() == true
     @Condition eventPlayer.player_state[81] == true
-    @Condition eventPlayer.player_state[93] != null
     @Condition eventPlayer.player_state[87] == false
-    @Condition distance(eventPlayer, eventPlayer.player_state[93]) <= 5.5
+    @Condition distance(eventPlayer, eventPlayer.player_state[82]) <= 5.5
 
     eventPlayer.player_state[87] = true
     eventPlayer.player_state[84] = 1
@@ -3005,16 +2996,13 @@ rule "[lifeweaver] melee launches garden ball":
     eventPlayer.player_state[86] = 0
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer.player_state[82], 2)
     smallMessage(eventPlayer, "园艺保龄球！")
-    eventPlayer.player_state[93].startFacing(eventPlayer.player_state[85], 1000, Relativity.TO_WORLD, FacingReeval.DIRECTION_AND_TURN_RATE)
-    eventPlayer.player_state[93].applyImpulse(eventPlayer.player_state[85] + Vector.UP * 0.18, 28, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
     while eventPlayer.player_state[84] == 1 and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.LIFEWEAVER and eventPlayer.player_state[86] < 18:
-        eventPlayer.player_state[82] = eventPlayer.player_state[93].getPosition() + Vector.UP * 0.7
-        eventPlayer.player_state[85] = eventPlayer.player_state[93].getFacingDirection()
-        if len(getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0:
-            damage(getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 24)
-            getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.55)
-            getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[95] = true
-            smallMessage(getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "园艺保龄球命中")
+        eventPlayer.player_state[82] = nearestWalkablePosition(eventPlayer.player_state[82] + eventPlayer.player_state[85] * 2.2)
+        if len(getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0:
+            damage(getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 24)
+            getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.55)
+            getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[95] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[95] = true
+            smallMessage(getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "园艺保龄球命中")
             playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.GREEN, eventPlayer.player_state[82], 2)
         eventPlayer.player_state[86] += 1
         wait(0.1)
@@ -3039,7 +3027,6 @@ rule "[lifeweaver] pull garden ball back":
     @Condition eventPlayer.isDummy() == false
     @Condition eventPlayer.isUsingAbility2() == true
     @Condition eventPlayer.player_state[81] == true
-    @Condition eventPlayer.player_state[93] != null
     @Condition eventPlayer.player_state[88] == false
 
     eventPlayer.player_state[88] = true
@@ -3047,15 +3034,13 @@ rule "[lifeweaver] pull garden ball back":
     smallMessage(eventPlayer, "拉回园艺球")
     createBeam(getAllPlayers(), Beam.GOOD, eventPlayer, eventPlayer.player_state[82], Color.GREEN, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.player_state[92] = getLastCreatedEntity()
-    while eventPlayer.player_state[84] == 2 and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.LIFEWEAVER and distance(eventPlayer.player_state[93], eventPlayer) > 2.4:
-        eventPlayer.player_state[85] = directionTowards(eventPlayer.player_state[93].getPosition(), eventPlayer.getPosition() + Vector.UP * 0.6)
-        eventPlayer.player_state[93].applyImpulse(eventPlayer.player_state[85], 9, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
-        eventPlayer.player_state[82] = eventPlayer.player_state[93].getPosition() + Vector.UP * 0.7
-        getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).applyImpulse(directionTowards(getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).getPosition(), eventPlayer.player_state[82]), 2, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    while eventPlayer.player_state[84] == 2 and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.LIFEWEAVER and distance(eventPlayer.player_state[82], eventPlayer) > 2.4:
+        eventPlayer.player_state[85] = directionTowards(eventPlayer.player_state[82], eventPlayer.getPosition() + Vector.UP * 0.6)
+        eventPlayer.player_state[82] = eventPlayer.player_state[82] + eventPlayer.player_state[85] * 1.5
+        getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).applyImpulse(directionTowards(getPlayersInRadius(eventPlayer.player_state[82], 2.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).getPosition(), eventPlayer.player_state[82]), 2, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
         wait(0.1)
     eventPlayer.player_state[82] = eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 1.8 + Vector.UP * 0.6
     eventPlayer.player_state[85] = eventPlayer.getFacingDirection()
-    eventPlayer.player_state[93].teleport(eventPlayer.player_state[82])
     eventPlayer.player_state[84] = 0
     if eventPlayer.player_state[92] != null:
         destroyEffect(eventPlayer.player_state[92])
@@ -3074,7 +3059,6 @@ rule "[lifeweaver] garden pot ultimate":
     @Condition eventPlayer.isHoldingButton(Button.ULTIMATE) == true
     @Condition eventPlayer.player_state[89] == false
     @Condition eventPlayer.player_state[81] == true
-    @Condition eventPlayer.player_state[93] != null
 
     eventPlayer.player_state[89] = true
     eventPlayer.player_state[84] = 3
@@ -3088,14 +3072,12 @@ rule "[lifeweaver] garden pot ultimate":
     wait(1)
     eventPlayer.player_state[82] = eventPlayer.player_state[90] + Vector.UP * 9
     eventPlayer.player_state[85] = Vector.DOWN
-    eventPlayer.player_state[93].teleport(eventPlayer.player_state[82])
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.GREEN, eventPlayer.player_state[90], 4)
     wait(0.25)
     eventPlayer.player_state[82] = eventPlayer.player_state[90]
-    eventPlayer.player_state[93].teleport(eventPlayer.player_state[82])
     playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.GREEN, eventPlayer.player_state[90], 4)
-    damage(getPlayersInRadius(eventPlayer.player_state[90], 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 55)
-    getPlayersInRadius(eventPlayer.player_state[90], 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player != eventPlayer.player_state[93] and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.75)
+    damage(getPlayersInRadius(eventPlayer.player_state[90], 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 55)
+    getPlayersInRadius(eventPlayer.player_state[90], 4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.75)
     if len(eventPlayer.player_state[91]) > 0:
         destroyEffect(eventPlayer.player_state[91][0])
     if len(eventPlayer.player_state[91]) > 1:
@@ -3142,6 +3124,316 @@ rule "[lifeweaver] clear garden bowling ball after hero swap":
     eventPlayer.player_state[92] = null
     eventPlayer.player_state[93] = null
     eventPlayer.player_state[94] = null
+
+
+rule "[reinhardt] create glory hud":
+    @Event eachPlayer
+    @Hero reinhardt
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[97] == false
+
+    eventPlayer.player_state[97] = true
+    hudHeader(eventPlayer, "荣耀值：{}/100{}".format(eventPlayer.player_state[96], "  天罚就绪" if eventPlayer.player_state[96] >= 100 else ""), HudPosition.RIGHT, -830, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.player_state[98] = getLastCreatedText()
+
+
+rule "[reinhardt] glory ready prompt":
+    @Event eachPlayer
+    @Hero reinhardt
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[96] >= 100
+    @Condition eventPlayer.player_state[99] == false
+
+    eventPlayer.player_state[96] = 100
+    eventPlayer.player_state[99] = true
+    bigMessage(eventPlayer, "天罚就绪")
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 2.5)
+
+
+rule "[reinhardt] shield declaration":
+    @Event eachPlayer
+    @Hero reinhardt
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true
+    @Condition eventPlayer.player_state[101] == false
+    @Condition eventPlayer.player_state[102] == false
+    @Condition len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(eventPlayer, player) <= 8 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0
+
+    eventPlayer.player_state[101] = true
+    eventPlayer.player_state[102] = true
+    eventPlayer.player_state[103] = []
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.YELLOW, eventPlayer, 4.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[103].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.RED, eventPlayer, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[103].append(getLastCreatedEntity())
+    smallMessage(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(eventPlayer, player) <= 12 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "骑士宣战")
+    eventPlayer.player_state[86] = 0
+    while eventPlayer.player_state[101] == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.REINHARDT and eventPlayer.player_state[86] < 8:
+        if eventPlayer.isHoldingButton(Button.SECONDARY_FIRE) == true and eventPlayer.player_state[104] == false and eventPlayer.player_state[96] < 100 and len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(eventPlayer, player) <= 8 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0:
+            eventPlayer.player_state[96] += 6 if eventPlayer.player_state[110] == true else 4
+            if eventPlayer.player_state[96] > 100:
+                eventPlayer.player_state[96] = 100
+            playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 1.1)
+        eventPlayer.player_state[86] += 1
+        wait(0.5)
+    if len(eventPlayer.player_state[103]) > 0:
+        destroyEffect(eventPlayer.player_state[103][0])
+    if len(eventPlayer.player_state[103]) > 1:
+        destroyEffect(eventPlayer.player_state[103][1])
+    eventPlayer.player_state[103] = []
+    eventPlayer.player_state[101] = false
+    wait(4)
+    eventPlayer.player_state[102] = false
+
+
+rule "[reinhardt] gain glory when damaged":
+    @Event playerTookDamage
+    @Hero reinhardt
+    @Condition eventPlayer.getHealth() - eventDamage > 0
+    @Condition eventDamage > 0
+    @Condition eventPlayer.player_state[96] < 100
+    @Condition eventPlayer.player_state[100] == false
+
+    eventPlayer.player_state[100] = true
+    if eventPlayer.player_state[101] == true and attacker != null and attacker != eventPlayer:
+        if eventPlayer.isInViewAngle(attacker.getPosition(), 120) == true:
+            eventPlayer.player_state[96] += 12 if eventPlayer.player_state[110] == true else 8
+            smallMessage(eventPlayer, "正面迎击：荣耀上升")
+        else:
+            eventPlayer.player_state[104] = true
+            eventPlayer.setMoveSpeed(70)
+            eventPlayer.setDamageReceived(125)
+            smallMessage(eventPlayer, "被绕背破防")
+            smallMessage(attacker, "破防骑士")
+            playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer, 2)
+            wait(1.5)
+            if eventPlayer.getHero() == Hero.REINHARDT:
+                eventPlayer.setDamageReceived(100)
+                eventPlayer.setMoveSpeed(75 if eventPlayer.player_state[112] == true else 100)
+            eventPlayer.player_state[104] = false
+    else:
+        eventPlayer.player_state[96] += 6 if eventPlayer.player_state[110] == true else 4
+    if eventPlayer.player_state[96] > 100:
+        eventPlayer.player_state[96] = 100
+    wait(0.45)
+    eventPlayer.player_state[100] = false
+
+
+rule "[reinhardt] gain glory on hit":
+    @Event playerDealtDamage
+    @Hero reinhardt
+    @Condition victim != eventPlayer
+    @Condition eventDamage > 0
+    @Condition eventPlayer.player_state[96] < 100
+    @Condition eventPlayer.player_state[115] == false
+    @Condition eventAbility == Button.PRIMARY_FIRE or eventAbility == Button.MELEE or eventAbility == Button.ABILITY_1
+
+    eventPlayer.player_state[115] = true
+    if eventAbility == Button.ABILITY_1:
+        eventPlayer.player_state[96] += 14 if eventPlayer.player_state[110] == true else 10
+    else:
+        eventPlayer.player_state[96] += 8 if eventPlayer.player_state[110] == true else 6
+    if eventPlayer.player_state[96] > 100:
+        eventPlayer.player_state[96] = 100
+    wait(0.5)
+    eventPlayer.player_state[115] = false
+
+
+rule "[reinhardt] knight charge warning":
+    @Event eachPlayer
+    @Hero reinhardt
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.player_state[105] == false
+
+    eventPlayer.player_state[105] = true
+    eventPlayer.player_state[106] = []
+    createBeam(getAllPlayers(), Beam.BAD, eventPlayer.getPosition() + Vector.UP * 0.25, eventPlayer.getPosition() + eventPlayer.getFacingDirection() * (15 if eventPlayer.player_state[110] == true else 11) + Vector.UP * 0.25, Color.RED, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[106].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.RED, eventPlayer.getPosition() + eventPlayer.getFacingDirection() * (7 if eventPlayer.player_state[110] == true else 5), 2.8 if eventPlayer.player_state[110] == true else 2.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[106].append(getLastCreatedEntity())
+    getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 5.5) <= 4.5 and eventPlayer.isInViewAngle(player.getPosition(), 40) == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.ROOTED, 0.25)
+    wait(0.4)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.REINHARDT:
+        if len(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer) <= (4.2 if eventPlayer.player_state[110] == true else 3.4) and eventPlayer.isInViewAngle(player.getPosition(), 65) == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0:
+            damage(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer) <= (4.2 if eventPlayer.player_state[110] == true else 3.4) and eventPlayer.isInViewAngle(player.getPosition(), 65) == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 38)
+            getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer) <= (4.2 if eventPlayer.player_state[110] == true else 3.4) and eventPlayer.isInViewAngle(player.getPosition(), 65) == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.55)
+            eventPlayer.player_state[96] += 16 if eventPlayer.player_state[110] == true else 10
+            if eventPlayer.player_state[96] > 100:
+                eventPlayer.player_state[96] = 100
+            playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer, 2.5)
+        getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[114] == false and distance(player, eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 5.5) <= 5.5 and distance(player, eventPlayer) > 4.2 and eventPlayer.isInViewAngle(player.getPosition(), 55) == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[114] = true
+        smallMessage(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[114] == true and distance(player, eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 5.5) <= 6 and eventPlayer.isInViewAngle(player.getPosition(), 65) == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "险胜骑士")
+        getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[114] == true and distance(player, eventPlayer.getPosition() + eventPlayer.getFacingDirection() * 5.5) <= 6 and eventPlayer.isInViewAngle(player.getPosition(), 65) == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setMoveSpeed(115)
+        wait(1.2)
+        getLivingPlayers(Team.ALL).filter(lambda player: player.player_state[114] == true).setMoveSpeed(100)
+        getLivingPlayers(Team.ALL).filter(lambda player: player.player_state[114] == true).player_state[114] = false
+    if len(eventPlayer.player_state[106]) > 0:
+        destroyEffect(eventPlayer.player_state[106][0])
+    if len(eventPlayer.player_state[106]) > 1:
+        destroyEffect(eventPlayer.player_state[106][1])
+    eventPlayer.player_state[106] = []
+    wait(1)
+    eventPlayer.player_state[105] = false
+
+
+rule "[reinhardt] trigger heavenly smite":
+    @Event playerDealtDamage
+    @Hero reinhardt
+    @Condition eventPlayer.player_state[96] >= 100
+    @Condition eventPlayer.player_state[107] == false
+    @Condition victim != eventPlayer
+    @Condition eventDamage > 0
+
+    eventPlayer.player_state[107] = true
+    eventPlayer.player_state[96] = 0
+    eventPlayer.player_state[99] = false
+    eventPlayer.player_state[108] = nearestWalkablePosition(victim.getPosition())
+    eventPlayer.player_state[109] = []
+    eventPlayer.applyImpulse(Vector.UP, 10, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.RED, eventPlayer.player_state[108], 6.5 if eventPlayer.player_state[110] == true else 5.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[109].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.player_state[108], 5.5 if eventPlayer.player_state[110] == true else 4.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[109].append(getLastCreatedEntity())
+    bigMessage(eventPlayer, "天罚落锤")
+    smallMessage(getPlayersInRadius(eventPlayer.player_state[108], 9, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "天罚预警")
+    wait(1.3 if eventPlayer.player_state[110] == true else 1)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.REINHARDT and eventPlayer.player_state[107] == true:
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer.player_state[108], 5)
+        playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.player_state[108], 4)
+        damage(getPlayersInRadius(eventPlayer.player_state[108], 3.6 if eventPlayer.player_state[110] == true else 3, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 50)
+        getPlayersInRadius(eventPlayer.player_state[108], 3.6 if eventPlayer.player_state[110] == true else 3, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.7)
+        damage(getPlayersInRadius(eventPlayer.player_state[108], 6.5 if eventPlayer.player_state[110] == true else 5.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer.player_state[108]) > (3.6 if eventPlayer.player_state[110] == true else 3) and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 25)
+        getPlayersInRadius(eventPlayer.player_state[108], 6.5 if eventPlayer.player_state[110] == true else 5.5, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer.player_state[108]) > (3.6 if eventPlayer.player_state[110] == true else 3) and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setStatusEffect(eventPlayer, Status.ROOTED, 0.35)
+        smallMessage(getPlayersInRadius(eventPlayer.player_state[108], 9, Team.ALL, LosCheck.OFF).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(player, eventPlayer.player_state[108]) > (6.5 if eventPlayer.player_state[110] == true else 5.5) and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "躲过天罚")
+    if len(eventPlayer.player_state[109]) > 0:
+        destroyEffect(eventPlayer.player_state[109][0])
+    if len(eventPlayer.player_state[109]) > 1:
+        destroyEffect(eventPlayer.player_state[109][1])
+    eventPlayer.player_state[109] = []
+    eventPlayer.player_state[108] = null
+    eventPlayer.player_state[107] = false
+
+
+rule "[reinhardt] oathbreaker phase":
+    @Event eachPlayer
+    @Hero reinhardt
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.getHealth() < eventPlayer.getMaxHealth() * 0.4
+    @Condition eventPlayer.player_state[111] == false
+    @Condition eventPlayer.player_state[110] == false
+
+    eventPlayer.player_state[111] = true
+    eventPlayer.player_state[110] = true
+    eventPlayer.player_state[113] = []
+    bigMessage(getAllPlayers(), "破誓骑士")
+    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.RED, eventPlayer, 5.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[113].append(getLastCreatedEntity())
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.YELLOW, eventPlayer, 4.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    eventPlayer.player_state[113].append(getLastCreatedEntity())
+    playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer, 5)
+    eventPlayer.setMoveSpeed(110)
+    wait(10)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.REINHARDT and eventPlayer.player_state[110] == true:
+        eventPlayer.player_state[110] = false
+        if len(eventPlayer.player_state[113]) > 0:
+            destroyEffect(eventPlayer.player_state[113][0])
+        if len(eventPlayer.player_state[113]) > 1:
+            destroyEffect(eventPlayer.player_state[113][1])
+        eventPlayer.player_state[113] = []
+        eventPlayer.player_state[112] = true
+        eventPlayer.setMoveSpeed(75)
+        smallMessage(eventPlayer, "骑士疲惫")
+        wait(3)
+        if eventPlayer.getHero() == Hero.REINHARDT and eventPlayer.player_state[112] == true:
+            eventPlayer.setMoveSpeed(100)
+            eventPlayer.player_state[112] = false
+
+
+rule "[reinhardt] clear temporary states on death keep glory":
+    @Event playerDied
+    @Hero reinhardt
+
+    if len(eventPlayer.player_state[103]) > 0:
+        destroyEffect(eventPlayer.player_state[103][0])
+    if len(eventPlayer.player_state[103]) > 1:
+        destroyEffect(eventPlayer.player_state[103][1])
+    if len(eventPlayer.player_state[106]) > 0:
+        destroyEffect(eventPlayer.player_state[106][0])
+    if len(eventPlayer.player_state[106]) > 1:
+        destroyEffect(eventPlayer.player_state[106][1])
+    if len(eventPlayer.player_state[109]) > 0:
+        destroyEffect(eventPlayer.player_state[109][0])
+    if len(eventPlayer.player_state[109]) > 1:
+        destroyEffect(eventPlayer.player_state[109][1])
+    if len(eventPlayer.player_state[113]) > 0:
+        destroyEffect(eventPlayer.player_state[113][0])
+    if len(eventPlayer.player_state[113]) > 1:
+        destroyEffect(eventPlayer.player_state[113][1])
+    eventPlayer.player_state[101] = false
+    eventPlayer.player_state[102] = false
+    eventPlayer.player_state[103] = []
+    eventPlayer.player_state[104] = false
+    eventPlayer.player_state[105] = false
+    eventPlayer.player_state[106] = []
+    eventPlayer.player_state[107] = false
+    eventPlayer.player_state[108] = null
+    eventPlayer.player_state[109] = []
+    eventPlayer.player_state[110] = false
+    eventPlayer.player_state[111] = false
+    eventPlayer.player_state[112] = false
+    eventPlayer.player_state[113] = []
+    eventPlayer.player_state[100] = false
+    eventPlayer.player_state[115] = false
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageReceived(100)
+
+
+rule "[reinhardt] clear all state after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.REINHARDT
+    @Condition eventPlayer.player_state[96] > 0 or eventPlayer.player_state[97] == true or eventPlayer.player_state[99] == true or eventPlayer.player_state[100] == true or eventPlayer.player_state[101] == true or eventPlayer.player_state[102] == true or len(eventPlayer.player_state[103]) > 0 or eventPlayer.player_state[104] == true or eventPlayer.player_state[105] == true or len(eventPlayer.player_state[106]) > 0 or eventPlayer.player_state[107] == true or len(eventPlayer.player_state[109]) > 0 or eventPlayer.player_state[110] == true or eventPlayer.player_state[111] == true or eventPlayer.player_state[112] == true or len(eventPlayer.player_state[113]) > 0
+
+    if eventPlayer.player_state[97] == true:
+        destroyHudText(eventPlayer.player_state[98])
+    if len(eventPlayer.player_state[103]) > 0:
+        destroyEffect(eventPlayer.player_state[103][0])
+    if len(eventPlayer.player_state[103]) > 1:
+        destroyEffect(eventPlayer.player_state[103][1])
+    if len(eventPlayer.player_state[106]) > 0:
+        destroyEffect(eventPlayer.player_state[106][0])
+    if len(eventPlayer.player_state[106]) > 1:
+        destroyEffect(eventPlayer.player_state[106][1])
+    if len(eventPlayer.player_state[109]) > 0:
+        destroyEffect(eventPlayer.player_state[109][0])
+    if len(eventPlayer.player_state[109]) > 1:
+        destroyEffect(eventPlayer.player_state[109][1])
+    if len(eventPlayer.player_state[113]) > 0:
+        destroyEffect(eventPlayer.player_state[113][0])
+    if len(eventPlayer.player_state[113]) > 1:
+        destroyEffect(eventPlayer.player_state[113][1])
+    eventPlayer.player_state[96] = 0
+    eventPlayer.player_state[97] = false
+    eventPlayer.player_state[98] = null
+    eventPlayer.player_state[99] = false
+    eventPlayer.player_state[100] = false
+    eventPlayer.player_state[101] = false
+    eventPlayer.player_state[102] = false
+    eventPlayer.player_state[103] = []
+    eventPlayer.player_state[104] = false
+    eventPlayer.player_state[105] = false
+    eventPlayer.player_state[106] = []
+    eventPlayer.player_state[107] = false
+    eventPlayer.player_state[108] = null
+    eventPlayer.player_state[109] = []
+    eventPlayer.player_state[110] = false
+    eventPlayer.player_state[111] = false
+    eventPlayer.player_state[112] = false
+    eventPlayer.player_state[113] = []
+    eventPlayer.player_state[114] = false
+    eventPlayer.player_state[115] = false
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageReceived(100)
 
 
 rule "[freya] launch circle":
