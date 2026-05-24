@@ -402,7 +402,7 @@ rule "[hud] open current hero ability guide on interact":
     elif eventPlayer.getHero() == Hero.KIRIKO:
         hudSubtext(eventPlayer, "雾子：稻荷神社\n香火强化铃，瞬移留狐火鸟居\n御守可挡致命伤，净化自己或队友会狐火反噬", HudPosition.ACTUALLY_LEFT, -998, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.CASSIDY:
-        hudSubtext(eventPlayer, "卡西迪：午时赌徒\n翻滚留绊马索尘线，完美翻滚可躲伤害并攒赌注\n赌注满 10 后翻滚开启午时赌局", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "卡西迪：午时赌徒\n翻滚留绊马索尘线，完美翻滚可躲伤害并攒赌注\n赌注满 10 后下一次翻滚开启午时赌局\n赌局 3 秒内近战命中可获胜，造成额外伤害和短控", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.TRACER:
         hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.REAPER:
@@ -2119,7 +2119,8 @@ rule "[cassidy] roll creates tripline and window":
                 eventPlayer.player_state[140] += 2
                 if eventPlayer.player_state[140] > 10:
                     eventPlayer.player_state[140] = 10
-                eventPlayer.player_state[143] = false
+                if eventPlayer.player_state[140] < 10:
+                    eventPlayer.player_state[143] = false
                 smallMessage(eventPlayer, "绊马索命中：赌注 +2")
                 playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.ORANGE, eventPlayer.player_state[146], 1.6)
             eventPlayer.player_state[149] += 1
@@ -2164,7 +2165,8 @@ rule "[cassidy] perfect roll on damage":
     eventPlayer.player_state[140] += 3
     if eventPlayer.player_state[140] > 10:
         eventPlayer.player_state[140] = 10
-    eventPlayer.player_state[143] = false
+    if eventPlayer.player_state[140] < 10:
+        eventPlayer.player_state[143] = false
     eventPlayer.setStatusEffect(eventPlayer, Status.INVINCIBLE, 0.35)
     smallMessage(eventPlayer, "完美翻滚")
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 1.5)
@@ -2196,7 +2198,8 @@ rule "[cassidy] melee wager and duel hit":
         eventPlayer.player_state[140] += 2 if eventPlayer.player_state[152] == true else 1
         if eventPlayer.player_state[140] > 10:
             eventPlayer.player_state[140] = 10
-        eventPlayer.player_state[143] = false
+        if eventPlayer.player_state[140] < 10:
+            eventPlayer.player_state[143] = false
         smallMessage(eventPlayer, "赌注 +{}".format(2 if eventPlayer.player_state[152] == true else 1))
     wait(0.25)
     eventPlayer.player_state[153] = false
