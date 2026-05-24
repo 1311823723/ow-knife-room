@@ -81,9 +81,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 116
+    @Condition len(eventPlayer.player_state) < 118
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false, 0, -1]
 
 
 def applySoldierAntmanState():
@@ -416,7 +416,7 @@ rule "[hud] open current hero ability guide on interact":
     elif eventPlayer.getHero() == Hero.WINSTON:
         hudSubtext(eventPlayer, "温斯顿：抱摔与电蚊香屏障\n技能1跳跃正面贴近玩家时抓住 1 人\n落地击倒目标但不造成伤害\n放屏障后形成带电区域，其他玩家进入会短暂麻痹并被电弧标记", HudPosition.ACTUALLY_LEFT, -998, Color.WHITE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.REINHARDT:
-        hudSubtext(eventPlayer, "莱因哈特：荣耀骑士审判\n举盾和战斗积累荣耀，满 100 后下一击触发天罚落锤\n举盾宣战可充能但怕绕背\n低血进入破誓骑士，结束后短暂疲惫", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+        hudSubtext(eventPlayer, "莱因哈特：荣耀骑士审判\n荣耀分段强化，满 100 后下一击触发天罚落锤\n天罚借用大招动作但会恢复原本大招充能\n举盾宣战可充能但怕绕背", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.BRIGITTE:
         hudSubtext(eventPlayer, "布丽吉塔：盾击瞬移与盾反\n举盾攻击远处目标可传送到目标附近并短暂眩晕\n举盾被近战命中时触发盾反，短暂眩晕攻击者\n两个效果都不造成伤害", HudPosition.ACTUALLY_LEFT, -998, Color.YELLOW, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.LIFEWEAVER:
@@ -974,12 +974,13 @@ rule "[sigma] release small black hole":
     eventPlayer.sigma_black_hole_effects.append(getLastCreatedEntity())
     playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.PURPLE, eventPlayer.sigma_black_hole_position, 2.5)
     bigMessage(eventPlayer, "小黑洞展开")
-    while eventPlayer.sigma_black_hole_active == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.SIGMA and eventPlayer.sigma_black_hole_tick < 6:
-        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition(), eventPlayer.sigma_black_hole_position), 7, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
-        if len(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40)) > 0:
-            damage(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40), eventPlayer, 5)
-            getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.2, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 40).sigma_black_hole_damage_taken += 5
-        wait(0.5)
+    while eventPlayer.sigma_black_hole_active == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.SIGMA and eventPlayer.sigma_black_hole_tick < 12:
+        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8.5, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).applyImpulse(directionTowards(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 8.5, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).getPosition(), eventPlayer.sigma_black_hole_position), 18, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+        getPlayersInRadius(eventPlayer.sigma_black_hole_position, 4, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true).setStatusEffect(eventPlayer, Status.ROOTED, 0.18)
+        if len(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 36)) > 0:
+            damage(getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 36), eventPlayer, 3)
+            getPlayersInRadius(eventPlayer.sigma_black_hole_position, 2.6, Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.sigma_black_hole_damage_taken < 36).sigma_black_hole_damage_taken += 3
+        wait(0.25)
         eventPlayer.sigma_black_hole_tick += 1
     if eventPlayer.sigma_black_hole_active == true:
         if len(eventPlayer.sigma_black_hole_effects) > 0:
@@ -3133,8 +3134,37 @@ rule "[reinhardt] create glory hud":
     @Condition eventPlayer.player_state[97] == false
 
     eventPlayer.player_state[97] = true
-    hudHeader(eventPlayer, "荣耀值：{}/100{}".format(eventPlayer.player_state[96], "  天罚就绪" if eventPlayer.player_state[96] >= 100 else ""), HudPosition.RIGHT, -830, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+    hudHeader(eventPlayer, "荣耀：{}/100{}".format(eventPlayer.player_state[96], "  天罚就绪" if eventPlayer.player_state[96] >= 100 else " III" if eventPlayer.player_state[96] >= 75 else " II" if eventPlayer.player_state[96] >= 50 else " I" if eventPlayer.player_state[96] >= 25 else ""), HudPosition.RIGHT, -830, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     eventPlayer.player_state[98] = getLastCreatedText()
+
+
+rule "[reinhardt] update glory tier buffs":
+    @Event eachPlayer
+    @Hero reinhardt
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[117] != (3 if eventPlayer.player_state[96] >= 75 else 2 if eventPlayer.player_state[96] >= 50 else 1 if eventPlayer.player_state[96] >= 25 else 0)
+
+    eventPlayer.player_state[117] = 3 if eventPlayer.player_state[96] >= 75 else 2 if eventPlayer.player_state[96] >= 50 else 1 if eventPlayer.player_state[96] >= 25 else 0
+    if eventPlayer.player_state[104] == true:
+        eventPlayer.setMoveSpeed(70)
+        eventPlayer.setDamageReceived(125)
+    else:
+        if eventPlayer.player_state[112] == true:
+            eventPlayer.setMoveSpeed(75)
+        elif eventPlayer.player_state[110] == true:
+            eventPlayer.setMoveSpeed(110)
+        else:
+            eventPlayer.setMoveSpeed(105 if eventPlayer.player_state[117] >= 1 else 100)
+        eventPlayer.setDamageReceived(90 if eventPlayer.player_state[117] >= 2 else 100)
+    eventPlayer.setDamageDealt(110 if eventPlayer.player_state[117] >= 3 else 100)
+    if eventPlayer.player_state[96] >= 100:
+        smallMessage(eventPlayer, "天罚就绪")
+    elif eventPlayer.player_state[117] == 3:
+        smallMessage(eventPlayer, "荣耀阶段 III")
+    elif eventPlayer.player_state[117] == 2:
+        smallMessage(eventPlayer, "荣耀阶段 II")
+    elif eventPlayer.player_state[117] == 1:
+        smallMessage(eventPlayer, "荣耀阶段 I")
 
 
 rule "[reinhardt] glory ready prompt":
@@ -3162,9 +3192,9 @@ rule "[reinhardt] shield declaration":
     eventPlayer.player_state[101] = true
     eventPlayer.player_state[102] = true
     eventPlayer.player_state[103] = []
-    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.YELLOW, eventPlayer, 4.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.YELLOW, eventPlayer, 3.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.player_state[103].append(getLastCreatedEntity())
-    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.RED, eventPlayer, 3.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+    createEffect(getAllPlayers(), Effect.BAD_AURA, Color.RED, eventPlayer, 2.4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.player_state[103].append(getLastCreatedEntity())
     smallMessage(getLivingPlayers(Team.ALL).filter(lambda player: player != eventPlayer and player.isAlive() == true and distance(eventPlayer, player) <= 12 and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "骑士宣战")
     eventPlayer.player_state[86] = 0
@@ -3173,7 +3203,6 @@ rule "[reinhardt] shield declaration":
             eventPlayer.player_state[96] += 6 if eventPlayer.player_state[110] == true else 4
             if eventPlayer.player_state[96] > 100:
                 eventPlayer.player_state[96] = 100
-            playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer, 1.1)
         eventPlayer.player_state[86] += 1
         wait(0.5)
     if len(eventPlayer.player_state[103]) > 0:
@@ -3210,6 +3239,7 @@ rule "[reinhardt] gain glory when damaged":
             if eventPlayer.getHero() == Hero.REINHARDT:
                 eventPlayer.setDamageReceived(100)
                 eventPlayer.setMoveSpeed(75 if eventPlayer.player_state[112] == true else 100)
+                eventPlayer.player_state[117] = -1
             eventPlayer.player_state[104] = false
     else:
         eventPlayer.player_state[96] += 6 if eventPlayer.player_state[110] == true else 4
@@ -3226,17 +3256,29 @@ rule "[reinhardt] gain glory on hit":
     @Condition eventDamage > 0
     @Condition eventPlayer.player_state[96] < 100
     @Condition eventPlayer.player_state[115] == false
-    @Condition eventAbility == Button.PRIMARY_FIRE or eventAbility == Button.MELEE or eventAbility == Button.ABILITY_1
+    @Condition eventAbility == Button.PRIMARY_FIRE or eventAbility == Button.MELEE
 
     eventPlayer.player_state[115] = true
-    if eventAbility == Button.ABILITY_1:
-        eventPlayer.player_state[96] += 14 if eventPlayer.player_state[110] == true else 10
-    else:
-        eventPlayer.player_state[96] += 8 if eventPlayer.player_state[110] == true else 6
+    eventPlayer.player_state[96] += 12
     if eventPlayer.player_state[96] > 100:
         eventPlayer.player_state[96] = 100
     wait(0.5)
     eventPlayer.player_state[115] = false
+
+
+rule "[reinhardt] gain glory on final blow":
+    @Event playerDealtFinalBlow
+    @Hero reinhardt
+    @Condition victim != eventPlayer
+    @Condition eventPlayer.player_state[96] < 100
+
+    eventPlayer.player_state[96] += 20
+    if eventPlayer.player_state[96] > 100:
+        eventPlayer.player_state[96] = 100
+    smallMessage(eventPlayer, "荣耀 +20")
+    if eventPlayer.player_state[96] >= 100:
+        eventPlayer.player_state[96] = 100
+        eventPlayer.player_state[99] = false
 
 
 rule "[reinhardt] knight charge warning":
@@ -3286,11 +3328,14 @@ rule "[reinhardt] trigger heavenly smite":
     @Condition eventDamage > 0
 
     eventPlayer.player_state[107] = true
+    eventPlayer.player_state[116] = eventPlayer.getUltCharge()
     eventPlayer.player_state[96] = 0
     eventPlayer.player_state[99] = false
+    eventPlayer.player_state[117] = -1
     eventPlayer.player_state[108] = nearestWalkablePosition(victim.getPosition())
     eventPlayer.player_state[109] = []
-    eventPlayer.applyImpulse(Vector.UP, 10, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+    eventPlayer.setUltCharge(100)
+    eventPlayer.setDamageDealt(100)
     createEffect(getAllPlayers(), Effect.BAD_AURA, Color.RED, eventPlayer.player_state[108], 6.5 if eventPlayer.player_state[110] == true else 5.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.player_state[109].append(getLastCreatedEntity())
     createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer.player_state[108], 5.5 if eventPlayer.player_state[110] == true else 4.5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
@@ -3299,6 +3344,8 @@ rule "[reinhardt] trigger heavenly smite":
     smallMessage(getPlayersInRadius(eventPlayer.player_state[108], 9, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), "天罚预警")
     wait(1.3 if eventPlayer.player_state[110] == true else 1)
     if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.REINHARDT and eventPlayer.player_state[107] == true:
+        eventPlayer.forceButtonPress(Button.ULTIMATE)
+        wait(0.15)
         playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.RED, eventPlayer.player_state[108], 5)
         playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.player_state[108], 4)
         damage(getPlayersInRadius(eventPlayer.player_state[108], 3.6 if eventPlayer.player_state[110] == true else 3, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 50)
@@ -3312,6 +3359,9 @@ rule "[reinhardt] trigger heavenly smite":
         destroyEffect(eventPlayer.player_state[109][1])
     eventPlayer.player_state[109] = []
     eventPlayer.player_state[108] = null
+    if eventPlayer.getHero() == Hero.REINHARDT:
+        eventPlayer.setUltCharge(eventPlayer.player_state[116])
+    eventPlayer.player_state[116] = 0
     eventPlayer.player_state[107] = false
 
 
@@ -3343,11 +3393,13 @@ rule "[reinhardt] oathbreaker phase":
         eventPlayer.player_state[113] = []
         eventPlayer.player_state[112] = true
         eventPlayer.setMoveSpeed(75)
+        eventPlayer.player_state[117] = -1
         smallMessage(eventPlayer, "骑士疲惫")
         wait(3)
         if eventPlayer.getHero() == Hero.REINHARDT and eventPlayer.player_state[112] == true:
             eventPlayer.setMoveSpeed(100)
             eventPlayer.player_state[112] = false
+            eventPlayer.player_state[117] = -1
 
 
 rule "[reinhardt] clear temporary states on death keep glory":
@@ -3385,14 +3437,16 @@ rule "[reinhardt] clear temporary states on death keep glory":
     eventPlayer.player_state[113] = []
     eventPlayer.player_state[100] = false
     eventPlayer.player_state[115] = false
+    eventPlayer.player_state[117] = -1
     eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageDealt(100)
     eventPlayer.setDamageReceived(100)
 
 
 rule "[reinhardt] clear all state after hero swap":
     @Event eachPlayer
     @Condition eventPlayer.getHero() != Hero.REINHARDT
-    @Condition eventPlayer.player_state[96] > 0 or eventPlayer.player_state[97] == true or eventPlayer.player_state[99] == true or eventPlayer.player_state[100] == true or eventPlayer.player_state[101] == true or eventPlayer.player_state[102] == true or len(eventPlayer.player_state[103]) > 0 or eventPlayer.player_state[104] == true or eventPlayer.player_state[105] == true or len(eventPlayer.player_state[106]) > 0 or eventPlayer.player_state[107] == true or len(eventPlayer.player_state[109]) > 0 or eventPlayer.player_state[110] == true or eventPlayer.player_state[111] == true or eventPlayer.player_state[112] == true or len(eventPlayer.player_state[113]) > 0
+    @Condition eventPlayer.player_state[96] > 0 or eventPlayer.player_state[97] == true or eventPlayer.player_state[99] == true or eventPlayer.player_state[100] == true or eventPlayer.player_state[101] == true or eventPlayer.player_state[102] == true or len(eventPlayer.player_state[103]) > 0 or eventPlayer.player_state[104] == true or eventPlayer.player_state[105] == true or len(eventPlayer.player_state[106]) > 0 or eventPlayer.player_state[107] == true or len(eventPlayer.player_state[109]) > 0 or eventPlayer.player_state[110] == true or eventPlayer.player_state[111] == true or eventPlayer.player_state[112] == true or len(eventPlayer.player_state[113]) > 0 or eventPlayer.player_state[116] != 0 or eventPlayer.player_state[117] != -1
 
     if eventPlayer.player_state[97] == true:
         destroyHudText(eventPlayer.player_state[98])
@@ -3432,7 +3486,10 @@ rule "[reinhardt] clear all state after hero swap":
     eventPlayer.player_state[113] = []
     eventPlayer.player_state[114] = false
     eventPlayer.player_state[115] = false
+    eventPlayer.player_state[116] = 0
+    eventPlayer.player_state[117] = -1
     eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageDealt(100)
     eventPlayer.setDamageReceived(100)
 
 
