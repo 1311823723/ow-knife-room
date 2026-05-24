@@ -81,9 +81,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 140
+    @Condition len(eventPlayer.player_state) < 161
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false, 0, -1, 0, false, null, false, false, false, null, null, [], 0, false, false, false, null, false, false, false, false, [], false, false]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false, 0, -1, 0, false, null, false, false, false, null, null, [], 0, false, false, false, null, false, false, false, false, [], false, false, 0, false, null, false, null, null, false, [], 0, false, false, false, false, false, false, [], null, false, false, false]
 
 
 def applySoldierAntmanState():
@@ -401,6 +401,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "安娜：睡眠标记与激素控制\n睡针命中会给目标添加明显睡眠标记\n大招按下时可让视角附近目标沉睡", HudPosition.ACTUALLY_LEFT, -998, Color.PURPLE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.KIRIKO:
         hudSubtext(eventPlayer, "雾子：稻荷神社\n香火强化铃，瞬移留狐火鸟居\n御守可挡致命伤，净化自己或队友会狐火反噬", HudPosition.ACTUALLY_LEFT, -998, Color.VIOLET, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.CASSIDY:
+        hudSubtext(eventPlayer, "卡西迪：午时赌徒\n翻滚留绊马索尘线，完美翻滚可躲伤害并攒赌注\n赌注满 10 后翻滚开启午时赌局", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.TRACER:
         hudSubtext(eventPlayer, "猎空：自动赖账回溯\n每条命一次自动回溯\n受到致命伤时自动重置并强制使用 E\n约 3 秒后还债，短暂变大、变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.REAPER:
@@ -2030,6 +2032,258 @@ rule "[kiriko] clear incense state on hero swap":
     eventPlayer.player_state[137] = false
     eventPlayer.player_state[138] = null
     eventPlayer.player_state[139] = false
+
+
+rule "[cassidy] create wager hud":
+    @Event eachPlayer
+    @Hero cassidy
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[141] == false
+
+    eventPlayer.player_state[141] = true
+    hudHeader(eventPlayer, "赌注：{}/10{}".format(eventPlayer.player_state[140], "  午时赌局就绪" if eventPlayer.player_state[140] >= 10 else ""), HudPosition.RIGHT, -845, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
+    eventPlayer.player_state[142] = getLastCreatedText()
+
+
+rule "[cassidy] only allow roll and melee":
+    @Event eachPlayer
+    @Hero cassidy
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[159] == false
+
+    eventPlayer.player_state[159] = true
+    eventPlayer.disallowButton(Button.PRIMARY_FIRE)
+    eventPlayer.disallowButton(Button.SECONDARY_FIRE)
+    eventPlayer.disallowButton(Button.ABILITY_2)
+    eventPlayer.disallowButton(Button.ULTIMATE)
+
+
+rule "[cassidy] wager ready prompt":
+    @Event eachPlayer
+    @Hero cassidy
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[140] >= 10
+    @Condition eventPlayer.player_state[143] == false
+
+    eventPlayer.player_state[140] = 10
+    eventPlayer.player_state[143] = true
+    bigMessage(eventPlayer, "午时赌局就绪")
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 1.8)
+
+
+rule "[cassidy] roll creates tripline and window":
+    @Event eachPlayer
+    @Hero cassidy
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.isUsingAbility1() == true
+    @Condition eventPlayer.player_state[144] == false
+
+    eventPlayer.player_state[144] = true
+    eventPlayer.player_state[151] = false
+    eventPlayer.player_state[145] = nearestWalkablePosition(eventPlayer.getPosition())
+    eventPlayer.player_state[150] = true
+    eventPlayer.setDamageReceived(35)
+    if eventPlayer.player_state[140] >= 10 and eventPlayer.player_state[154] == false:
+        eventPlayer.player_state[140] = 0
+        eventPlayer.player_state[143] = false
+        eventPlayer.player_state[154] = true
+        eventPlayer.player_state[155] = false
+        eventPlayer.player_state[156] = []
+        bigMessage(getAllPlayers(), "午时赌局")
+        createEffect(getAllPlayers(), Effect.BAD_AURA, Color.ORANGE, eventPlayer, 5, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.player_state[156].append(getLastCreatedEntity())
+        createEffect(getAllPlayers(), Effect.LIGHT_SHAFT, Color.YELLOW, eventPlayer, 4, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.player_state[156].append(getLastCreatedEntity())
+    wait(0.45)
+    eventPlayer.player_state[150] = false
+    if eventPlayer.getHero() == Hero.CASSIDY:
+        eventPlayer.setDamageReceived(100)
+    eventPlayer.player_state[146] = nearestWalkablePosition(eventPlayer.getPosition())
+    eventPlayer.player_state[152] = true
+    if distance(eventPlayer.player_state[145], eventPlayer.player_state[146]) > 0.8:
+        eventPlayer.player_state[147] = true
+        eventPlayer.player_state[148] = []
+        eventPlayer.player_state[149] = 0
+        createBeam(getAllPlayers(), Beam.BAD, eventPlayer.player_state[145] + Vector.UP * 0.15, eventPlayer.player_state[146] + Vector.UP * 0.15, Color.ORANGE, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.player_state[148].append(getLastCreatedEntity())
+        createEffect(getAllPlayers(), Effect.BAD_AURA, Color.ORANGE, eventPlayer.player_state[146], 2.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.player_state[148].append(getLastCreatedEntity())
+        createEffect(getAllPlayers(), Effect.GOOD_AURA, Color.YELLOW, (eventPlayer.player_state[145] + eventPlayer.player_state[146]) / 2, 1.8, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
+        eventPlayer.player_state[148].append(getLastCreatedEntity())
+        while eventPlayer.player_state[147] == true and eventPlayer.getHero() == Hero.CASSIDY and eventPlayer.player_state[149] < 8:
+            if len(getPlayersInRadius(eventPlayer.player_state[146], 2.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0 or len(getPlayersInRadius((eventPlayer.player_state[145] + eventPlayer.player_state[146]) / 2, 2.1, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0:
+                getPlayersInRadius(eventPlayer.player_state[146], 2.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setMoveSpeed(65)
+                getPlayersInRadius((eventPlayer.player_state[145] + eventPlayer.player_state[146]) / 2, 2.1, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setMoveSpeed(65)
+                getPlayersInRadius(eventPlayer.player_state[146], 2.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[158] = true
+                getPlayersInRadius((eventPlayer.player_state[145] + eventPlayer.player_state[146]) / 2, 2.1, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[158] = true
+                eventPlayer.player_state[140] += 2
+                if eventPlayer.player_state[140] > 10:
+                    eventPlayer.player_state[140] = 10
+                eventPlayer.player_state[143] = false
+                smallMessage(eventPlayer, "绊马索命中：赌注 +2")
+                playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.ORANGE, eventPlayer.player_state[146], 1.6)
+            eventPlayer.player_state[149] += 1
+            wait(0.25)
+        if len(eventPlayer.player_state[148]) > 0:
+            destroyEffect(eventPlayer.player_state[148][0])
+        if len(eventPlayer.player_state[148]) > 1:
+            destroyEffect(eventPlayer.player_state[148][1])
+        if len(eventPlayer.player_state[148]) > 2:
+            destroyEffect(eventPlayer.player_state[148][2])
+        eventPlayer.player_state[147] = false
+        eventPlayer.player_state[148] = []
+    wait(0.6)
+    eventPlayer.player_state[152] = false
+    if eventPlayer.player_state[154] == true and eventPlayer.player_state[155] == false:
+        smallMessage(eventPlayer, "赌局失败")
+        eventPlayer.setMoveSpeed(80)
+        wait(1)
+        if eventPlayer.getHero() == Hero.CASSIDY:
+            eventPlayer.setMoveSpeed(100)
+    if len(eventPlayer.player_state[156]) > 0:
+        destroyEffect(eventPlayer.player_state[156][0])
+    if len(eventPlayer.player_state[156]) > 1:
+        destroyEffect(eventPlayer.player_state[156][1])
+    eventPlayer.player_state[154] = false
+    eventPlayer.player_state[155] = false
+    eventPlayer.player_state[156] = []
+    eventPlayer.player_state[145] = null
+    eventPlayer.player_state[146] = null
+    wait(0.5)
+    eventPlayer.player_state[144] = false
+
+
+rule "[cassidy] perfect roll on damage":
+    @Event playerTookDamage
+    @Hero cassidy
+    @Condition eventPlayer.player_state[150] == true
+    @Condition eventPlayer.player_state[151] == false
+    @Condition eventDamage > 0
+
+    eventPlayer.player_state[151] = true
+    eventPlayer.player_state[140] += 3
+    if eventPlayer.player_state[140] > 10:
+        eventPlayer.player_state[140] = 10
+    eventPlayer.player_state[143] = false
+    eventPlayer.setStatusEffect(eventPlayer, Status.INVINCIBLE, 0.35)
+    smallMessage(eventPlayer, "完美翻滚")
+    playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.ORANGE, eventPlayer, 1.5)
+
+
+rule "[cassidy] melee wager and duel hit":
+    @Event playerDealtDamage
+    @Hero cassidy
+    @Condition victim != eventPlayer
+    @Condition eventDamage > 0
+    @Condition eventAbility == Button.MELEE
+    @Condition eventPlayer.player_state[153] == false
+
+    eventPlayer.player_state[153] = true
+    if eventPlayer.player_state[154] == true:
+        eventPlayer.player_state[155] = true
+        eventPlayer.player_state[154] = false
+        damage(victim, eventPlayer, 45)
+        victim.setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.55)
+        eventPlayer.startHealingOverTime(eventPlayer, 1.5, 25)
+        eventPlayer.setMoveSpeed(120)
+        bigMessage(eventPlayer, "赌局获胜")
+        smallMessage(victim, "赌局败北")
+        playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.ORANGE, victim, 2.2)
+        wait(1)
+        if eventPlayer.getHero() == Hero.CASSIDY:
+            eventPlayer.setMoveSpeed(100)
+    else:
+        eventPlayer.player_state[140] += 2 if eventPlayer.player_state[152] == true else 1
+        if eventPlayer.player_state[140] > 10:
+            eventPlayer.player_state[140] = 10
+        eventPlayer.player_state[143] = false
+        smallMessage(eventPlayer, "赌注 +{}".format(2 if eventPlayer.player_state[152] == true else 1))
+    wait(0.25)
+    eventPlayer.player_state[153] = false
+
+
+rule "[cassidy] clear tripline target cooldown":
+    @Event eachPlayer
+    @Condition eventPlayer.player_state[158] == true
+
+    smallMessage(eventPlayer, "踩到绊马索")
+    wait(1)
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.player_state[158] = false
+
+
+rule "[cassidy] clear temporary states on death":
+    @Event playerDied
+    @Hero cassidy
+
+    if len(eventPlayer.player_state[148]) > 0:
+        destroyEffect(eventPlayer.player_state[148][0])
+    if len(eventPlayer.player_state[148]) > 1:
+        destroyEffect(eventPlayer.player_state[148][1])
+    if len(eventPlayer.player_state[148]) > 2:
+        destroyEffect(eventPlayer.player_state[148][2])
+    if len(eventPlayer.player_state[156]) > 0:
+        destroyEffect(eventPlayer.player_state[156][0])
+    if len(eventPlayer.player_state[156]) > 1:
+        destroyEffect(eventPlayer.player_state[156][1])
+    eventPlayer.player_state[144] = false
+    eventPlayer.player_state[145] = null
+    eventPlayer.player_state[146] = null
+    eventPlayer.player_state[147] = false
+    eventPlayer.player_state[148] = []
+    eventPlayer.player_state[149] = 0
+    eventPlayer.player_state[150] = false
+    eventPlayer.player_state[151] = false
+    eventPlayer.player_state[152] = false
+    eventPlayer.player_state[153] = false
+    eventPlayer.player_state[154] = false
+    eventPlayer.player_state[155] = false
+    eventPlayer.player_state[156] = []
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageReceived(100)
+
+
+rule "[cassidy] clear all state after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.CASSIDY
+    @Condition eventPlayer.player_state[140] > 0 or eventPlayer.player_state[141] == true or eventPlayer.player_state[143] == true or eventPlayer.player_state[144] == true or eventPlayer.player_state[147] == true or eventPlayer.player_state[150] == true or eventPlayer.player_state[152] == true or eventPlayer.player_state[154] == true or eventPlayer.player_state[159] == true or len(eventPlayer.player_state[148]) > 0 or len(eventPlayer.player_state[156]) > 0
+
+    if eventPlayer.player_state[141] == true:
+        destroyHudText(eventPlayer.player_state[142])
+    if len(eventPlayer.player_state[148]) > 0:
+        destroyEffect(eventPlayer.player_state[148][0])
+    if len(eventPlayer.player_state[148]) > 1:
+        destroyEffect(eventPlayer.player_state[148][1])
+    if len(eventPlayer.player_state[148]) > 2:
+        destroyEffect(eventPlayer.player_state[148][2])
+    if len(eventPlayer.player_state[156]) > 0:
+        destroyEffect(eventPlayer.player_state[156][0])
+    if len(eventPlayer.player_state[156]) > 1:
+        destroyEffect(eventPlayer.player_state[156][1])
+    eventPlayer.player_state[140] = 0
+    eventPlayer.player_state[141] = false
+    eventPlayer.player_state[142] = null
+    eventPlayer.player_state[143] = false
+    eventPlayer.player_state[144] = false
+    eventPlayer.player_state[145] = null
+    eventPlayer.player_state[146] = null
+    eventPlayer.player_state[147] = false
+    eventPlayer.player_state[148] = []
+    eventPlayer.player_state[149] = 0
+    eventPlayer.player_state[150] = false
+    eventPlayer.player_state[151] = false
+    eventPlayer.player_state[152] = false
+    eventPlayer.player_state[153] = false
+    eventPlayer.player_state[154] = false
+    eventPlayer.player_state[155] = false
+    eventPlayer.player_state[156] = []
+    eventPlayer.player_state[159] = false
+    eventPlayer.allowButton(Button.PRIMARY_FIRE)
+    eventPlayer.allowButton(Button.SECONDARY_FIRE)
+    eventPlayer.allowButton(Button.ABILITY_2)
+    eventPlayer.allowButton(Button.ULTIMATE)
+    eventPlayer.setMoveSpeed(100)
+    eventPlayer.setDamageReceived(100)
 
 
 rule "[mei] melee adds frost stack":
