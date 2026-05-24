@@ -2045,19 +2045,6 @@ rule "[cassidy] create wager hud":
     eventPlayer.player_state[142] = getLastCreatedText()
 
 
-rule "[cassidy] only allow roll and melee":
-    @Event eachPlayer
-    @Hero cassidy
-    @Condition eventPlayer.isAlive() == true
-    @Condition eventPlayer.player_state[159] == false
-
-    eventPlayer.player_state[159] = true
-    eventPlayer.disallowButton(Button.PRIMARY_FIRE)
-    eventPlayer.disallowButton(Button.SECONDARY_FIRE)
-    eventPlayer.disallowButton(Button.ABILITY_2)
-    eventPlayer.disallowButton(Button.ULTIMATE)
-
-
 rule "[cassidy] wager ready prompt":
     @Event eachPlayer
     @Hero cassidy
@@ -2104,6 +2091,7 @@ rule "[cassidy] roll creates tripline and window":
         eventPlayer.player_state[147] = true
         eventPlayer.player_state[148] = []
         eventPlayer.player_state[149] = 0
+        eventPlayer.player_state[160] = false
         createBeam(getAllPlayers(), Beam.BAD, eventPlayer.player_state[145] + Vector.UP * 0.15, eventPlayer.player_state[146] + Vector.UP * 0.15, Color.ORANGE, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
         eventPlayer.player_state[148].append(getLastCreatedEntity())
         createEffect(getAllPlayers(), Effect.BAD_AURA, Color.ORANGE, eventPlayer.player_state[146], 2.2, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
@@ -2116,12 +2104,14 @@ rule "[cassidy] roll creates tripline and window":
                 getPlayersInRadius((eventPlayer.player_state[145] + eventPlayer.player_state[146]) / 2, 2.1, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).setMoveSpeed(65)
                 getPlayersInRadius(eventPlayer.player_state[146], 2.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[158] = true
                 getPlayersInRadius((eventPlayer.player_state[145] + eventPlayer.player_state[146]) / 2, 2.1, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[158] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[158] = true
-                eventPlayer.player_state[140] += 2
-                if eventPlayer.player_state[140] > 10:
-                    eventPlayer.player_state[140] = 10
-                if eventPlayer.player_state[140] < 10:
-                    eventPlayer.player_state[143] = false
-                smallMessage(eventPlayer, "绊马索命中：赌注 +2")
+                if eventPlayer.player_state[160] == false:
+                    eventPlayer.player_state[160] = true
+                    eventPlayer.player_state[140] += 2
+                    if eventPlayer.player_state[140] > 10:
+                        eventPlayer.player_state[140] = 10
+                    if eventPlayer.player_state[140] < 10:
+                        eventPlayer.player_state[143] = false
+                    smallMessage(eventPlayer, "绊马索命中：赌注 +2")
                 playEffect(getAllPlayers(), DynamicEffect.BAD_EXPLOSION, Color.ORANGE, eventPlayer.player_state[146], 1.6)
             eventPlayer.player_state[149] += 1
             wait(0.25)
@@ -2133,6 +2123,7 @@ rule "[cassidy] roll creates tripline and window":
             destroyEffect(eventPlayer.player_state[148][2])
         eventPlayer.player_state[147] = false
         eventPlayer.player_state[148] = []
+        eventPlayer.player_state[160] = false
     wait(0.6)
     eventPlayer.player_state[152] = false
     if eventPlayer.player_state[154] == true and eventPlayer.player_state[155] == false:
@@ -2242,6 +2233,7 @@ rule "[cassidy] clear temporary states on death":
     eventPlayer.player_state[154] = false
     eventPlayer.player_state[155] = false
     eventPlayer.player_state[156] = []
+    eventPlayer.player_state[160] = false
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageReceived(100)
 
@@ -2249,7 +2241,7 @@ rule "[cassidy] clear temporary states on death":
 rule "[cassidy] clear all state after hero swap":
     @Event eachPlayer
     @Condition eventPlayer.getHero() != Hero.CASSIDY
-    @Condition eventPlayer.player_state[140] > 0 or eventPlayer.player_state[141] == true or eventPlayer.player_state[143] == true or eventPlayer.player_state[144] == true or eventPlayer.player_state[147] == true or eventPlayer.player_state[150] == true or eventPlayer.player_state[152] == true or eventPlayer.player_state[154] == true or eventPlayer.player_state[159] == true or len(eventPlayer.player_state[148]) > 0 or len(eventPlayer.player_state[156]) > 0
+    @Condition eventPlayer.player_state[140] > 0 or eventPlayer.player_state[141] == true or eventPlayer.player_state[143] == true or eventPlayer.player_state[144] == true or eventPlayer.player_state[147] == true or eventPlayer.player_state[150] == true or eventPlayer.player_state[152] == true or eventPlayer.player_state[154] == true or len(eventPlayer.player_state[148]) > 0 or len(eventPlayer.player_state[156]) > 0
 
     if eventPlayer.player_state[141] == true:
         destroyHudText(eventPlayer.player_state[142])
@@ -2280,11 +2272,7 @@ rule "[cassidy] clear all state after hero swap":
     eventPlayer.player_state[154] = false
     eventPlayer.player_state[155] = false
     eventPlayer.player_state[156] = []
-    eventPlayer.player_state[159] = false
-    eventPlayer.allowButton(Button.PRIMARY_FIRE)
-    eventPlayer.allowButton(Button.SECONDARY_FIRE)
-    eventPlayer.allowButton(Button.ABILITY_2)
-    eventPlayer.allowButton(Button.ULTIMATE)
+    eventPlayer.player_state[160] = false
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageReceived(100)
 
