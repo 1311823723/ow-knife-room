@@ -60,6 +60,14 @@ Handle variables should include the resource type:
 - `hacked_lightshaft_effect`
 - `hud_rule_hint_handles`
 
+HUD variables follow the UI layering rules in `docs/ui-guidelines.md`.
+Use paired names for persistent HUD lifecycle:
+
+- `hero_resource_hud_created`
+- `hero_resource_hud_id`
+- `hero_status_hud_created`
+- `hero_status_hud_id`
+
 ## Global Variables
 
 Use `lower_snake_case`. Prefer clear ownership:

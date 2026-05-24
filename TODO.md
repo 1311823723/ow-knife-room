@@ -34,6 +34,12 @@
   - 风险等级：低。
   - 进游戏测试方法：不需要进游戏；后续每个迁移模块按规范复查。
 
+- [x] 制定刀战房 UI 分层规范
+  - 目标：固定技能说明、资源 HUD、状态 HUD、大字关键事件和小字频繁反馈的使用边界，避免后续新增英雄时 UI 越堆越乱。
+  - 涉及文件：`docs/ui-guidelines.md`、`docs/naming-conventions.md`、`docs/testing-checklist.md`。
+  - 风险等级：低。
+  - 进游戏测试方法：确认左侧只放入口和当前英雄说明，右侧资源/状态 HUD 不重叠，死亡/换英雄/状态结束后 HUD 会清理。
+
 - [ ] 保存并保护旧版 Workshop 代码
   - 目标：确认 `legacy/current-workshop.zh-cn.txt` 作为原始可回退版本，不直接编辑。
   - 涉及文件：`legacy/current-workshop.zh-cn.txt`。
@@ -60,11 +66,35 @@
   - 风险等级：中。
   - 进游戏测试方法：进入房间等待 30 秒，确认左上角只保留一条“按住互动键查看技能说明”；按住互动键时出现大字体多行技能说明。
 
-- [x] 添加小美 10% 冰冻攻击
-  - 目标：小美每次造成伤害时在动作内独立掷一次 1-100，10% 概率冻结目标。
+- [x] 重做小美寒气掌控
+  - 目标：删除旧版造成伤害 20% 概率冰冻，改为近战、冰爆陷阱和技能 1 寒气圈叠加 3 层寒气。
   - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`。
   - 风险等级：中。
-  - 进游戏测试方法：小美连续攻击敌人，观察约每 10 次伤害触发 1 次短暂冻结，并看到“小美冰冻触发”提示；确认不会冻结自己或队友。
+  - 进游戏测试方法：小美近战叠 1 层，技能 2 延迟冰爆叠 2 层并低伤害减速，技能 1 寒气圈贴身每 2 秒叠 1 层；满 3 层短冻后减速并清零，离开后寒气会衰减。
+
+- [x] 削弱源氏击杀刷新 Shift
+  - 目标：保留击杀刷新 Shift 爽感，但加入 8 秒内置冷却和 4 秒过热惩罚，避免连续滚雪球。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：源氏第一次击杀刷新 Shift；8 秒内第二次击杀只提示“龙刃过热中”；过热 4 秒内更脆，死亡或换英雄后状态清理。
+
+- [x] 重构源氏疯狗龙刃窗口
+  - 目标：删除旧击杀刷新 Shift 机制，改为击杀开启 8 秒窗口；窗口内解锁 Shift 和大招，续杀刷新，结束后沉睡。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：高。
+  - 进游戏测试方法：源氏普通状态不能 Shift；击杀后 8 秒内可 Shift 和开大；续杀刷新窗口；自然结束后沉睡 5 秒；死亡或换英雄不残留。
+
+- [x] 添加巴蒂斯特增幅矩阵哈哈镜
+  - 目标：巴蒂斯特开大时让半径 8 米内玩家获得 6 秒随机体型、速度、伤害、承伤或击退变化。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：巴蒂斯特满大按大招，确认范围内玩家获得一种哈哈镜效果，6 秒后全部恢复。
+
+- [x] 添加巴蒂斯特假药注射
+  - 目标：巴蒂斯特造成伤害时 18% 概率给目标添加 3 秒随机副作用，并有 4 秒内置冷却。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：巴蒂斯特连续攻击目标，确认偶发假药提示和副作用；同一目标不叠加，4 秒内不连续触发。
 
 - [x] 添加路霸钩中削弱和近战击退强化
   - 目标：路霸钩中敌人后，目标缩小 3 秒、移速提高、受到击退增加，并让路霸下一次近战附加更强击退。
@@ -77,6 +107,42 @@
   - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`。
   - 风险等级：中。
   - 进游戏测试方法：卢西奥跳起后落地，确认周围玩家被向上弹起，卢西奥自己短暂加速。
+
+- [x] 调整卢西奥落地冲击
+  - 目标：范围调整为 8，排除卢西奥自己，并增加冷却避免落地循环触发。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：卢西奥落地时确认只有附近其他玩家被弹起，自己不被弹起，且不会反复触发。
+
+- [x] 添加索杰恩滑铲创飞
+  - 目标：索杰恩滑铲靠近其他玩家时造成伤害、较长击倒和推开，并用冷却防止连续触发。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：索杰恩滑铲经过玩家，确认目标受到 20 点伤害、被击倒并向外推开，索杰恩自己不受影响。
+
+- [x] 添加伊拉锐召唤太阳
+  - 目标：伊拉锐近战命中积攒太阳之力，满 3 层后右键召唤小太阳点名敌人，目标在太阳视野内受到低额持续灼烧。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：近战命中 3 次后右侧 HUD 满层；按右键蓄力召唤小太阳，确认目标被点名、有太阳标记和光束，躲墙后不再受到灼烧。
+
+- [x] 添加芙蕾娅飞天法阵
+  - 目标：芙蕾娅使用 E 技能时生成法阵，短前摇后范围内玩家一起高飞，并清理效果。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：芙蕾娅按 E 技能触发法阵，确认范围内玩家高飞、效果会消失、冷却期间不重复触发。
+
+- [x] 添加生命之梭园艺保龄球
+  - 目标：生命之梭拥有 Boss 房风格废铁球园艺球，近战击球撞人，技能 2 拉回，大招预警后天降花盆。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：选择生命之梭后确认园艺球生成并跟随；近战击球能撞人，技能 2 可拉回，大招有 1 秒预警后砸地。
+
+- [x] 添加安娜睡眠醒目标记
+  - 目标：沉睡状态只创建一次醒目标记效果，并在醒来后清理。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`、`docs/variable-map.md`、`docs/testing-checklist.md`。
+  - 风险等级：中。
+  - 进游戏测试方法：安娜睡针命中后目标出现玫红光环，醒来后光环消失，沉睡期间不刷屏。
 
 - [ ] 修复主机按住蹲下疯狂生成机器人问题
   - 目标：给主机生成机器人规则增加防连发或按键边沿。
@@ -110,9 +176,9 @@
   - 风险等级：高。
   - 进游戏测试方法：被入侵持续 5 秒，掉血速度稳定；多次入侵不会越来越快。
 
-- [ ] 修复被睡效果重复播放问题
+- [x] 修复被睡效果重复播放问题
   - 目标：沉睡惩罚只在进入沉睡状态时触发一次，或有明确防重复标记。
-  - 涉及文件：未来补丁文件或迁移后的 Workshop/OverPy 文件。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`。
   - 风险等级：中。
   - 进游戏测试方法：被睡眠时只出现一次明显效果，技能冷却和充能被正确设置。
 
@@ -128,11 +194,11 @@
   - 风险等级：高。
   - 进游戏测试方法：按住左键或右键 3 秒，体型只变化一次或按明确冷却节奏变化。
 
-- [ ] 重写天使复活甲逻辑
-  - 目标：去掉危险 `While`，明确第一次死亡复活、第二次正常死亡的状态流。
-  - 涉及文件：未来补丁文件或迁移后的 Workshop/OverPy 文件。
+- [x] 重写天使复活甲逻辑
+  - 目标：去掉危险 `While`，改为每条命一次复活甲；致命伤时回血、震开敌人并短暂无敌。
+  - 涉及文件：`src/main.opy`、`dist/current-workshop.zh-cn.copy-paste.txt`。
   - 风险等级：高。
-  - 进游戏测试方法：天使第一次被击杀应复活并保留合理分数；第二次被击杀应正常阵亡。
+  - 进游戏测试方法：天使第一次承受致命伤时回血并震开敌人；第二次致命伤应正常阵亡。
 
 - [ ] 重构雾子法阵 active flag 和效果清理
   - 目标：把 `Kiriko_Skill` 作为条件使用，防止技能 2 持续期间重复创建法阵；死亡/换英雄时清理 `D`。
