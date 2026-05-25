@@ -1307,8 +1307,6 @@ rule "[zenyatta] holy ult warning and strike":
     wait(0.35)
     createBeam(getAllPlayers(), Beam.GOOD, eventPlayer.zen_skill_pos + Vector.UP * 18, eventPlayer.zen_skill_pos, Color.YELLOW, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
     eventPlayer.zen_fx.append(getLastCreatedEntity())
-    createBeam(getAllPlayers(), Beam.GOOD, eventPlayer.zen_skill_pos + Vector.UP * 18, eventPlayer.zen_skill_pos, Color.YELLOW, EffectReeval.VISIBILITY_POSITION_AND_RADIUS)
-    eventPlayer.zen_fx.append(getLastCreatedEntity())
     playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.YELLOW, eventPlayer.zen_skill_pos, 6)
     damage(getPlayersInRadius(eventPlayer.zen_skill_pos, 6, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true), eventPlayer, 10)
     wait(0.2)
@@ -1318,12 +1316,6 @@ rule "[zenyatta] holy ult warning and strike":
         destroyEffect(eventPlayer.zen_fx[1])
     if len(eventPlayer.zen_fx) > 2:
         destroyEffect(eventPlayer.zen_fx[2])
-    if len(eventPlayer.zen_fx) > 3:
-        destroyEffect(eventPlayer.zen_fx[3])
-    if len(eventPlayer.zen_fx) > 2:
-        destroyEffect(eventPlayer.zen_fx[2])
-    if len(eventPlayer.zen_fx) > 3:
-        destroyEffect(eventPlayer.zen_fx[3])
     eventPlayer.zen_fx = []
     eventPlayer.zen_skill_pos = null
     wait(3)
@@ -5614,10 +5606,11 @@ rule "[juno] low orbit slingshot":
         eventPlayer.applyImpulse(eventPlayer.player_state[212] + Vector.UP * 0.45, 30, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
         eventPlayer.player_state[86] = 0
         while eventPlayer.player_state[213] == true and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.JUNO and eventPlayer.player_state[86] < 10:
-            if len(getPlayersInRadius(eventPlayer, 2.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[228] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))) > 0:
-                getPlayersInRadius(eventPlayer, 2.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[228] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).player_state[228] = true
-                damage(getPlayersInRadius(eventPlayer, 2.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[228] == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())), eventPlayer, 8)
-                getPlayersInRadius(eventPlayer, 2.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[228] == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam())).applyImpulse(eventPlayer.player_state[212] + Vector.UP * 0.2, 12, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+            eventPlayer.player_state[229] = getPlayersInRadius(eventPlayer, 2.2, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and player.player_state[228] == false and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))
+            if len(eventPlayer.player_state[229]) > 0:
+                eventPlayer.player_state[229].player_state[228] = true
+                damage(eventPlayer.player_state[229], eventPlayer, 8)
+                eventPlayer.player_state[229].applyImpulse(eventPlayer.player_state[212] + Vector.UP * 0.2, 12, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
                 eventPlayer.applyImpulse(eventPlayer.player_state[212] * -1 + Vector.UP * 0.25, 7, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
                 playEffect(getAllPlayers(), DynamicEffect.GOOD_EXPLOSION, Color.AQUA, eventPlayer, 1.2)
             eventPlayer.player_state[86] += 1
@@ -5631,6 +5624,7 @@ rule "[juno] low orbit slingshot":
     eventPlayer.player_state[212] = null
     eventPlayer.player_state[213] = false
     eventPlayer.player_state[214] = []
+    eventPlayer.player_state[229] = []
     wait(3)
     eventPlayer.player_state[210] = false
 
@@ -5777,6 +5771,7 @@ rule "[juno] clear temporary states on death":
     eventPlayer.player_state[223] = false
     eventPlayer.player_state[224] = false
     eventPlayer.player_state[226] = false
+    eventPlayer.player_state[229] = []
     eventPlayer.setGravity(100)
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageReceived(100)
@@ -5816,6 +5811,7 @@ rule "[juno] clear all state after hero swap":
     eventPlayer.player_state[224] = false
     eventPlayer.player_state[225] = false
     eventPlayer.player_state[226] = false
+    eventPlayer.player_state[229] = []
     eventPlayer.setGravity(100)
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageReceived(100)

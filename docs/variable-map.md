@@ -306,6 +306,7 @@
 | `player_state[207]` | `junkrat_mine_dir` | 定时地雷投掷方向快照 |
 | `player_state[208]` | `junkrat_trap_triggered` | 本次夹子悬赏是否已触发 |
 | `player_state[209]` | `junkrat_death_fireworks_lock` | 死亡礼花流程锁 |
+| `player_state[229]` | `juno_slingshot_targets` | 朱诺低轨道弹弓本 tick 命中的临时目标数组 |
 
 ## 疑似旧逻辑残留但未删除
 

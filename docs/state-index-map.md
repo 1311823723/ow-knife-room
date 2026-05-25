@@ -208,6 +208,7 @@
 | 207 | `junkrat_mine_dir` | 狂鼠 | 定时地雷投掷方向快照 | `null` | 技能 1 开始写入当前视野方向；爆炸、死亡或换英雄置空 | 临时方向槽，可复用 | [junkrat] timed mine throw/clear |
 | 208 | `junkrat_trap_triggered` | 狂鼠 | 本次夹子悬赏是否已触发，防重复刷火药 | `false` | 夹子开始设 false；首次触发设 true；结束或清理设 false | 短状态槽，可复用 | [junkrat] bounty trap zone/clear |
 | 209 | `junkrat_death_fireworks_lock` | 狂鼠 | 死亡礼花流程锁 | `false` | 死亡礼花开始设 true；流程结束设 false | 短状态槽，可复用 | [junkrat] death fireworks |
+| 229 | `juno_slingshot_targets` | 朱诺 | 低轨道弹弓本 tick 命中的临时目标数组 | `[]` | 弹射命中判定时写入；流程结束、死亡或换英雄清空 | 临时数组槽，可复用 | [juno] low orbit slingshot/clear |
 
 ## 扩展约定
 
