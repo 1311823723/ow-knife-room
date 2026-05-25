@@ -83,9 +83,9 @@ playervar winston_zap_fx 8
 
 rule "[state] initialize player state array":
     @Event eachPlayer
-    @Condition len(eventPlayer.player_state) < 314
+    @Condition len(eventPlayer.player_state) < 320
 
-    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false, 0, -1, 0, false, null, false, false, false, null, null, [], 0, false, false, false, null, false, false, false, false, [], false, false, 0, false, null, false, null, null, false, [], 0, false, false, false, false, false, false, [], null, false, false, false, false, null, [], false, null, [], 0, false, false, null, null, false, [], false, false, null, [], 0, false, null, null, [], 0, null, false, null, [], false, false, null, null, 0, false, false, null, false, null, [], false, null, [], false, false, false, null, [], false, null, false, false, false, null, null, false, [], false, null, [], 0, false, null, null, false, false, false, false, false, [], false, false, false, 0, null, [], false, 0, 0, null, null, 0, false, null, [], 0, false, false, null, false, false, false, 0, false, null, false, null, null, [], false, null, [], 0, false, false, null, [], 0, false, false, false, false, false, 100, false, null, false, false, false, null, [], 0, false, 0, [], false, false, false, false, [], false, [], false, false, false, null, null, [], 0, false, false, false, false, false, false, null, [], false, false, false, null, null, false, false, null, null]
+    eventPlayer.player_state = [false, null, false, false, null, false, null, null, null, false, false, false, false, false, false, false, false, false, null, false, false, 0, false, false, 0, false, false, null, false, null, 0, false, false, 0, false, null, false, null, false, null, [], [], 0, false, 0, 0, false, false, null, 0, 0, 0, false, false, 0, null, false, [], false, false, 0, false, null, [], 0, null, 0, false, null, null, false, null, [], null, [], 0, false, null, null, null, false, false, null, [], 0, null, 0, false, false, false, null, [], false, null, null, null, false, 0, false, null, false, false, false, false, [], false, false, [], false, null, [], false, false, false, [], false, false, 0, -1, 0, false, null, false, false, false, null, null, [], 0, false, false, false, null, false, false, false, false, [], false, false, 0, false, null, false, null, null, false, [], 0, false, false, false, false, false, false, [], null, false, false, false, false, null, [], false, null, [], 0, false, false, null, null, false, [], false, false, null, [], 0, false, null, null, [], 0, null, false, null, [], false, false, null, null, 0, false, false, null, false, null, [], false, null, [], false, false, false, null, [], false, null, false, false, false, null, null, false, [], false, null, [], 0, false, null, null, false, false, false, false, false, [], false, false, false, 0, null, [], false, 0, 0, null, null, 0, false, null, [], 0, false, false, null, false, false, false, 0, false, null, false, null, null, [], false, null, [], 0, false, false, null, [], 0, false, false, false, false, false, 100, false, null, false, false, false, null, [], 0, false, 0, [], false, false, false, false, [], false, [], false, false, false, null, null, [], 0, false, false, false, false, false, false, null, [], false, false, false, null, null, false, false, null, null, 0, false, null, false, false, []]
 
 
 def applySoldierAntmanState():
@@ -432,6 +432,8 @@ rule "[hud] open current hero ability guide on interact":
         hudSubtext(eventPlayer, "狂鼠：废土爆破秀\n技能 1 投出定时地雷，落地后自动爆炸并低伤击飞\n技能 2 放夹子悬赏区，踩中会被短暂减速\n近战命中、地雷炸到人或夹子抓到人会攒火药\n火药满 3 后，下次近战或技能会改为大爆破；预警圈外可躲开", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.JUNO:
         hudSubtext(eventPlayer, "朱诺：低轨道弹弓\n技能 1 短暂锁定后向前上方弹射，飞行中撞人会造成小伤害和击退\n技能 2 在脚下生成反重力泡泡，圈内玩家重力降低，离圈会恢复\n空中按跳或蹲可向前漂移；近战会把目标向前推送\n致命伤会触发一次环月逃逸，随后短暂变慢并更脆", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
+    elif eventPlayer.getHero() == Hero.PHARAH:
+        hudSubtext(eventPlayer, "法老之鹰：天隼俯冲\n技能 1 进入 5 秒俯冲预备，不会立刻俯冲\n预备期间按左键，会朝准星位置高速俯冲\n近战和俯冲命中会积累鹰势，满 3 层后俯冲更快并恢复技能冷却\n俯冲打空会眩晕 3 秒", HudPosition.ACTUALLY_LEFT, -998, Color.BLUE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.WRECKING_BALL:
         hudSubtext(eventPlayer, "破坏球：爆杆台球\n强制保持球形态，左键按住原地架杆蓄力\n蓄力瞄准线会跟随当前视野，松开后直线爆冲\n蓄力越久伤害和速度越高，满力打空会空杆犯规\n撞墙会库边反弹，首个命中目标会变目标球，撞到别人可连环进球", HudPosition.ACTUALLY_LEFT, -998, Color.ORANGE, HudReeval.VISIBILITY_AND_STRING)
     elif eventPlayer.getHero() == Hero.TRACER:
@@ -5237,10 +5239,6 @@ rule "[anran] clear all temporary state":
     eventPlayer.player_state[300] = false
     eventPlayer.player_state[301] = false
 
-
-#!disableOptimizeForSize
-
-
 rule "[junkrat] lock vanilla tools and create powder hud":
     @Event eachPlayer
     @Hero junkrat
@@ -5815,6 +5813,88 @@ rule "[juno] clear all state after hero swap":
     eventPlayer.setGravity(100)
     eventPlayer.setMoveSpeed(100)
     eventPlayer.setDamageReceived(100)
+
+
+rule "[pharah] arm sky raptor dive":
+    @Event eachPlayer
+    @Hero pharah
+    @Condition eventPlayer.isAlive() == true
+    @Condition eventPlayer.player_state[315] == false
+    @Condition eventPlayer.isUsingAbility1() == true
+
+    eventPlayer.player_state[315] = true
+    smallMessage(eventPlayer, "天隼预备：5秒内左键俯冲")
+    waitUntil(eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true or eventPlayer.isAlive() == false or eventPlayer.getHero() != Hero.PHARAH, 5)
+    if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.PHARAH and eventPlayer.isHoldingButton(Button.PRIMARY_FIRE) == true:
+        eventPlayer.player_state[316] = nearestWalkablePosition(raycast(eventPlayer.getEyePosition(), eventPlayer.getEyePosition() + eventPlayer.getFacingDirection() * 35, getAllPlayers(), getAllPlayers(), false).getHitPosition())
+        eventPlayer.player_state[318] = eventPlayer.player_state[314] >= 3
+        eventPlayer.player_state[319] = []
+        wait(0.35)
+        eventPlayer.applyImpulse(directionTowards(eventPlayer.getPosition(), eventPlayer.player_state[316]) + Vector.DOWN * 0.18, 44 if eventPlayer.player_state[318] == true else 31, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+        wait(0.55)
+        if eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.PHARAH:
+            eventPlayer.player_state[319] = getPlayersInRadius(eventPlayer, 3.4, Team.ALL, LosCheck.SURFACES).filter(lambda player: player != eventPlayer and player.isAlive() == true and (getCurrentGamemode() == Gamemode.FFA or player.getTeam() != eventPlayer.getTeam()))
+        if len(eventPlayer.player_state[319]) > 0:
+            damage(eventPlayer.player_state[319], eventPlayer, 45)
+            eventPlayer.player_state[319].applyImpulse(directionTowards(eventPlayer, eventPlayer.player_state[319].getPosition()) + Vector.UP * 0.25, 10, Relativity.TO_WORLD, Impulse.CANCEL_CONTRARY_MOTION)
+            eventPlayer.player_state[319].setStatusEffect(eventPlayer, Status.KNOCKED_DOWN, 0.55)
+            if eventPlayer.player_state[318] == false and eventPlayer.player_state[314] < 3:
+                eventPlayer.player_state[314] += 1
+                if eventPlayer.player_state[314] >= 3:
+                    eventPlayer.player_state[314] = 3
+        if len(eventPlayer.player_state[319]) == 0 and eventPlayer.isAlive() == true and eventPlayer.getHero() == Hero.PHARAH:
+            eventPlayer.setStatusEffect(eventPlayer, Status.STUNNED, 3)
+            bigMessage(eventPlayer, "俯冲落空")
+        if eventPlayer.player_state[318] == true and eventPlayer.getHero() == Hero.PHARAH:
+            eventPlayer.player_state[314] = 0
+            eventPlayer.setAbilityCooldown(Button.ABILITY_1, 0)
+            eventPlayer.setAbilityCooldown(Button.ABILITY_2, 0)
+    eventPlayer.player_state[315] = false
+    eventPlayer.player_state[316] = null
+    eventPlayer.player_state[318] = false
+    eventPlayer.player_state[319] = []
+
+
+rule "[pharah] eagle momentum from melee":
+    @Event playerDealtDamage
+    @Hero pharah
+    @Condition victim != eventPlayer
+    @Condition eventDamage > 0
+    @Condition eventAbility == Button.MELEE
+    @Condition eventPlayer.player_state[317] == false
+    @Condition eventPlayer.player_state[314] < 3
+
+    eventPlayer.player_state[317] = true
+    eventPlayer.player_state[314] += 1
+    if eventPlayer.player_state[314] >= 3:
+        eventPlayer.player_state[314] = 3
+        bigMessage(eventPlayer, "鹰势已满")
+    wait(0.35)
+    eventPlayer.player_state[317] = false
+
+
+rule "[pharah] clear temporary states on death keep eagle momentum":
+    @Event playerDied
+    @Hero pharah
+
+    eventPlayer.player_state[315] = false
+    eventPlayer.player_state[316] = null
+    eventPlayer.player_state[317] = false
+    eventPlayer.player_state[318] = false
+    eventPlayer.player_state[319] = []
+
+
+rule "[pharah] clear all state after hero swap":
+    @Event eachPlayer
+    @Condition eventPlayer.getHero() != Hero.PHARAH
+    @Condition eventPlayer.player_state[314] > 0 or eventPlayer.player_state[315] == true or eventPlayer.player_state[316] != null or eventPlayer.player_state[317] == true or eventPlayer.player_state[318] == true or len(eventPlayer.player_state[319]) > 0
+
+    eventPlayer.player_state[314] = 0
+    eventPlayer.player_state[315] = false
+    eventPlayer.player_state[316] = null
+    eventPlayer.player_state[317] = false
+    eventPlayer.player_state[318] = false
+    eventPlayer.player_state[319] = []
 
 
 rule "[wrecking ball] enter ball form":

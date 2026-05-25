@@ -2,7 +2,7 @@
 
 源文件：`src/main.opy`。`player_state` 是新增的统一玩家状态数组，当前占用玩家变量槽 27。以后新增英雄技能优先评估写入这里或新建专用数组，不再随意追加独立 `playervar`。
 
-初始化规则：`[state] initialize player state array` 会在 `len(eventPlayer.player_state) < 50` 时写入默认数组。
+初始化规则：`[state] initialize player state array` 会在 `len(eventPlayer.player_state) < 320` 时写入默认数组。
 
 | Index | 名称 | 所属 | 含义 | 默认值 | 清理时机 | 是否可复用 | 相关规则/文件 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -189,6 +189,12 @@
 | 311 | `mizuki_binding_burst_lock` | 瑞希 | 技能 2 纸刃爆发结算锁 | `false` | 纸人窗口内技能 2 命中设 true；结算结束或清理设 false | 短锁槽，可复用 | [mizuki] binding burst |
 | 312 | `mizuki_binding_burst_target` | 瑞希 | 纸刃爆发当前目标 | `null` | 技能 2 命中写入；速度恢复、死亡或换英雄置空 | 跨玩家引用槽，清理时恢复目标速度 | [mizuki] binding burst/clear |
 | 313 | `mizuki_reserved_beam` | 瑞希 | 预留光束槽 | `null` | 当前轻量版未使用，保留给后续剑气连线 | 预留槽 | [mizuki] |
+| 314 | `pharah_eagle_momentum` | 法老之鹰 | 鹰势层数，0 到 3，死亡保留，换英雄清空 | `0` | 近战或俯冲命中增加；满鹰势俯冲后清 0；换英雄清 0 | 英雄资源槽，死亡保留语义不可随意复用 | [pharah] eagle/dive/clear |
+| 315 | `pharah_dive_active` | 法老之鹰 | 技能 1 俯冲预备和天隼俯冲流程锁 | `false` | 技能 1 开始设 true；预备超时、结算、死亡或换英雄设 false | 英雄流程槽，可复用前必须结束流程 | [pharah] arm sky raptor dive/clear |
+| 316 | `pharah_dive_pos` | 法老之鹰 | 本次俯冲准星目标位置 | `null` | 左键触发写入；结算或清理置空 | 位置槽，可复用 | [pharah] arm sky raptor dive/clear |
+| 317 | `pharah_melee_gain_cd` | 法老之鹰 | 近战获得鹰势短节流 | `false` | 近战加层设 true；约 0.35 秒后、死亡或换英雄设 false | 短 cooldown 槽，可复用 | [pharah] eagle momentum from melee |
+| 318 | `pharah_empowered_dive` | 法老之鹰 | 本次俯冲是否为满鹰势强化俯冲 | `false` | 俯冲开始记录；结算或清理设 false | 临时布尔槽，可复用 | [pharah] arm sky raptor dive/clear |
+| 319 | `pharah_dive_targets` | 法老之鹰 | 本次俯冲结算命中的临时目标数组 | `[]` | 俯冲结算时写入；结算、死亡或换英雄清空 | 临时数组槽，可复用 | [pharah] arm sky raptor dive/clear |
 | 190 | `hack_fx` | 旧黑影入侵 | 被入侵放大和持续伤害的光柱效果句柄 | `null` | 被入侵时创建；入侵结束或死亡 destroyEffect 后置空 | 旧逻辑兼容槽，暂不复用 | 被入侵/被入侵回归/被入侵死亡清理 |
 | 191 | `junkrat_powder` | 狂鼠 | 火药层数，0 到 3，死亡保留，换英雄清空 | `0` | 近战、定时地雷命中、夹子悬赏触发增加；大爆破消耗清 0 | 英雄资源槽，死亡保留语义不可随意复用 | [junkrat] powder/big blast/clear |
 | 193 | `junkrat_hud_created` | 狂鼠 | 火药 HUD 是否已创建 | `false` | 进入狂鼠创建；死亡/换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [junkrat] lock vanilla tools and create powder hud/clear |
