@@ -9,7 +9,7 @@
 - 当前实际使用玩家变量槽约 78 个。
 - 第一轮前显式 `playervar` 为 109 个；两轮迁移后为 72 个。
 - 已迁入 `player_state` 的旧独立变量共 38 个；新增数组变量 1 个，净减少 37 个显式玩家变量。
-- `player_state` 当前定义 `0..115`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引，`66..80` 为伊拉锐召唤太阳状态索引，`81..95` 为生命之梭园艺保龄球状态索引，`96..115` 为莱因哈特荣耀骑士审判状态索引。
+- `player_state` 当前主要定义 `0..115`、`175..188`、`190..209`，其中 `38..44` 为半藏新增技能状态索引，`45..49` 为奥丽莎强固裁决状态索引，`50..65` 为小美寒气掌控状态索引，`66..80` 为伊拉锐召唤太阳状态索引，`81..95` 为生命之梭园艺保龄球状态索引，`96..115` 为莱因哈特荣耀骑士审判状态索引，`175..188` 为无漾状态索引，`190..209` 为旧入侵兼容和狂鼠状态索引。
 - 当前未发现 `disabled rule` / 禁用规则块；没有变量属于“只在禁用规则中使用”。
 
 ## 当前玩家变量列表
@@ -208,7 +208,7 @@
 | `player_state[101]` | `reinhardt_declare_active` | 举盾宣战运行状态 |
 | `player_state[102]` | `reinhardt_declare_cd` | 举盾宣战内置冷却 |
 | `player_state[103]` | `reinhardt_declare_fx` | 宣战法阵效果句柄数组 |
-| `player_state[104]` | `reinhardt_broken` | 绕背破防状态 |
+| `player_state[104]` | `reinhardt_broken_retired` | 旧版绕背破防状态，当前已移除，仅保留清理 |
 | `player_state[105]` | `reinhardt_charge_lock` | 骑士冲锋预警/结算锁 |
 | `player_state[106]` | `reinhardt_charge_fx` | 冲锋警戒线效果句柄数组 |
 | `player_state[107]` | `reinhardt_smite_active` | 天罚落锤流程状态 |
@@ -220,6 +220,39 @@
 | `player_state[113]` | `reinhardt_oath_fx` | 破誓骑士效果句柄数组 |
 | `player_state[114]` | `reinhardt_dodge_cd` | 躲开冲锋奖励短状态 |
 | `player_state[115]` | `reinhardt_hit_gain_cd` | 命中获得荣耀节流 |
+| `player_state[175]` | `wuyang_surf_lock` | 无漾冲浪救援/巨浪拍岸运行锁 |
+| `player_state[176]` | `wuyang_surf_dir` | 无漾本次冲浪或巨浪方向 |
+| `player_state[177]` | `wuyang_surf_fx` | 无漾冲浪/巨浪效果句柄数组 |
+| `player_state[178]` | `wuyang_tick` | 无漾冲浪、巨浪或套索 tick 计数 |
+| `player_state[179]` | `wuyang_lifebuoy_lock` | 无漾救生圈套索运行锁 |
+| `player_state[180]` | `wuyang_lifebuoy_target` | 无漾当前救生圈目标 |
+| `player_state[181]` | `wuyang_lifebuoy_fx` | 无漾救生圈光束和标记效果句柄数组 |
+| `player_state[182]` | `wuyang_tide_hud_id` | 无漾潮汐值 HUD 文本 ID |
+| `player_state[183]` | `wuyang_tide_value` | 无漾潮汐值，死亡保留，换英雄清空 |
+| `player_state[184]` | `wuyang_target_hit_source` | 目标近期被哪名无漾命中过，用于防重复 |
+| `player_state[185]` | `wuyang_target_slow_active` | 目标是否处于无漾短暂减速恢复流程 |
+| `player_state[186]` | `wuyang_lifebuoy_owner` | 目标被哪名无漾的救生圈套住 |
+| `player_state[187]` | `wuyang_tide_hud_created` | 无漾潮汐值 HUD 是否已创建 |
+| `player_state[188]` | `wuyang_lifebuoy_target_cd` | 目标被救生圈套索后的短防刷屏冷却 |
+| `player_state[190]` | `hack_fx` | 旧黑影入侵光柱效果句柄 |
+| `player_state[191]` | `junkrat_powder` | 狂鼠火药层数，死亡保留，换英雄清空 |
+| `player_state[193]` | `junkrat_hud_created` | 狂鼠火药 HUD 创建标记 |
+| `player_state[194]` | `junkrat_hud_id` | 狂鼠火药 HUD 文本 ID |
+| `player_state[195]` | `junkrat_mine_lock` | 技能 1 定时地雷投掷/自动爆炸流程锁 |
+| `player_state[196]` | `junkrat_mine_pos` | 定时地雷弹道、落地和爆炸位置 |
+| `player_state[197]` | `junkrat_mine_fx` | 定时地雷弹道、预警光环和光柱效果句柄数组 |
+| `player_state[198]` | `junkrat_trap_lock` | 技能 2 夹子悬赏区流程锁 |
+| `player_state[199]` | `junkrat_trap_pos` | 夹子悬赏区中心位置 |
+| `player_state[200]` | `junkrat_trap_fx` | 夹子悬赏区预警效果句柄数组 |
+| `player_state[201]` | `junkrat_powder_ready_prompted` | 火药满层提示锁 |
+| `player_state[202]` | `junkrat_melee_powder_cd` | 近战获得火药短节流 |
+| `player_state[203]` | `junkrat_big_blast_lock` | 大爆破预警/结算流程锁 |
+| `player_state[204]` | `junkrat_big_blast_pos` | 大爆破中心位置 |
+| `player_state[205]` | `junkrat_big_blast_fx` | 大爆破预警效果句柄数组 |
+| `player_state[206]` | `junkrat_trap_target_slow` | 目标是否处于夹子悬赏减速恢复流程 |
+| `player_state[207]` | `junkrat_mine_dir` | 定时地雷投掷方向快照 |
+| `player_state[208]` | `junkrat_trap_triggered` | 本次夹子悬赏是否已触发 |
+| `player_state[209]` | `junkrat_death_fireworks_lock` | 死亡礼花流程锁 |
 
 ## 疑似旧逻辑残留但未删除
 

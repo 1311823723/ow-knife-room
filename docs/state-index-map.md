@@ -110,7 +110,7 @@
 | 101 | `reinhardt_declare_active` | 莱因哈特 | 举盾宣战运行状态 | `false` | 宣战开始设 true；结束、死亡或换英雄设 false | 状态槽，可复用 | [reinhardt] shield declaration/clear |
 | 102 | `reinhardt_declare_cd` | 莱因哈特 | 举盾宣战内置冷却 | `false` | 宣战开始设 true；结束后约 4 秒解除；死亡/换英雄清理 | cooldown 槽，可复用 | [reinhardt] shield declaration/clear |
 | 103 | `reinhardt_declare_fx` | 莱因哈特 | 宣战红黄法阵效果句柄数组 | `[]` | 宣战创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [reinhardt] shield declaration/clear |
-| 104 | `reinhardt_broken` | 莱因哈特 | 绕背破防状态 | `false` | 宣战期间被绕背攻击设 true；约 1.5 秒后恢复 | 临时状态槽，可复用 | [reinhardt] damaged gain/clear |
+| 104 | `reinhardt_broken_retired` | 莱因哈特 | 旧版绕背破防状态，当前机制已移除，仅保留清理写 false | `false` | 死亡/换英雄清理时写 false | 暂不复用，避免旧存档/旧线程污染 | [reinhardt] clear |
 | 105 | `reinhardt_charge_lock` | 莱因哈特 | 冲锋预警/结算锁 | `false` | 冲锋开始设 true；流程结束后解除；死亡/换英雄清理 | 状态槽，可复用 | [reinhardt] knight charge/clear |
 | 106 | `reinhardt_charge_fx` | 莱因哈特 | 冲锋警戒线效果句柄数组 | `[]` | 冲锋预警创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [reinhardt] knight charge/clear |
 | 107 | `reinhardt_smite_active` | 莱因哈特 | 天罚落锤流程状态 | `false` | 荣耀满后命中触发设 true；结算、死亡或换英雄设 false | 状态槽，可复用 | [reinhardt] heavenly smite/clear |
@@ -122,6 +122,39 @@
 | 113 | `reinhardt_oath_fx` | 莱因哈特 | 破誓骑士红黄光环效果句柄数组 | `[]` | 破誓创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [reinhardt] oathbreaker/clear |
 | 114 | `reinhardt_dodge_cd` | 莱因哈特/目标 | 躲开冲锋奖励短状态 | `false` | 擦边躲开设 true；约 1.2 秒后清 false | 目标短状态槽，可复用 | [reinhardt] knight charge/clear |
 | 115 | `reinhardt_hit_gain_cd` | 莱因哈特 | 命中获得荣耀节流 | `false` | 命中开始设 true；约 0.5 秒后或清理设 false | 短 cooldown 槽，可复用 | [reinhardt] hit gain/clear |
+| 175 | `wuyang_surf_lock` | 无漾 | 冲浪救援/巨浪拍岸运行锁 | `false` | 技能 1 开始设 true；流程结束、死亡或换英雄设 false | 英雄状态槽，可复用前必须结束流程 | [wuyang] surf rescue or tidal wave/clear |
+| 176 | `wuyang_surf_dir` | 无漾 | 本次冲浪或巨浪的面朝方向 | `null` | 技能 1 开始写入；结束、死亡或换英雄置空 | 临时方向槽，可复用 | [wuyang] surf rescue or tidal wave/clear |
+| 177 | `wuyang_surf_fx` | 无漾 | 冲浪/巨浪预警和水雾效果句柄数组 | `[]` | 技能 1 创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [wuyang] surf rescue or tidal wave/clear |
+| 178 | `wuyang_tick` | 无漾 | 冲浪、巨浪或套索循环 tick 计数 | `0` | 流程开始设 0；循环递增；结束或清理设 0 | 临时计数槽，可复用 | [wuyang] surf/lifebuoy |
+| 179 | `wuyang_lifebuoy_lock` | 无漾 | 救生圈套索运行锁 | `false` | 技能 2 开始设 true；流程结束、死亡或换英雄设 false | 英雄状态槽，可复用前必须结束流程 | [wuyang] lifebuoy lasso/clear |
+| 180 | `wuyang_lifebuoy_target` | 无漾 | 当前被救生圈套住的目标 | `null` | 技能 2 选中写入；结束、死亡或换英雄置空 | 跨玩家引用槽，清理时同步目标 186 | [wuyang] lifebuoy lasso/clear |
+| 181 | `wuyang_lifebuoy_fx` | 无漾 | 救生圈光束、标记和光柱效果句柄数组 | `[]` | 技能 2 创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [wuyang] lifebuoy lasso/clear |
+| 182 | `wuyang_tide_hud_id` | 无漾 | 潮汐值 HUD 文本 ID | `null` | 进入无漾创建；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 | [wuyang] create tide value hud/clear |
+| 183 | `wuyang_tide_value` | 无漾 | 潮汐值，0 到 100，死亡保留，换英雄清空 | `0` | 近战、冲浪、救生圈获得；满潮巨浪消耗；换英雄清 0 | 英雄资源槽，死亡保留语义不可随意复用 | [wuyang] gain/surf/lifebuoy/clear |
+| 184 | `wuyang_target_hit_source` | 无漾/目标 | 目标近期被哪名无漾冲浪或拖回命中过 | `null` | 命中时写入；约 2 秒后、来源死亡或换英雄清空 | 目标防重复槽，可被其他来源短暂占用 | [wuyang] clear temporary target states/clear |
+| 185 | `wuyang_target_slow_active` | 无漾/目标 | 目标是否处于无漾短暂减速恢复流程 | `false` | 施加减速设 true；约 2 秒后或清理设 false 并恢复速度 | 临时状态槽，可复用前必须恢复速度 | [wuyang] clear temporary target states/clear |
+| 186 | `wuyang_lifebuoy_owner` | 无漾/目标 | 目标被哪名无漾的救生圈套住 | `null` | 套索命中写入；挣脱、近战拖回、死亡或换英雄清空 | 跨玩家引用槽，清理时来源和目标都要处理 | [wuyang] lifebuoy lasso/melee/clear |
+| 187 | `wuyang_tide_hud_created` | 无漾 | 潮汐值 HUD 是否已创建 | `false` | 进入无漾创建；换英雄销毁 HUD 后设 false | HUD 状态槽，可复用前必须销毁 HUD | [wuyang] create tide value hud/clear |
+| 188 | `wuyang_lifebuoy_target_cd` | 无漾/目标 | 目标被救生圈套索后的短防刷屏冷却 | `false` | 套索命中设 true；约 5.5 秒后清 false | 目标 cooldown 槽，可复用 | [wuyang] lifebuoy lasso/clear lifebuoy target cooldown |
+| 190 | `hack_fx` | 旧黑影入侵 | 被入侵放大和持续伤害的光柱效果句柄 | `null` | 被入侵时创建；入侵结束或死亡 destroyEffect 后置空 | 旧逻辑兼容槽，暂不复用 | 被入侵/被入侵回归/被入侵死亡清理 |
+| 191 | `junkrat_powder` | 狂鼠 | 火药层数，0 到 3，死亡保留，换英雄清空 | `0` | 近战、定时地雷命中、夹子悬赏触发增加；大爆破消耗清 0 | 英雄资源槽，死亡保留语义不可随意复用 | [junkrat] powder/big blast/clear |
+| 193 | `junkrat_hud_created` | 狂鼠 | 火药 HUD 是否已创建 | `false` | 进入狂鼠创建；死亡/换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [junkrat] lock vanilla tools and create powder hud/clear |
+| 194 | `junkrat_hud_id` | 狂鼠 | 火药 HUD 文本 ID | `null` | 创建后写入；死亡/换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 | [junkrat] lock vanilla tools and create powder hud/clear |
+| 195 | `junkrat_mine_lock` | 狂鼠 | 技能 1 定时地雷投掷/自动爆炸流程锁 | `false` | 技能 1 开始设 true；流程和短冷却后、死亡或换英雄设 false | 短状态槽，可复用前必须结束流程 | [junkrat] timed mine throw/clear |
+| 196 | `junkrat_mine_pos` | 狂鼠 | 定时地雷弹道/落地/爆炸位置 | `null` | 技能 1 开始写入并移动；爆炸、死亡或换英雄置空 | 位置槽，可复用 | [junkrat] timed mine throw/clear |
+| 197 | `junkrat_mine_fx` | 狂鼠 | 定时地雷弹道、预警光环和光柱效果句柄数组 | `[]` | 技能 1 创建；爆炸、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [junkrat] timed mine throw/clear |
+| 198 | `junkrat_trap_lock` | 狂鼠 | 技能 2 夹子悬赏区流程锁 | `false` | 技能 2 开始设 true；流程和短冷却后、死亡或换英雄设 false | 短状态槽，可复用前必须结束流程 | [junkrat] bounty trap zone/clear |
+| 199 | `junkrat_trap_pos` | 狂鼠 | 夹子悬赏区中心位置 | `null` | 技能 2 写入；结束、死亡或换英雄置空 | 位置槽，可复用 | [junkrat] bounty trap zone/clear |
+| 200 | `junkrat_trap_fx` | 狂鼠 | 夹子悬赏区预警效果句柄数组 | `[]` | 技能 2 创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [junkrat] bounty trap zone/clear |
+| 201 | `junkrat_powder_ready_prompted` | 狂鼠 | 火药满层提示锁 | `false` | 火药到 3 后设 true；消耗或低于 3 后清 false | 提示锁槽，可复用 | [junkrat] powder ready prompt/clear |
+| 202 | `junkrat_melee_powder_cd` | 狂鼠 | 近战获得火药短节流 | `false` | 近战加火药设 true；约 0.35 秒后、死亡或换英雄设 false | 短 cooldown 槽，可复用 | [junkrat] powder from melee/clear |
+| 203 | `junkrat_big_blast_lock` | 狂鼠 | 大爆破预警/结算流程锁 | `false` | 大爆破开始设 true；结束、死亡或换英雄设 false | 状态槽，可复用前必须结束流程 | [junkrat] big blast/clear |
+| 204 | `junkrat_big_blast_pos` | 狂鼠 | 大爆破预警/爆炸中心位置 | `null` | 大爆破开始写入；结束、死亡或换英雄置空 | 位置槽，可复用 | [junkrat] big blast/clear |
+| 205 | `junkrat_big_blast_fx` | 狂鼠 | 大爆破预警效果句柄数组 | `[]` | 大爆破创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [junkrat] big blast/clear |
+| 206 | `junkrat_trap_target_slow` | 狂鼠/目标 | 目标是否处于夹子悬赏减速恢复流程 | `false` | 踩中夹子后设 true；夹子结束或清理恢复速度后设 false | 目标临时状态槽，可复用前必须恢复速度 | [junkrat] bounty trap zone/clear |
+| 207 | `junkrat_mine_dir` | 狂鼠 | 定时地雷投掷方向快照 | `null` | 技能 1 开始写入当前视野方向；爆炸、死亡或换英雄置空 | 临时方向槽，可复用 | [junkrat] timed mine throw/clear |
+| 208 | `junkrat_trap_triggered` | 狂鼠 | 本次夹子悬赏是否已触发，防重复刷火药 | `false` | 夹子开始设 false；首次触发设 true；结束或清理设 false | 短状态槽，可复用 | [junkrat] bounty trap zone/clear |
+| 209 | `junkrat_death_fireworks_lock` | 狂鼠 | 死亡礼花流程锁 | `false` | 死亡礼花开始设 true；流程结束设 false | 短状态槽，可复用 | [junkrat] death fireworks |
 
 ## 扩展约定
 
