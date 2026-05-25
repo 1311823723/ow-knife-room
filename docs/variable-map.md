@@ -102,13 +102,13 @@
 | 27 | `roadhog_hook_melee_boost_ready` | `player_state[10]` | 路霸钩中后的下一次近战强化标记 |
 | 28 | `lucio_was_airborne` | `player_state[11]` | 卢西奥落地边沿状态 |
 | 29 | `lucio_landing_bounce_cooldown` | `player_state[12]` | 卢西奥落地冲击冷却/防连锁 |
-| 30 | `sojourn_slide_bump_cooldown` | `player_state[13]` | 索杰恩滑铲创飞冷却 |
-| 31 | `illari_sunburn_cooldown` | `player_state[14]` | 旧版伊拉锐晒黑触发冷却，当前废弃 |
-| 33 | `illari_burst_cooldown` | `player_state[15]` | 旧版伊拉锐爆发弹开冷却，当前废弃 |
+| 30 | `sojourn_slide_bump_cooldown` | `player_state[13]` | 索杰恩滑铲撞墙触发冷却 |
+| 31 | `illari_sunburn_cooldown` | `player_state[14]` | 已复用为索杰恩滑铲撞墙待判定状态 |
+| 33 | `illari_burst_cooldown` | `player_state[15]` | 已复用为索杰恩滑铲撞墙起始位置 |
 | 34 | `freya_launch_circle_cooldown` | `player_state[16]` | 芙蕾娅飞天法阵冷却 |
 | 35 | `ana_sleep_fx_active` | `player_state[17]` | 安娜睡眠标记已创建标记 |
 | 36 | `ana_sleep_fx_handle` | `player_state[18]` | 安娜睡眠标记效果句柄 |
-| 37 | `illari_sunburn_pop_cooldown` | `player_state[19]` | 旧版伊拉锐晒黑二次弹飞短冷却，当前废弃 |
+| 37 | `illari_sunburn_pop_cooldown` | `player_state[19]` | 已复用为索杰恩滑铲撞墙来源玩家 |
 | 44 | `baptiste_fake_drug_cooldown` | `player_state[20]` | 巴蒂假药注射触发冷却 |
 | 59 | `ability_guide_hud_created` | `player_state[0]` | 技能说明 HUD 创建标记 |
 | 60 | `ability_guide_hud_id` | `player_state[1]` | 技能说明 HUD id |
@@ -234,6 +234,59 @@
 | `player_state[186]` | `wuyang_lifebuoy_owner` | 目标被哪名无漾的救生圈套住 |
 | `player_state[187]` | `wuyang_tide_hud_created` | 无漾潮汐值 HUD 是否已创建 |
 | `player_state[188]` | `wuyang_lifebuoy_target_cd` | 目标被救生圈套索后的短防刷屏冷却 |
+| `player_state[250]` | `domina_adjudication` | 金驭裁定值，死亡保留，换英雄清空 |
+| `player_state[251]` | `domina_hud_created` | 金驭裁定值 HUD 是否已创建 |
+| `player_state[252]` | `domina_hud_id` | 金驭裁定值 HUD 文本 ID |
+| `player_state[253]` | `domina_barrier_active` | 金驭屏障阵列流程锁 |
+| `player_state[254]` | `domina_barrier_pos` | 金驭屏障阵列中心位置 |
+| `player_state[255]` | `domina_barrier_dir` | 金驭屏障阵列方向 |
+| `player_state[256]` | `domina_barrier_fx` | 金驭屏障阵列特效句柄数组 |
+| `player_state[257]` | `domina_crystal_active` | 金驭爆能水晶流程锁 |
+| `player_state[258]` | `domina_crystal_pos` | 金驭爆能水晶位置 |
+| `player_state[259]` | `domina_crystal_fx` | 金驭爆能水晶特效句柄数组 |
+| `player_state[260]` | `domina_crystal_charge` | 金驭爆能水晶充能次数 |
+| `player_state[261]` | `domina_repulsor_target_cd` | 目标被金驭音速斥力近战命中的短节流 |
+| `player_state[262]` | `domina_cage_active` | 金驭全景牢笼流程锁 |
+| `player_state[263]` | `domina_cage_pos` | 金驭全景牢笼中心位置 |
+| `player_state[264]` | `domina_cage_fx` | 金驭全景牢笼特效句柄数组 |
+| `player_state[265]` | `domina_tick` | 金驭阵列、水晶、全景牢笼循环 tick |
+| `player_state[267]` | `domina_barrier_target_cd` | 目标被金驭屏障阵列影响后的短节流 |
+| `player_state[268]` | `domina_crystal_target_cd` | 目标为金驭爆能水晶充能后的短节流 |
+| `player_state[269]` | `domina_temp_slow_active` | 目标是否处于金驭短暂减速恢复流程 |
+| `player_state[271]` | `emre_humanity` | 埃姆雷人性值，复活回 100，换英雄重置 |
+| `player_state[272]` | `emre_hud_created` | 埃姆雷人性值 HUD 是否已创建 |
+| `player_state[273]` | `emre_hud_id` | 埃姆雷人性值 HUD 文本 ID |
+| `player_state[274]` | `emre_siphon_active` | 埃姆雷虹吸冲击枪近身命中窗口 |
+| `player_state[275]` | `emre_siphon_cd` | 埃姆雷虹吸冲击枪流程和冷却锁 |
+| `player_state[276]` | `emre_grenade_lock` | 埃姆雷赛博手雷流程和冷却锁 |
+| `player_state[277]` | `emre_grenade_pos` | 埃姆雷赛博手雷爆炸位置 |
+| `player_state[278]` | `emre_grenade_fx` | 埃姆雷赛博手雷弹道和预警效果句柄数组 |
+| `player_state[279]` | `emre_damage_token` | 埃姆雷造成伤害版本号，用于久未伤害恢复 |
+| `player_state[280]` | `emre_recovery_active` | 埃姆雷久未伤害恢复线程锁 |
+| `player_state[281]` | `emre_recovery_snapshot` | 埃姆雷恢复线程伤害 token 快照 |
+| `player_state[282]` | `emre_self_destruct_fx` | 埃姆雷人性归零自爆预警效果句柄数组 |
+| `player_state[284]` | `emre_self_destructing` | 埃姆雷人性归零自爆流程锁 |
+| `player_state[285]` | `emre_siphon_target_cd` | 目标被埃姆雷虹吸命中的短节流 |
+| `player_state[286]` | `emre_grenade_target_cd` | 目标被埃姆雷赛博手雷命中后的减速/防重复状态 |
+| `player_state[287]` | `emre_siphon_fx` | 埃姆雷虹吸冲击枪窗口效果句柄数组 |
+| `player_state[288]` | `emre_alive_seen` | 埃姆雷本次复活是否已刷新人性 |
+| `player_state[289]` | `emre_temp_targets` | 埃姆雷手雷或自爆结算临时目标数组 |
+| `player_state[290]` | `anran_buttons_locked` | 安燃原版火伤相关按钮是否已被禁用 |
+| `player_state[291]` | `anran_step_cd` | 安燃燎步流程和冷却锁 |
+| `player_state[292]` | `anran_step_active` | 安燃燎步短冲是否正在结算 |
+| `player_state[294]` | `anran_step_dir` | 安燃燎步方向快照 |
+| `player_state[296]` | `anran_tick` | 安燃预留 tick 槽，当前轻量版未持续使用 |
+| `player_state[298]` | `anran_guard_active` | 安燃收焰架势窗口 |
+| `player_state[299]` | `anran_guard_cd` | 安燃收焰架势冷却锁 |
+| `player_state[300]` | `anran_borrowed_fire` | 安燃是否拥有下一次朱雀踢强化近战 |
+| `player_state[301]` | `anran_kick_lock` | 安燃朱雀踢结算锁 |
+| `player_state[307]` | `mizuki_paper_active` | 瑞希技能 1 后的纸人伏笔窗口 |
+| `player_state[308]` | `mizuki_paper_pos` | 瑞希纸人伏笔记录位置 |
+| `player_state[309]` | `mizuki_reserved_fx` | 瑞希预留特效槽，当前轻量版未使用 |
+| `player_state[310]` | `mizuki_paper_blade_cd` | 瑞希纸刃剑气近战触发节流 |
+| `player_state[311]` | `mizuki_binding_burst_lock` | 瑞希技能 2 纸刃爆发结算锁 |
+| `player_state[312]` | `mizuki_binding_burst_target` | 瑞希纸刃爆发当前目标 |
+| `player_state[313]` | `mizuki_reserved_beam` | 瑞希预留光束槽，当前轻量版未使用 |
 | `player_state[190]` | `hack_fx` | 旧黑影入侵光柱效果句柄 |
 | `player_state[191]` | `junkrat_powder` | 狂鼠火药层数，死亡保留，换英雄清空 |
 | `player_state[193]` | `junkrat_hud_created` | 狂鼠火药 HUD 创建标记 |

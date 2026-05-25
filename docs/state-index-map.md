@@ -19,13 +19,13 @@
 | 10 | `roadhog_hook_melee_boost_ready` | 路霸 | 钩中目标后下一次近战强化标记 | `false` | 钩中设 true；强化近战触发设 false | 英雄槽，可换英雄清理后复用 | [roadhog] hook weakens target/consume boosted melee knockback |
 | 11 | `lucio_was_airborne` | 卢西奥 | 记录卢西奥曾经离地，用于落地边沿 | `false` | 空中且非冷却设 true；落地冲击触发设 false | 英雄槽，可复用 | [lucio] remember airborne state/landing bounce |
 | 12 | `lucio_landing_bounce_cooldown` | 卢西奥/受影响玩家 | 落地冲击冷却和防连锁标记 | `false` | 落地冲击触发者及范围内玩家设 true；1 秒后设 false | 短 cooldown 槽，注意可被其他卢西奥写入 | [lucio] landing bounce/clear landing bounce cooldown |
-| 13 | `sojourn_slide_bump_cooldown` | 索杰恩 | 滑铲创飞短冷却 | `false` | 滑铲触发设 true；0.8 秒后设 false | 英雄短 cooldown 槽，可复用 | [sojourn] power slide launches nearby players |
-| 14 | `legacy_illari_sunburn_cooldown` | 伊拉锐旧逻辑 | 旧版晒黑触发冷却，召唤太阳重做后不再使用 | `false` | 无运行时写入 | 可复用，需先确认旧逻辑不会恢复 | 已废弃 |
-| 15 | `legacy_illari_burst_cooldown` | 伊拉锐旧逻辑 | 旧版爆发弹开冷却，召唤太阳重做后不再使用 | `false` | 无运行时写入 | 可复用，需先确认旧逻辑不会恢复 | 已废弃 |
+| 13 | `sojourn_slide_bump_cooldown` | 索杰恩 | 滑铲撞墙触发短冷却 | `false` | 滑铲触发设 true；0.8 秒后设 false | 英雄短 cooldown 槽，可复用 | [sojourn] power slide launches nearby players |
+| 14 | `sojourn_slide_slam_pending` | 索杰恩/目标 | 目标正在等待滑铲撞墙判定 | `false` | 被索杰恩滑铲命中设 true；撞墙结算或脱出后设 false | 目标短状态槽，可复用前必须结束判定 | [sojourn] power slide launches/resolve slide wall slam |
+| 15 | `sojourn_slide_slam_start_pos` | 索杰恩/目标 | 被铲飞瞬间的位置，用于判断是否撞墙停住 | `false` | 被滑铲命中写入当前位置；撞墙结算或脱出后设 false | 临时位置槽，可复用 | [sojourn] power slide launches/resolve slide wall slam |
 | 16 | `freya_launch_circle_cooldown` | 芙蕾娅 | 飞天法阵冷却 | `false` | 技能 2 触发设 true；法阵和冷却结束后设 false | 英雄 cooldown 槽，可复用 | [freya] launch circle |
 | 17 | `ana_sleep_fx_active` | 安娜/被睡目标 | 睡眠标记效果是否已创建 | `false` | 沉睡时设 true；醒来后设 false | 状态槽，可复用但要保留醒来清理 | 被睡冷却 |
 | 18 | `ana_sleep_fx_handle` | 安娜/被睡目标 | 睡眠标记效果句柄 | `null` | 创建效果后写入；醒来后 destroyEffect 并清空 | 效果句柄槽，可复用前必须销毁 | 被睡冷却 |
-| 19 | `legacy_illari_sunburn_pop_cooldown` | 伊拉锐旧逻辑 | 旧版晒黑二次弹飞短冷却，召唤太阳重做后不再使用 | `false` | 无运行时写入 | 可复用，需先确认旧逻辑不会恢复 | 已废弃 |
+| 19 | `sojourn_slide_slam_source` | 索杰恩/目标 | 本次铲飞目标的索杰恩来源，用于撞墙额外伤害和提示 | `false` | 被滑铲命中写入索杰恩；撞墙结算或脱出后设 false | 临时玩家引用槽，可复用 | [sojourn] power slide launches/resolve slide wall slam |
 | 20 | `baptiste_fake_drug_cooldown` | 巴蒂斯特 | 假药注射触发冷却 | `false` | 成功触发假药设 true；目标恢复后再等 1 秒设 false | 英雄 cooldown 槽，可复用 | [baptiste] fake drug injection |
 | 21 | `torb_parts` | 托比昂 | 零件数量，0 到 3 | `0` | 击杀增加；触发改装、死亡或换英雄设 0 | 英雄资源槽，可复用前必须确认死亡清零语义 | [torbjorn] create/gain/activate/clear illegal modification |
 | 22 | `torb_mod_ready` | 托比昂 | 非法改装就绪标记 | `false` | 零件满设 true；触发、死亡或换英雄设 false | 英雄状态槽，可复用 | [torbjorn] gain/activate/clear illegal modification |
@@ -136,6 +136,59 @@
 | 186 | `wuyang_lifebuoy_owner` | 无漾/目标 | 目标被哪名无漾的救生圈套住 | `null` | 套索命中写入；挣脱、近战拖回、死亡或换英雄清空 | 跨玩家引用槽，清理时来源和目标都要处理 | [wuyang] lifebuoy lasso/melee/clear |
 | 187 | `wuyang_tide_hud_created` | 无漾 | 潮汐值 HUD 是否已创建 | `false` | 进入无漾创建；换英雄销毁 HUD 后设 false | HUD 状态槽，可复用前必须销毁 HUD | [wuyang] create tide value hud/clear |
 | 188 | `wuyang_lifebuoy_target_cd` | 无漾/目标 | 目标被救生圈套索后的短防刷屏冷却 | `false` | 套索命中设 true；约 5.5 秒后清 false | 目标 cooldown 槽，可复用 | [wuyang] lifebuoy lasso/clear lifebuoy target cooldown |
+| 250 | `domina_adjudication` | 金驭 | 裁定值，0 到 100，死亡保留，换英雄清空 | `0` | 近战、阵列裁定、水晶爆能获得；全景牢笼消耗；换英雄清 0 | 英雄资源槽，死亡保留语义不可随意复用 | [domina] hud/melee/crystal/panopticon/clear |
+| 251 | `domina_hud_created` | 金驭 | 裁定值 HUD 是否已创建 | `false` | 进入金驭创建；换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [domina] create adjudication hud/clear |
+| 252 | `domina_hud_id` | 金驭 | 裁定值 HUD 文本 ID | `null` | 创建后写入；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [domina] create adjudication hud/clear |
+| 253 | `domina_barrier_active` | 金驭 | 屏障阵列流程锁 | `false` | 右键普通阵列开始设 true；结束、死亡或换英雄设 false | 英雄状态槽，可复用前必须结束流程 | [domina] barrier array/clear |
+| 254 | `domina_barrier_pos` | 金驭 | 屏障阵列中心位置 | `null` | 阵列开始写入；结束或清理置空 | 位置槽，可复用 | [domina] barrier array/clear |
+| 255 | `domina_barrier_dir` | 金驭 | 屏障阵列朝向 | `null` | 阵列开始写入；结束或清理置空 | 临时方向槽，可复用 | [domina] barrier array/clear |
+| 256 | `domina_barrier_fx` | 金驭 | 屏障阵列特效句柄数组 | `[]` | 阵列创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [domina] barrier array/clear |
+| 257 | `domina_crystal_active` | 金驭 | 爆能水晶流程锁 | `false` | 技能 2 开始设 true；爆开/结束、死亡或换英雄设 false | 英雄状态槽，可复用前必须结束流程 | [domina] explosive crystal/clear |
+| 258 | `domina_crystal_pos` | 金驭 | 爆能水晶位置 | `null` | 技能 2 写入；结束或清理置空 | 位置槽，可复用 | [domina] explosive crystal/clear |
+| 259 | `domina_crystal_fx` | 金驭 | 爆能水晶特效句柄数组 | `[]` | 水晶创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [domina] explosive crystal/clear |
+| 260 | `domina_crystal_charge` | 金驭 | 爆能水晶当前充能次数 | `0` | 水晶开始设 0；敌人靠近或被推入增加；爆开/清理设 0 | 临时计数槽，可复用 | [domina] explosive crystal/melee |
+| 261 | `domina_repulsor_target_cd` | 金驭/目标 | 目标被音速斥力近战命中的短防重复判定 | `false` | 金驭近战命中设 true；约 0.7 秒后清 false | 目标 cooldown 槽，可复用 | [domina] sonic repulsor melee |
+| 262 | `domina_cage_active` | 金驭 | 全景牢笼流程锁 | `false` | 满裁定右键开始设 true；结算、死亡或换英雄设 false | 英雄状态槽，可复用前必须结束流程 | [domina] panopticon/clear |
+| 263 | `domina_cage_pos` | 金驭 | 全景牢笼中心位置 | `null` | 全景牢笼开始写入；结束或清理置空 | 位置槽，可复用 | [domina] panopticon/clear |
+| 264 | `domina_cage_fx` | 金驭 | 全景牢笼预警和光柱特效句柄数组 | `[]` | 全景牢笼创建；结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [domina] panopticon/clear |
+| 265 | `domina_tick` | 金驭 | 阵列、水晶、全景牢笼循环 tick 计数 | `0` | 流程开始设 0；循环递增；结束或清理设 0 | 临时计数槽，可复用 | [domina] barrier/crystal/panopticon |
+| 267 | `domina_barrier_target_cd` | 金驭/目标 | 目标被屏障阵列影响后的短防重复判定 | `false` | 阵列影响目标设 true；约 1.2 秒后清 false | 目标 cooldown 槽，可复用 | [domina] barrier/clear target temporary states |
+| 268 | `domina_crystal_target_cd` | 金驭/目标 | 目标为爆能水晶充能后的短防重复判定 | `false` | 水晶充能目标设 true；约 1.2 秒后清 false | 目标 cooldown 槽，可复用 | [domina] crystal/clear target temporary states |
+| 269 | `domina_temp_slow_active` | 金驭/目标 | 目标是否处于金驭短暂减速恢复流程 | `false` | 阵列、水晶、牢笼边缘减速设 true；约 1.2 秒后恢复速度 | 临时状态槽，可复用前必须恢复速度 | [domina] clear target temporary states |
+| 271 | `emre_humanity` | 埃姆雷 | 人性值，0 到 100；复活回 100，换英雄重置 | `100` | 技能和击杀降低；血包与长期未造成伤害恢复；归零自爆 | 英雄资源槽，复活回满语义不可随意复用 | [emre] humanity hud/skill/health pack/recover/self destruct |
+| 272 | `emre_hud_created` | 埃姆雷 | 人性值 HUD 是否已创建 | `false` | 进入埃姆雷创建；换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [emre] create humanity hud/clear |
+| 273 | `emre_hud_id` | 埃姆雷 | 人性值 HUD 文本 ID | `null` | 创建后写入；换英雄 destroyHudText 后清空 | HUD id 槽，可复用前必须销毁 HUD | [emre] create humanity hud/clear |
+| 274 | `emre_siphon_active` | 埃姆雷 | 虹吸冲击枪近身命中窗口 | `false` | 技能 1 开启设 true；约 3 秒后、死亡或换英雄设 false | 英雄状态槽，可复用前必须结束流程 | [emre] siphon blaster window/clear |
+| 275 | `emre_siphon_cd` | 埃姆雷 | 虹吸冲击枪流程和冷却锁 | `false` | 技能 1 开始设 true；窗口与冷却结束、死亡或换英雄设 false | cooldown 槽，可复用 | [emre] siphon blaster window/clear |
+| 276 | `emre_grenade_lock` | 埃姆雷 | 赛博手雷流程和冷却锁 | `false` | 技能 2 开始设 true；爆炸与冷却结束、死亡或换英雄设 false | cooldown 槽，可复用 | [emre] cyber frag grenade/clear |
+| 277 | `emre_grenade_pos` | 埃姆雷 | 赛博手雷爆炸位置 | `null` | 技能 2 写入；爆炸或清理后置空 | 位置槽，可复用 | [emre] cyber frag grenade/clear |
+| 278 | `emre_grenade_fx` | 埃姆雷 | 赛博手雷弹道和预警效果句柄数组 | `[]` | 技能 2 创建；爆炸、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [emre] cyber frag grenade/clear |
+| 279 | `emre_damage_token` | 埃姆雷 | 造成伤害版本号，用于“久未伤害”恢复人性 | `0` | 每次造成伤害递增；恢复线程记录快照 | token 槽，可复用 | [emre] remember damage dealt/recover humanity after calm |
+| 280 | `emre_recovery_active` | 埃姆雷 | 久未造成伤害恢复线程是否运行 | `false` | 恢复规则开始设 true；结束、死亡或换英雄设 false | 线程锁槽，可复用 | [emre] recover humanity after calm/clear |
+| 281 | `emre_recovery_snapshot` | 埃姆雷 | 恢复线程记录的伤害 token 快照 | `0` | 恢复线程开始写入；死亡或换英雄清 0 | 临时数值槽，可复用 | [emre] recover humanity after calm/clear |
+| 282 | `emre_self_destruct_fx` | 埃姆雷 | 人性归零自爆预警效果句柄数组 | `[]` | 自爆创建；死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [emre] humanity zero self destruct/clear |
+| 284 | `emre_self_destructing` | 埃姆雷 | 人性归零自爆流程锁 | `false` | 人性归零设 true；死亡或换英雄设 false | 状态槽，可复用前必须结束流程 | [emre] humanity zero self destruct/clear |
+| 285 | `emre_siphon_target_cd` | 埃姆雷/目标 | 目标被虹吸近身命中的短防重复判定 | `false` | 虹吸命中设 true；约 0.7 秒后清 false | 目标 cooldown 槽，可复用 | [emre] siphon close hit |
+| 286 | `emre_grenade_target_cd` | 埃姆雷/目标 | 目标被赛博手雷命中后的减速/防重复状态 | `false` | 手雷命中设 true；约 1 秒后恢复速度并清 false | 目标状态槽，可复用前必须恢复速度 | [emre] cyber frag grenade/clear grenade target slow |
+| 287 | `emre_siphon_fx` | 埃姆雷 | 虹吸冲击枪窗口效果句柄数组 | `[]` | 技能 1 创建；窗口结束、死亡或换英雄 destroyEffect 后清空 | 效果数组槽，可复用前必须销毁 | [emre] siphon blaster window/clear |
+| 288 | `emre_alive_seen` | 埃姆雷 | 本次复活是否已刷新人性 | `false` | 复活设 true；死亡或换英雄设 false | 每命状态槽，可复用 | [emre] restore humanity on respawn/clear |
+| 289 | `emre_temp_targets` | 埃姆雷 | 赛博手雷或自爆的临时目标数组 | `[]` | 结算时写入；结算、死亡或换英雄清空 | 临时数组槽，可复用 | [emre] cyber frag/self destruct/clear |
+| 290 | `anran_buttons_locked` | 安燃 | 原版火伤相关按钮是否已被禁用 | `false` | 进入安燃设 true；死亡或换英雄恢复按钮后设 false | 按钮状态槽，不可残留 | [anran] lock/clear |
+| 291 | `anran_step_cd` | 安燃 | 燎步流程和冷却锁 | `false` | 技能 1 开始设 true；短冲和冷却结束、死亡或换英雄设 false | cooldown 槽，可复用 | [anran] blazing step/clear |
+| 292 | `anran_step_active` | 安燃 | 燎步短冲是否正在结算 | `false` | 技能 1 短冲中设 true；结算、死亡或换英雄设 false | 临时状态槽，可复用 | [anran] blazing step/clear |
+| 294 | `anran_step_dir` | 安燃 | 燎步方向快照 | `null` | 技能 1 开始写入；结算、死亡或换英雄置空 | 临时方向槽，可复用 | [anran] blazing step/clear |
+| 296 | `anran_tick` | 安燃 | 安燃预留 tick 槽 | `0` | 当前轻量版未持续使用；清理时归 0 | 预留槽 | [anran] clear |
+| 298 | `anran_guard_active` | 安燃 | 收焰架势窗口 | `false` | 技能 2 开启约 1 秒；触发借火、超时、死亡或换英雄设 false | 短窗口槽，可复用 | [anran] ember guard/parry/clear |
+| 299 | `anran_guard_cd` | 安燃 | 收焰架势冷却锁 | `false` | 技能 2 开始设 true；冷却结束、死亡或换英雄设 false | cooldown 槽，可复用 | [anran] ember guard/clear |
+| 300 | `anran_borrowed_fire` | 安燃 | 是否拥有下一次朱雀踢强化近战 | `false` | 收焰成功设 true；朱雀踢命中、超时、死亡或换英雄设 false | 强化近战槽，可复用 | [anran] parry/kick/clear |
+| 301 | `anran_kick_lock` | 安燃 | 朱雀踢结算锁 | `false` | 强化近战结算期间设 true；结束或清理设 false | 短锁槽，可复用 | [anran] borrowed fire kick/clear |
+| 307 | `mizuki_paper_active` | 瑞希 | 技能 1 后的纸人伏笔窗口 | `false` | 技能 1 使用时设 true；约 4.2 秒后、死亡或换英雄设 false | 英雄状态槽，可复用前必须结束窗口 | [mizuki] remember/clear |
+| 308 | `mizuki_paper_pos` | 瑞希 | 纸人伏笔记录位置 | `null` | 技能 1 使用时记录当前位置；窗口结束或清理置空 | 位置槽，可复用 | [mizuki] remember/clear |
+| 309 | `mizuki_reserved_fx` | 瑞希 | 预留特效槽 | `null` | 当前轻量版未使用，保留给后续纸人视觉 | 预留槽 | [mizuki] |
+| 310 | `mizuki_paper_blade_cd` | 瑞希 | 纸刃剑气近战触发节流 | `false` | 纸人窗口内近战命中设 true；短暂恢复后清 false | 短 cooldown 槽，可复用 | [mizuki] paper blade |
+| 311 | `mizuki_binding_burst_lock` | 瑞希 | 技能 2 纸刃爆发结算锁 | `false` | 纸人窗口内技能 2 命中设 true；结算结束或清理设 false | 短锁槽，可复用 | [mizuki] binding burst |
+| 312 | `mizuki_binding_burst_target` | 瑞希 | 纸刃爆发当前目标 | `null` | 技能 2 命中写入；速度恢复、死亡或换英雄置空 | 跨玩家引用槽，清理时恢复目标速度 | [mizuki] binding burst/clear |
+| 313 | `mizuki_reserved_beam` | 瑞希 | 预留光束槽 | `null` | 当前轻量版未使用，保留给后续剑气连线 | 预留槽 | [mizuki] |
 | 190 | `hack_fx` | 旧黑影入侵 | 被入侵放大和持续伤害的光柱效果句柄 | `null` | 被入侵时创建；入侵结束或死亡 destroyEffect 后置空 | 旧逻辑兼容槽，暂不复用 | 被入侵/被入侵回归/被入侵死亡清理 |
 | 191 | `junkrat_powder` | 狂鼠 | 火药层数，0 到 3，死亡保留，换英雄清空 | `0` | 近战、定时地雷命中、夹子悬赏触发增加；大爆破消耗清 0 | 英雄资源槽，死亡保留语义不可随意复用 | [junkrat] powder/big blast/clear |
 | 193 | `junkrat_hud_created` | 狂鼠 | 火药 HUD 是否已创建 | `false` | 进入狂鼠创建；死亡/换英雄销毁后设 false | HUD 状态槽，可复用前必须销毁 HUD | [junkrat] lock vanilla tools and create powder hud/clear |
